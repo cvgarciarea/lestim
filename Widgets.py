@@ -499,6 +499,22 @@ class UserButton(Gtk.ScaleButton):
         return self.menu
 
 
+class Calendar(Gtk.Calendar):
+
+    # Esta clase se crea para que cuando se haga clic sobre el calendario, este
+    # no se cierre
+
+    def __init__(self):
+
+        Gtk.Calendar.__init__(self)
+
+        self.connect('button-press-event', self.click)
+
+    def click(self, widget, event):
+
+        return True
+
+
 class CalendarButton(Gtk.ScaleButton):
 
     def __init__(self):
@@ -521,7 +537,7 @@ class CalendarButton(Gtk.ScaleButton):
         _vbox = frame.get_children()[0]
         vbox = Gtk.VBox()
 
-        vbox.add(Gtk.Calendar())
+        vbox.add(Calendar())
         frame.remove(_vbox)
         frame.add(vbox)
 
