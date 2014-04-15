@@ -132,6 +132,17 @@ def get_applications():
             if cfg.has_option('Desktop Entry', 'Exec'):
                 ejecutar = cfg.get('Desktop Entry', 'Exec')
 
+                if '%' in ejecutar:
+                    # Para programas que el comando a ejecutar termina en %U
+                    # por ejemplo, esto hace que el programa reconozca a %U como
+                    # un argumento y el programa no se inicialice correctamente
+
+                    t = ''
+                    for x in ejecutar:
+                        t += x if x != '%' and x != ejecutar[ejecutar.index('%') + 1] else ''
+
+                    ejecutar = t
+
             if cfg.has_option('Desktop Entry', 'Categories'):
                 categoria = cfg.get('Desktop Entry', 'Categories')
 
