@@ -1,0 +1,28 @@
+GtkIconView.cell:selected, GtkIconView.cell:selected:focus {
+    background-color: transparent;
+
+    border-style: solid;
+    /*border-radius: 150px;*/
+    border-width: 120px;
+    border-color: alpha (#025, 0.50);
+
+    outline-color: transparent;
+}
+
+.view:selected {
+    background-color: @theme_selected_bg_color;
+    color: @theme_selected_fg_color;
+    outline-color: transparent;
+}
+
+.view:backdrop:selected {
+    background-color: @theme_unfocused_selected_bg_color;
+    color: @theme_unfocused_selected_fg_color;
+    outline-color: transparent;
+}
+
+DesktopArea {
+    background-color: transparent;
+    outline-color: transparent;
+    background-image: url("/home/cristian/.background.jpg");
+}
