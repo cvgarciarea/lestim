@@ -170,7 +170,7 @@ class Panel(Gtk.Box):
 class ApplicationsMenu(Gtk.HBox):
 
     __gsignals__ = {
-        'open-application': (GObject.SIGNAL_RUN_FIRST, None, [str, str])
+        'open-application': (GObject.SIGNAL_RUN_FIRST, None, [object])
             }
 
     def __init__(self):
@@ -227,13 +227,8 @@ class ApplicationsMenu(Gtk.HBox):
 
         self.show_applications(self.categorias[0])
 
-    def app_exec(self, aplicacion):
-
-        os.system(aplicacion['ejecutar'])
-
     def click(self, widget, event):
 
-        boton = event.button
         posx = event.x
         posy = event.y
 
@@ -242,8 +237,7 @@ class ApplicationsMenu(Gtk.HBox):
             iter = self.modelo.get_iter(path)
             aplicacion = self.iters[self.modelo.get_value(iter, 0)]
 
-            if boton == 1:
-                self.app_exec(aplicacion)
+            self.emit('open-application', aplicacion)
 
         except TypeError:
             pass

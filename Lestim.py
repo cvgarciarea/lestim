@@ -3,6 +3,7 @@
 
 import os
 import sys
+import thread
 import Globals as G
 
 from gi.repository import Gtk
@@ -54,7 +55,7 @@ class Lestim(Gtk.Window):
         #self.connect('delete-event', lambda w, e: self.accion(self, 'Cerrar'))
         self.connect('delete-event', lambda w, e: sys.exit(0))
         #self.panel.connect('action', self.accion)
-        #self.aplicaciones.connect('open-application', self.app_exec)
+        self.aplicaciones.connect('open-application', self.app_exec)
 
         self.add(self.vbox)
         self.show_all()
@@ -74,9 +75,12 @@ class Lestim(Gtk.Window):
 
         self.move(0, 0)
 
-    def app_exec(self, *args):
+    def app_exec(self, widget, app):
 
-        pass
+        def _exec(app):
+            os.system(app['ejecutar'])
+
+        thread.start_new_thread(_exec, (app,))
 
     def close_application(self, canvas):
 
