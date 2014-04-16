@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#  Lestin.py por:
+#     Cristian García: cristian99garcia@gmail.com
+
 import os
 import sys
 import thread

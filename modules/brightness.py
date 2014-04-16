@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#  brightness.py por:
+#     Cristian García: cristian99garcia@gmail.com
+#
+#  Basado en:
+#      http://bazaar.launchpad.net/~indicator-brightness/indicator-brightness/trunk/view/head:/indicator-brightness
+
 import subprocess
 import commands
 

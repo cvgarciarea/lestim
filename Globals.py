@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#  Globals.py por:
+#     Cristian García: cristian99garcia@gmail.com
+
 import os
 import Image
 import ConfigParser

@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#  Widgets.py por:
+#     Cristian García: cristian99garcia@gmail.com
+
 import os
 import sys
 import time
@@ -625,9 +628,8 @@ class SettingsWindow(Gtk.Window):
 
         vbox = Gtk.VBox()
         hbox = Gtk.HBox()
-        self.stack.add_titled(vbox, 'Energía', 'Energía')
-        scale = Gtk.HScale()
         adj = Gtk.Adjustment(actual, minimo, maximo, 10, 0)
+        scale = Gtk.HScale(adjustment=adj)
 
         scale.set_adjustment(adj)
         scale.set_draw_value(False)
@@ -637,6 +639,7 @@ class SettingsWindow(Gtk.Window):
         hbox.pack_start(Gtk.Label('Brillo'), False, False, 10)
         hbox.pack_end(scale, True, True, 0)
         vbox.pack_start(hbox, False, False, 2)
+        self.stack.add_titled(vbox, 'Energía', 'Energía')
 
         vbox = Gtk.VBox()
         self.stack.add_titled(vbox, 'Sonido', 'Sonido')
