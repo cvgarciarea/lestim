@@ -130,10 +130,6 @@ class Area(Gtk.IconView):
 
 class Panel(Gtk.Box):
 
-    __gsignals__ = {
-        'action': (GObject.SIGNAL_RUN_FIRST, None, (str,))
-            }
-
     def __init__(self, orientacion=Gtk.Orientation.HORIZONTAL):
 
         Gtk.Box.__init__(self, orientation=orientacion)
@@ -150,8 +146,6 @@ class Panel(Gtk.Box):
         separador1.set_draw(False)
         separador2.set_draw(False)
 
-        menu.connect('action', lambda w, x: self.emit('action', x))
-
         self.pack_start(self.boton_aplicaciones, False, False, 0)
         self.pack_start(separador1, True, True, 0)
         self.pack_start(self.boton_calendario, False, False, 0)
@@ -162,9 +156,9 @@ class Panel(Gtk.Box):
 
         return self.boton_aplicaciones.get_applications_menu()
 
-    def emitir(self, widget):
+    def get_user_menu(self):
 
-        self.emit('action', widget.get_label())
+        return self.boton_usuario.get_menu()
 
 
 class ApplicationsMenu(Gtk.HBox):
@@ -390,7 +384,8 @@ class ApplicationsButton(Gtk.ScaleButton):
 class UserMenu(Gtk.ListBox):
 
     __gsignals__ = {
-        'action': (GObject.SIGNAL_RUN_FIRST, None, [str])
+        'open-settings-window': (GObject.SIGNAL_RUN_FIRST, None, []),
+        'close': (GObject.SIGNAL_RUN_FIRST, None, []),
             }
 
     def __init__(self):
@@ -434,8 +429,8 @@ class UserMenu(Gtk.ListBox):
         box.set_layout(Gtk.ButtonBoxStyle.CENTER)
         box.set_spacing(20)
 
-        boton_confi.connect('clicked', lambda widget: self.emit('action', 'Configuraciones'))
-        boton_cerrar.connect('clicked', lambda widget: self.emit('action', 'Cerrar'))
+        boton_confi.connect('clicked', lambda widget: self.emit('open-settings-window'))
+        boton_cerrar.connect('clicked', lambda widget: self.emit('close'))
 
         box.add(boton_confi)
         box.add(boton_cerrar)
@@ -580,3 +575,91 @@ class CalendarButton(Gtk.ScaleButton):
             self.label.set_text(texto)
 
         return True
+
+
+class SettingsWindow(Gtk.Window):
+
+    def __init__(self):
+
+        Gtk.Window.__init__(self)
+
+        self.titlebar = Gtk.HeaderBar()
+        self.vbox = Gtk.VBox()
+        self.stack = Gtk.Stack()
+        self.stack_switcher = Gtk.StackSwitcher()
+        self.confi = G.get_settings()
+
+        self.set_titlebar(self.titlebar)
+        self.titlebar.set_show_close_button(True)
+        self.titlebar.set_title('Configuracíones de Lestim')
+        self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
+        self.stack.set_transition_duration(1000)
+
+        # Sección: Apariencia
+        vbox = Gtk.VBox()
+        hbox = Gtk.HBox()
+        entrada = Gtk.Entry()
+        boton = Gtk.Button()
+        label = Gtk.Label()
+
+        entrada.set_editable(False)
+        entrada.set_text(self.confi['fondo-simbolico'])
+        label.set_markup("<big><big><big>···</big></big></big>")
+
+        boton.connect('clicked', self.file_chooser_images)
+
+        boton.add(label)
+        hbox.pack_start(Gtk.Label('Fondo de escritorio:'), False, False, 2)
+        hbox.pack_start(entrada, True, True, 5)
+        hbox.pack_end(boton, False, False, 0)
+        vbox.pack_start(hbox, False, False, 2)
+        self.stack.add_titled(vbox, 'Apariencia', 'Apariencia')
+
+        # Falta crear toda la interfaz y funcionalidad para el resto de las
+        # secciones de configuración
+        vbox = Gtk.VBox()
+        self.stack.add_titled(vbox, 'Energía', 'Energía')
+
+        vbox = Gtk.VBox()
+        self.stack.add_titled(vbox, 'Sonido', 'Sonido')
+
+        vbox = Gtk.VBox()
+        self.stack.add_titled(vbox, 'Teclado', 'Teclado')
+
+        self.stack_switcher.set_stack(self.stack)
+        self.vbox.pack_start(self.stack_switcher, False, False, 0)
+        self.vbox.pack_start(self.stack, True, True, 0)
+
+        self.add(self.vbox)
+        self.show_all()
+
+    def file_chooser_images(self, widget):
+
+        def abrir(widget, self, chooser):
+
+            self.confi['fondo-simbolico'] = chooser.get_filename()
+            G.set_settings(self.confi)
+
+        chooser = Gtk.FileChooserDialog()
+        buttonbox = chooser.get_children()[0].get_children()[1]
+        boton_abrir = Gtk.Button(stock=Gtk.STOCK_OPEN)
+        boton_cancelar = Gtk.Button(stock=Gtk.STOCK_CANCEL)
+        _filter = Gtk.FileFilter()
+
+        _filter.set_name('Imágnes')
+        _filter.add_mime_type("image/*")
+        chooser.set_filename(self.confi['fondo-simbolico'] if os.path.exists(self.confi['fondo-simbolico']) else os.path.expander('~/'))
+        chooser.set_title('Seleccione una imagen')
+        chooser.set_action(Gtk.FileChooserAction.OPEN)
+        chooser.add_filter(_filter)
+        chooser.set_parent(self)
+        chooser.set_modal(True)
+
+        boton_abrir.connect('clicked', abrir, self, chooser)
+        boton_abrir.connect('clicked', lambda x: chooser.destroy())
+        boton_cancelar.connect('clicked', lambda x: chooser.destroy())
+
+        buttonbox.add(boton_cancelar)
+        buttonbox.add(boton_abrir)
+
+        chooser.show_all()

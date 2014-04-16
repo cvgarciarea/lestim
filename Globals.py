@@ -15,6 +15,7 @@ from gi.repository import Gio
 from gi.repository import Gtk
 
 
+background_path = os.path.expanduser('~/.lestim/background.jpg')
 main_window_icon = os.path.join(os.path.dirname(__file__), 'images/logo.svg')
 display = Display()
 root = display.screen().root
@@ -37,8 +38,40 @@ categories = [
     'Wine'
 ]
 
+settings_dir = os.path.expanduser('~/.lestim/')
+settings_path = os.path.expanduser('~/.lestim/settings.json')
+
+if not os.path.isdir(settings_dir):
+    os.makedirs(settings_dir)
+
+if not os.path.isfile(settings_path):
+    archivo = open(settings_path, 'w')
+    configuracion = '''{
+    "fondo-simbolico": "%s",
+}''' % os.path.join(os.path.dirname(__file__), 'images/background.jpg')
+
+    archivo.write(configuracion)
+    archivo.close()
+
 
 GLib.set_application_name('Lestim')
+
+
+def get_settings():
+
+    archivo = open(settings_path)
+    configuracion = eval(archivo.read())
+
+    return configuracion
+
+
+def set_settings(diccionario):
+
+    archivo = open(settings_path, 'w')
+    archivo.write(str(diccionario))
+    archivo.close()
+
+    set_background()
 
 
 def get_display_dimensions():
@@ -88,20 +121,6 @@ def get_files():
     archivos.sort()
 
     return directorios, archivos
-
-
-def get_background(width, height):
-
-    direccion = os.path.expanduser('~/.background.jpg')
-
-    if not os.path.exists(direccion):
-        imagen = os.path.join(os.path.dirname(__file__), 'images/background.jpg')
-        img = Image.open(imagen)
-        img = img.resize((width, height), Image.ANTIALIAS)
-
-        img.save(os.path.expanduser('~/.background.jpg'))
-
-    return direccion
 
 
 def get_applications():
@@ -273,15 +292,32 @@ def clear_string(texto):
 
 def set_background():
 
-    d = os.path.join(os.path.dirname(__file__), 'Lestim.css')
-    f = open(d)
-    l = f.read().split('"')
+    direccion = os.path.join(os.path.dirname(__file__), 'Lestim.css')
+    archivo = open(direccion)
+    lista = archivo.read().split('"')
+    print lista
     width, height = get_display_dimensions()
-    texto = l[0] + '"' + get_background(width, height) + '"' + l[-1]
+    texto = lista[0] + '"' + get_background() + '"' + lista[-1]
 
-    f.close()
+    archivo.close()
 
-    f = open(d, 'w')
-    f.write(texto)
-    f.close()
+    archivo = open(direccion, 'w')
+    archivo.write(texto)
+    archivo.close()
 
+    dicc = get_settings()
+    imagen = dicc['fondo-simbolico'] if os.path.exists(dicc['fondo-simbolico']) else os.path.join(os.path.dirname(__file__), 'images/background.jpg')
+    width, height = get_display_dimensions()
+    img = Image.open(imagen)
+    img = img.resize((width, height), Image.ANTIALIAS)
+
+    img.save(background_path)
+
+
+def get_background():
+
+    return background_path
+
+
+if not os.path.exists(background_path):
+    set_background()

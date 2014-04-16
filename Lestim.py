@@ -12,9 +12,7 @@ from gi.repository import GdkPixbuf
 
 from Widgets import Area
 from Widgets import Panel
-
-
-G.set_background()
+from Widgets import SettingsWindow
 
 
 screen = Gdk.Screen.get_default()
@@ -43,6 +41,7 @@ class Lestim(Gtk.Window):
         self.panel = Panel()
         self.area = Area()
         self.aplicaciones = self.panel.get_applications_menu()
+        self.menu_de_usuario = self.panel.get_user_menu()
 
         self.set_files()
         self.set_icon_from_file(G.main_window_icon)
@@ -54,13 +53,13 @@ class Lestim(Gtk.Window):
 
         #self.connect('delete-event', lambda w, e: self.accion(self, 'Cerrar'))
         self.connect('delete-event', lambda w, e: sys.exit(0))
-        #self.panel.connect('action', self.accion)
+        self.menu_de_usuario.connect('open-settings-window', lambda x: SettingsWindow())
+        self.menu_de_usuario.connect('close', lambda x: sys.exit(0))
         self.aplicaciones.connect('open-application', self.app_exec)
 
         self.add(self.vbox)
         self.show_all()
         self.set_defaults()
-        self.set_background(self.vbox, self.area)
 
     def set_defaults(self):
 
@@ -78,6 +77,7 @@ class Lestim(Gtk.Window):
     def app_exec(self, widget, app):
 
         def _exec(app):
+
             os.system(app['ejecutar'])
 
         thread.start_new_thread(_exec, (app,))
@@ -89,10 +89,6 @@ class Lestim(Gtk.Window):
     def get_directory(self):
 
         return G.get_desktop_directory()
-
-    def set_background(self, vbox, view):
-
-        G.set_background()
 
     def set_files(self):
 
