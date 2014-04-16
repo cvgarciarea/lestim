@@ -9,6 +9,8 @@ import alsaaudio
 import ConfigParser
 import Globals as G
 
+from modules import brightness
+
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
@@ -617,8 +619,24 @@ class SettingsWindow(Gtk.Window):
 
         # Falta crear toda la interfaz y funcionalidad para el resto de las
         # secciones de configuración
+        actual = brightness.get_current_brightness()
+        minimo = 0
+        maximo = brightness.get_max_brightness()
+
         vbox = Gtk.VBox()
+        hbox = Gtk.HBox()
         self.stack.add_titled(vbox, 'Energía', 'Energía')
+        scale = Gtk.HScale()
+        adj = Gtk.Adjustment(actual, minimo, maximo, 10, 0)
+
+        scale.set_adjustment(adj)
+        scale.set_draw_value(False)
+
+        scale.connect('value-changed', lambda w: brightness.set_brightness(w.get_value()))
+
+        hbox.pack_start(Gtk.Label('Brillo'), False, False, 10)
+        hbox.pack_end(scale, True, True, 0)
+        vbox.pack_start(hbox, False, False, 2)
 
         vbox = Gtk.VBox()
         self.stack.add_titled(vbox, 'Sonido', 'Sonido')
