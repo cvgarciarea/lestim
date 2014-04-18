@@ -168,7 +168,10 @@ def get_applications():
             if cfg.has_option('Desktop Entry', 'Categories'):
                 categoria = cfg.get('Desktop Entry', 'Categories')
 
-            if categoria is None or 'utility' in categoria.lower():
+            else:
+                categoria = ''
+
+            if categoria == '' or 'utility' in categoria.lower():
                 _categoria = 'Accesorios'
 
             if 'accessibility' in categoria.lower():
