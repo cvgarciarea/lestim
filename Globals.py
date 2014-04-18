@@ -8,6 +8,12 @@ import os
 import Image
 import ConfigParser
 
+try:
+    import Image
+
+except ImportError:
+    from PIL import Image
+
 from modules import enumerate_interfaces
 
 from Xlib.display import Display
