@@ -232,6 +232,7 @@ def get_applications():
 def get_icon(path):
 
     icon_theme = Gtk.IconTheme()
+    pixbuf = icon_theme.load_icon('gtk-file', 48, 0)
 
     if '/' in path:
         archivo = Gio.File.new_for_path(path)
@@ -254,6 +255,9 @@ def get_icon(path):
 
                     else:
                         pixbuf = icon_theme.load_icon(cfg.get('Desktop Entry', 'Icon'), 48, 0)
+
+                else:
+                    pixbuf = icon_theme.load_icon('gtk-file', 48, 0)
 
             else:
                 try:
