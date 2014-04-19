@@ -9,6 +9,7 @@ import sys
 import time
 import cairo
 import alsaaudio
+#import thread
 import ConfigParser
 import Globals as G
 
@@ -191,6 +192,7 @@ class ApplicationsMenu(Gtk.HBox):
         self.area.set_pixbuf_column(1)
         self.area.set_columns(3)
         self.entrada.set_size_request(400, -1)
+        self.entrada.set_icon_from_stock(Gtk.EntryIconPosition.PRIMARY, Gtk.STOCK_FIND)
 
         vbox = Gtk.VBox()
         _hbox = Gtk.HBox()
@@ -287,17 +289,26 @@ class ApplicationsMenu(Gtk.HBox):
 
     def app_search(self, widget):
 
+        #thread.start_new_thread(self.set_apps, ())
+
         resultados = []
+        texto = G.clear_string(widget.get_text())
+        self.entrada.set_progress_pulse_step(0.2)
 
-        for categoria in self.programas.keys():
-            for programa in self.programas[categoria]:
-                if type(programa) == dict:
-                    texto = G.clear_string(widget.get_text())
-                    app = G.clear_string(programa['nombre'])
+        if len(texto):
+            for categoria in self.categorias:
+                for programa in self.programas[categoria]:
+                    if type(programa) == dict:
+                        app = G.clear_string(programa['nombre'])
 
-                    if texto in app:
-                        resultados.append(programa)
+                        if texto in app:
+                            resultados.append(programa)
+                            self.entrada.progress_pulse()
 
+        else:
+            resultados = self.programas[self.categorias[0]]
+
+        self.entrada.set_progress_pulse_step(0)
         self.show_applications(None, resultados)
 
     def app_switch(self, widget, iters, index=None):
