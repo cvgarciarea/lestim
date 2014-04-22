@@ -54,9 +54,9 @@ class Lestim(Gtk.Window):
         self.vbox.pack_start(self.panel, False, False, 0)
         self.vbox.pack_start(self.area, True, True, 0)
 
-        #self.connect('delete-event', lambda w, e: self.accion(self, 'Cerrar'))
         self.connect('delete-event', lambda w, e: sys.exit(0))
-        self.menu_de_usuario.connect('open-settings-window', lambda x: SettingsWindow())
+        self.menu_de_usuario.connect(
+            'open-settings-window', lambda x: SettingsWindow())
         self.menu_de_usuario.connect('close', lambda x: sys.exit(0))
         self.aplicaciones.connect('open-application', self.app_exec)
 
