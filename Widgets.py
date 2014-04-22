@@ -9,7 +9,7 @@ import sys
 import time
 import cairo
 import alsaaudio
-#import thread
+# import thread
 import ConfigParser
 import Globals as G
 
@@ -40,11 +40,11 @@ class Area(Gtk.IconView):
         self.set_text_column(0)
         self.set_pixbuf_column(1)
         self.set_item_orientation(Gtk.Orientation.VERTICAL)
-        #self.set_item_width(100)
-        #self.set_margin(0)
-        #self.set_item_padding(0)
+        # self.set_item_width(100)
+        # self.set_margin(0)
+        # self.set_item_padding(0)
         self.set_reorderable(True)
-        #self.set_columns(2)
+        # self.set_columns(2)
 
         self.connect('button-press-event', self.clic)
 
@@ -117,11 +117,12 @@ class Area(Gtk.IconView):
 
         iter = self.modelo.append([nombre, icono])
         path = self.modelo.get_path(iter)
-        #tooltip = Gtk.Tooltip()
 
-        #tooltip.set_text(direccion)
-        #tooltip.set_icon(icono)
-        #self.set_tooltip_item(tooltip, path)
+        # tooltip = Gtk.Tooltip()
+
+        # tooltip.set_text(direccion)
+        # tooltip.set_icon(icono)
+        # self.set_tooltip_item(tooltip, path)
 
         self.show_all()
 
@@ -171,7 +172,7 @@ class ApplicationsMenu(Gtk.HBox):
 
     __gsignals__ = {
         'open-application': (GObject.SIGNAL_RUN_FIRST, None, [object])
-            }
+        }
 
     def __init__(self):
 
@@ -192,7 +193,8 @@ class ApplicationsMenu(Gtk.HBox):
         self.area.set_pixbuf_column(1)
         self.area.set_columns(3)
         self.entrada.set_size_request(400, -1)
-        self.entrada.set_icon_from_stock(Gtk.EntryIconPosition.PRIMARY, Gtk.STOCK_FIND)
+        self.entrada.set_icon_from_stock(
+            Gtk.EntryIconPosition.PRIMARY, Gtk.STOCK_FIND)
 
         vbox = Gtk.VBox()
         _hbox = Gtk.HBox()
@@ -262,7 +264,7 @@ class ApplicationsMenu(Gtk.HBox):
                     index += 1 if numero % 12 == 0 else 0
                     numero += 1
 
-                    if not index in iters.keys():
+                    if index not in iters.keys():
                         iters[index] = []
 
                     iters[index].append(x)
@@ -273,7 +275,7 @@ class ApplicationsMenu(Gtk.HBox):
                 index += 1 if numero % 12 == 0 else 0
                 numero += 1
 
-                if not index in iters.keys():
+                if index not in iters.keys():
                     iters[index] = []
 
                 iters[index].append(x)
@@ -289,7 +291,7 @@ class ApplicationsMenu(Gtk.HBox):
 
     def app_search(self, widget):
 
-        #thread.start_new_thread(self.set_apps, ())
+        # thread.start_new_thread(self.set_apps, ())
 
         resultados = []
         texto = G.clear_string(widget.get_text())
@@ -402,7 +404,7 @@ class UserMenu(Gtk.ListBox):
     __gsignals__ = {
         'open-settings-window': (GObject.SIGNAL_RUN_FIRST, None, []),
         'close': (GObject.SIGNAL_RUN_FIRST, None, []),
-            }
+        }
 
     def __init__(self):
 
@@ -429,7 +431,8 @@ class UserMenu(Gtk.ListBox):
         box.set_layout(Gtk.ButtonBoxStyle.CENTER)
         box.set_spacing(20)
 
-        boton_confi.connect('clicked', lambda widget: self.emit('open-settings-window'))
+        boton_confi.connect('clicked', lambda widget:
+                            self.emit('open-settings-window'))
         boton_cerrar.connect('clicked', lambda widget: self.emit('close'))
 
         box.add(boton_confi)
@@ -571,7 +574,11 @@ class CalendarButton(Gtk.ScaleButton):
                 'Dec': 'Dic',
             }
 
-            texto = hora + '  ' + dias[dia] + ', ' + fecha + ' de ' + meses[mes] + ' del ' + anyo
+            texto = hora + '  ' + \
+                dias[dia] + ', ' + \
+                fecha + ' de ' + \
+                meses[mes] + ' del ' + anyo
+
             self.label.set_text(texto)
 
         return True
@@ -591,8 +598,10 @@ class SettingsWindow(Gtk.Window):
 
         self.set_titlebar(self.titlebar)
         self.titlebar.set_show_close_button(True)
-        self.titlebar.set_title('Configuracíones de Lestim')
-        self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
+        self.titlebar.set_tooltip_text(
+            'Algunos cambios tendrán efecto en la siguiente sesión')
+        self.stack.set_transition_type(
+            Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
         self.stack.set_transition_duration(1000)
 
         # Sección: Apariencia
@@ -629,7 +638,8 @@ class SettingsWindow(Gtk.Window):
         scale.set_adjustment(adj)
         scale.set_draw_value(False)
 
-        scale.connect('value-changed', lambda w: brightness.set_brightness(w.get_value()))
+        scale.connect('value-changed', lambda w:
+                      brightness.set_brightness(w.get_value()))
 
         hbox.pack_start(Gtk.Label('Brillo'), False, False, 10)
         hbox.pack_end(scale, True, True, 0)
@@ -646,7 +656,7 @@ class SettingsWindow(Gtk.Window):
         self.stack.add_titled(vbox, 'Teclado', 'Teclado')
 
         self.stack_switcher.set_stack(self.stack)
-        self.vbox.pack_start(self.stack_switcher, False, False, 0)
+        self.titlebar.add(self.stack_switcher)
         self.vbox.pack_start(self.stack, True, True, 0)
 
         self.add(self.vbox)
@@ -667,7 +677,12 @@ class SettingsWindow(Gtk.Window):
 
         _filter.set_name('Imágnes')
         _filter.add_mime_type("image/*")
-        chooser.set_filename(self.confi['fondo-simbolico'] if os.path.exists(self.confi['fondo-simbolico']) else os.path.expander('~/'))
+        chooser.set_filename(self.confi['fondo-simbolico']
+                             if os.path.exists(self.confi['fondo-simbolico'])
+                             else os.path.join(
+                                os.path.expanduser('~/'), os.getlogin())
+                             )
+
         chooser.set_title('Seleccione una imagen')
         chooser.set_action(Gtk.FileChooserAction.OPEN)
         chooser.add_filter(_filter)
