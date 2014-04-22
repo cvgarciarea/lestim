@@ -6,6 +6,7 @@
 
 import os
 import Image
+import alsaaudio
 import ConfigParser
 
 try:
@@ -24,6 +25,7 @@ from gi.repository import Gio
 from gi.repository import Gtk
 
 
+mixer = alsaaudio.Mixer()
 background_path = os.path.expanduser('~/.lestim/background.jpg')
 main_window_icon = os.path.join(os.path.dirname(__file__), 'images/logo.svg')
 display = Display()
@@ -61,7 +63,6 @@ if not os.path.isfile(settings_path):
 
     archivo.write(configuracion)
     archivo.close()
-
 
 GLib.set_application_name('Lestim')
 

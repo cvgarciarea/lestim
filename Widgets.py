@@ -408,8 +408,6 @@ class UserMenu(Gtk.ListBox):
 
         Gtk.ListBox.__init__(self)
 
-        self.mixer = alsaaudio.Mixer()
-
         self.set_selection_mode(Gtk.SelectionMode.NONE)
 
         _hbox = self.create_row()
@@ -422,21 +420,7 @@ class UserMenu(Gtk.ListBox):
         expander.add(hbox)
         _hbox.add(expander)
 
-        hbox = self.create_row()
-        volumebutton = Gtk.VolumeButton()
-        adj = Gtk.Adjustment(int(self.mixer.getvolume()[0]), 25, 100, 1, 10, 0)
-        scale = Gtk.HScale(adjustment=adj)
-
-        volumebutton.set_sensitive(False)
-        volumebutton.set_opacity(1)
-        volumebutton.set_value(scale.get_value() / 100)
-        scale.set_show_fill_level(True)
-        scale.set_draw_value(False)
-
-        scale.connect('value-changed', self.set_value, volumebutton)
-
-        hbox.pack_start(volumebutton, False, False, 0)
-        hbox.pack_start(scale, True, True, 0)
+        hbox = self.create_row(VolumeWidget())
 
         box = self.create_row(Gtk.ButtonBox())
         boton_confi = Gtk.Button(stock=Gtk.STOCK_PREFERENCES)
@@ -454,7 +438,7 @@ class UserMenu(Gtk.ListBox):
     def set_value(self, widget, button):
 
         button.set_value(widget.get_value() / 100)
-        self.mixer.setvolume(int(button.get_value() * 100))
+        G.mixer.setvolume(int(button.get_value() * 100))
 
     def create_row(self, widget=None):
 
@@ -653,6 +637,9 @@ class SettingsWindow(Gtk.Window):
         self.stack.add_titled(vbox, 'Energía', 'Energía')
 
         vbox = Gtk.VBox()
+        hbox = VolumeWidget()
+
+        vbox.pack_start(hbox, False, False, 2)
         self.stack.add_titled(vbox, 'Sonido', 'Sonido')
 
         vbox = Gtk.VBox()
@@ -695,3 +682,33 @@ class SettingsWindow(Gtk.Window):
         buttonbox.add(boton_abrir)
 
         chooser.show_all()
+
+
+class VolumeWidget(Gtk.HBox):
+
+    def __init__(self):
+
+        Gtk.HBox.__init__(self)
+
+        adj = Gtk.Adjustment(int(G.mixer.getvolume()[0]), 25, 100, 1, 10, 0)
+        self.button = Gtk.VolumeButton()
+        self.scale = Gtk.HScale(adjustment=adj)
+
+        self.button.set_sensitive(False)
+        self.button.set_opacity(1)
+        self.button.set_value(self.scale.get_value() / 100)
+        self.scale.set_show_fill_level(True)
+        self.scale.set_draw_value(False)
+
+        self.scale.connect('value-changed', lambda x: self.set_value())
+
+        self.pack_start(self.button, False, False, 0)
+        self.pack_start(self.scale, True, True, 0)
+
+    def set_value(self, valor=None):
+
+        if valor is None:
+            valor = int(self.scale.get_value())
+
+        self.button.set_value(valor / 100.0)
+        G.mixer.setvolume(valor)
