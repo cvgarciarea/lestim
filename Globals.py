@@ -163,12 +163,14 @@ def get_applications():
 
                 if '%' in ejecutar:
                     # Para programas que el comando a ejecutar termina en %U
-                    # por ejemplo, esto hace que el programa reconozca a %U como
-                    # un argumento y el programa no se inicialice correctamente
+                    # por ejemplo, esto hace que el programa reconozca a %U
+                    # como un argumento y el programa no se inicialice
+                    # correctamente
 
                     t = ''
                     for x in ejecutar:
-                        t += x if x != '%' and x != ejecutar[ejecutar.index('%') + 1] else ''
+                        t += x if x != '%' and x != ejecutar[ejecutar.index('%') + 1] \
+                                       else ''
 
                     ejecutar = t
 
@@ -184,7 +186,9 @@ def get_applications():
             if 'accessibility' in categoria.lower():
                 _categoria = 'Acceso universal'
 
-            if 'desktopsettings' in categoria.lower() or 'system' in categoria.lower() or 'settings' in categoria.lower():
+            if 'desktopsettings' in categoria.lower() or 'system' in categoria.lower() \
+                    or 'settings' in categoria.lower():
+
                 _categoria = 'Configuración del sistema'
 
             if 'science' in categoria.lower():
@@ -222,7 +226,7 @@ def get_applications():
                     'categoria': _categoria,
                 }
 
-                if not _categoria in categorias:
+                if _categoria not in categorias:
                     categorias[_categoria] = []
 
                 categorias[_categoria].append(aplicacion)
@@ -237,7 +241,9 @@ def get_icon(path):
 
     if '/' in path:
         archivo = Gio.File.new_for_path(path)
-        info = archivo.query_info('standard::icon', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, None)
+        info = archivo.query_info('standard::icon',
+                                  Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
+                                  None)
         icono = info.get_icon()
         tipos = icono.get_names()
 
@@ -252,10 +258,12 @@ def get_icon(path):
                 if cfg.has_option('Desktop Entry', 'Icon'):
                     if '/' in cfg.get('Desktop Entry', 'Icon'):
                         d = cfg.get('Desktop Entry', 'Icon')
-                        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(d, 48, 48)
+                        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
+                            d, 48, 48)
 
                     else:
-                        pixbuf = icon_theme.load_icon(cfg.get('Desktop Entry', 'Icon'), 48, 0)
+                        pixbuf = icon_theme.load_icon(cfg.get('Desktop Entry',
+                                                              'Icon'), 48, 0)
 
                 else:
                     pixbuf = icon_theme.load_icon('gtk-file', 48, 0)
@@ -271,8 +279,8 @@ def get_icon(path):
         if '.' in path:
             path = path.split('.')[0]
 
-        pixbuf = icon_theme.load_icon(path if icon_theme.has_icon(path) else 'gtk-file', 48, 0)
-
+        pixbuf = icon_theme.load_icon(path if icon_theme.has_icon(path)
+                                           else 'gtk-file', 48, 0)
 
     return pixbuf
 
@@ -323,7 +331,11 @@ def set_background():
     archivo.close()
 
     dicc = get_settings()
-    imagen = dicc['fondo-simbolico'] if os.path.exists(dicc['fondo-simbolico']) else os.path.join(os.path.dirname(__file__), 'images/background.jpg')
+    imagen = dicc['fondo-simbolico'] if os.path.exists(dicc['fondo-simbolico']) \
+                                     else os.path.join(
+                                         os.path.dirname(__file__),
+                                         'images/background.jpg')
+
     width, height = get_display_dimensions()
     img = Image.open(imagen)
     img = img.resize((width, height), Image.ANTIALIAS)
