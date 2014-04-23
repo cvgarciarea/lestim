@@ -180,7 +180,7 @@ class ApplicationsMenu(Gtk.HBox):
 
         self.listbox = Gtk.ListBox()
         self.area = Gtk.IconView()
-        self.entrada = Gtk.Entry()
+        self.entrada = Gtk.SearchEntry()
         self.buttonbox = Gtk.HBox()
         self.modelo = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
         self.programas = {}
@@ -193,8 +193,8 @@ class ApplicationsMenu(Gtk.HBox):
         self.area.set_pixbuf_column(1)
         self.area.set_columns(3)
         self.entrada.set_size_request(400, -1)
-        self.entrada.set_icon_from_stock(
-            Gtk.EntryIconPosition.PRIMARY, Gtk.STOCK_FIND)
+        # self.entrada.set_icon_from_stock(
+        #     Gtk.EntryIconPosition.PRIMARY, Gtk.STOCK_FIND)
 
         vbox = Gtk.VBox()
         _hbox = Gtk.HBox()

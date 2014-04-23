@@ -16,6 +16,7 @@ except ImportError:
     from PIL import Image
 
 from modules import enumerate_interfaces
+from modules import escanea
 
 from Xlib.display import Display
 
@@ -65,6 +66,11 @@ if not os.path.isfile(settings_path):
     archivo.close()
 
 GLib.set_application_name('Lestim')
+
+
+def get_networks(dispositivo='wlan0'):
+    
+    return escanea.ObtieneRedes(dispositivo)
 
 
 def get_settings():
