@@ -26,6 +26,38 @@ icon_theme = Gtk.IconTheme()
 icons = icon_theme.list_icons(None)
 
 
+class PopupEntrySearch(Gtk.Window):
+
+    __gsignals__ = {
+        'search-changed': (GObject.SIGNAL_RUN_FIRST, None, [str])
+        }
+
+    def __init__(self):
+
+        Gtk.Window.__init__(self)
+        
+        tx = 200
+        ty = 35
+        
+        self.entry = Gtk.SearchEntry()
+        self.entry.set_size_request(tx, ty)
+        self.move(G.width - (tx / 2), G.height - (ty / 2))
+
+        self.connect('realize', self.do_realized)
+        self.connect('destroy', lambda w: self.destroy())
+        self.entry.connect('changed', lambda w: self.emit('search-changed', w.get_text()))
+        self.entry.connect('focus-out-event', lambda w, e: self.destroy())
+
+        self.add(self.entry)
+        self.show_all()
+
+    def do_realized(self, *args):
+        
+        win = self.get_window()
+        win.set_decorations(False)
+        win.process_all_updates()
+
+
 class Area(Gtk.IconView):
 
     __gtype_name__ = 'DesktopArea'
@@ -48,10 +80,11 @@ class Area(Gtk.IconView):
         self.set_reorderable(True)
         # self.set_columns(2)
 
-        self.connect('button-press-event', self.clic)
+        self.connect('button-press-event', self.on_click_press)
+        self.connect('key-press-event', self.on_button_press)
         self.scan_foolder.connect('files-changed', self.agregar_iconos)
 
-    def clic(self, widget, event):
+    def on_click_press(self, widget, event):
 
         def abrir_archivo(aplicacion):
 
@@ -84,6 +117,28 @@ class Area(Gtk.IconView):
 
             except TypeError:
                 pass
+
+    def on_button_press(self, widget, event):
+
+        if event.string.isalpha():
+            win = PopupEntrySearch()
+            win.connect('search-changed', self.search_text)
+            win.entry.set_text(event.string)
+            win.entry.select_region(1, 1)
+
+    def search_text(self, widget, text):
+        
+        self.unselect_all()
+
+        if text:
+            text = G.clear_string(text)
+
+            for item in self.modelo:
+                label = G.clear_string(list(item)[0])
+
+                if label.startswith(text):
+                    self.select_path(item.path)
+                    break
 
     def agregar_iconos(self, scan_foolder, lista):
 

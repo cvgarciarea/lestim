@@ -305,19 +305,19 @@ def clear_string(texto):
     texto = texto.lower()
 
     if 'á' in texto:
-        texto.replace('á', 'a')
+        texto = texto.replace('á', 'a')
 
     if 'é' in texto:
-        texto.replace('é', 'e')
+        texto = texto.replace('é', 'e')
 
     if 'í' in texto:
-        texto.replace('í', 'i')
+        texto = texto.replace('í', 'i')
 
     if 'ó' in texto:
-        texto.replace('ó', 'o')
+        texto = texto.replace('ó', 'o')
 
     if 'ú' in texto:
-        texto.replace('ú', 'u')
+        texto = texto.replace('ú', 'u')
 
     return texto
 
