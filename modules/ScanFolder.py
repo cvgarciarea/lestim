@@ -22,6 +22,7 @@ class ScanFolder(GObject.GObject):
 
         self.foolder = foolder
         self.files = []
+        self.show_hidden_files = False
 
         GObject.timeout_add(1000, self.scan)
 
@@ -45,16 +46,24 @@ class ScanFolder(GObject.GObject):
         files = []
         _files = os.listdir(self.foolder)
 
-        for _file in _files:
-            _file = os.path.join(self.foolder, _file)
+        for name in _files:
+            filename = os.path.join(self.foolder, name)
 
-            if os.path.isdir(_file):
-                directories.append(_file)
+            if (not name.startswith('.') and not name.endswith('~')) or self.show_hidden_files:
+                if os.path.isdir(filename):
+                    directories.append(filename)
 
-            elif os.path.isfile(_file):
-                files.append(_file)
+                elif os.path.isfile(filename):
+                    files.append(filename)
 
         directories.sort()
         files.sort()
 
         return directories + files
+
+    def set_show_hidden_files(self, if_show):
+        
+        if type(if_show) != bool:
+            raise TypeError('The parameter must to be a bool')
+        
+        self.show_hidden_files = if_show

@@ -113,6 +113,7 @@ def get_desktop_directory():
     if not os.path.exists(directorio):
         os.mkdir(directorio)
 
+    directorio = '/home/cristian/'
     return directorio
 
 
