@@ -14,6 +14,7 @@ import ConfigParser
 import Globals as G
 
 from modules import brightness
+from modules import ScanFolder
 
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -34,6 +35,7 @@ class Area(Gtk.IconView):
         Gtk.IconView.__init__(self)
 
         self.modelo = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
+        self.scan_foolder = ScanFolder.ScanFolder(G.get_desktop_directory())
 
         self.set_selection_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_model(self.modelo)
@@ -47,6 +49,7 @@ class Area(Gtk.IconView):
         # self.set_columns(2)
 
         self.connect('button-press-event', self.clic)
+        self.scan_foolder.connect('files-changed', self.agregar_iconos)
 
     def clic(self, widget, event):
 
@@ -82,25 +85,11 @@ class Area(Gtk.IconView):
             except TypeError:
                 pass
 
-    def agregar_icono(self, lista):
+    def agregar_iconos(self, scan_foolder, lista):
 
-        directorios = []
-        archivos = []
+        self.limpiar()
 
         for x in lista:
-            if os.path.isdir(x):
-                directorios.append(x)
-
-            elif os.path.isfile(x):
-                archivos.append(x)
-
-        directorios.sort()
-        archivos.sort()
-
-        for x in directorios:
-            self.insertar_iter(x)
-
-        for x in archivos:
             self.insertar_iter(x)
 
     def insertar_iter(self, direccion):
@@ -118,11 +107,11 @@ class Area(Gtk.IconView):
         iter = self.modelo.append([nombre, icono])
         path = self.modelo.get_path(iter)
 
-        # tooltip = Gtk.Tooltip()
+        tooltip = Gtk.Tooltip()
 
-        # tooltip.set_text(direccion)
-        # tooltip.set_icon(icono)
-        # self.set_tooltip_item(tooltip, path)
+        tooltip.set_text(direccion)
+        tooltip.set_icon(icono)
+        self.set_tooltip_item(tooltip, path)
 
         self.show_all()
 

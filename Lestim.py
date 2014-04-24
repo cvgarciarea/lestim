@@ -46,7 +46,6 @@ class Lestim(Gtk.Window):
         self.aplicaciones = self.panel.get_applications_menu()
         self.menu_de_usuario = self.panel.get_user_menu()
 
-        self.set_files()
         self.set_icon_from_file(G.main_window_icon)
         self.set_title('Lestim')
         self.area.set_direccion(self.directorio)
@@ -92,13 +91,6 @@ class Lestim(Gtk.Window):
     def get_directory(self):
 
         return G.get_desktop_directory()
-
-    def set_files(self):
-
-        directorios, archivos = G.get_files()
-
-        self.area.limpiar()
-        self.area.agregar_icono(directorios + archivos)
 
 
 if __name__ == '__main__':
