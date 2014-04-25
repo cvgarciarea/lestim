@@ -47,6 +47,7 @@ class PopupEntrySearch(Gtk.Window):
         self.connect('destroy', lambda w: self.destroy())
         self.entry.connect('changed', lambda w: self.emit('search-changed', w.get_text()))
         self.entry.connect('focus-out-event', lambda w, e: self.destroy())
+        self.entry.connect('key-press-event', self.button_press_event_cb)
 
         self.add(self.entry)
         self.show_all()
@@ -56,6 +57,11 @@ class PopupEntrySearch(Gtk.Window):
         win = self.get_window()
         win.set_decorations(False)
         win.process_all_updates()
+
+    def button_press_event_cb(self, widget, event):
+        
+        if event.string == "": # En realidad esta cadena alberga el caracter "Escape"
+            self.destroy()
 
 
 class Area(Gtk.IconView):
