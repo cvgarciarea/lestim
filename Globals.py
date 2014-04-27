@@ -5,7 +5,6 @@
 #     Cristian García: cristian99garcia@gmail.com
 
 import os
-import Image
 import alsaaudio
 import ConfigParser
 
