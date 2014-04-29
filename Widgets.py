@@ -481,7 +481,7 @@ class ApplicationsButton(Gtk.Button):
         return True
 
     
-class UserMenu(Gtk.ListBox):
+class UserMenu(WindowWithoutTitleBar):
 
     __gsignals__ = {
         'open-settings-window': (GObject.SIGNAL_RUN_FIRST, None, []),
@@ -490,9 +490,12 @@ class UserMenu(Gtk.ListBox):
 
     def __init__(self):
 
-        Gtk.ListBox.__init__(self)
+        WindowWithoutTitleBar.__init__(self, (G.width, 0), False)
 
-        self.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.menu = Gtk.ListBox()
+        
+        self.menu.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.set_size_request(400, 500)
 
         _hbox = self.create_row()
         hbox = Gtk.HBox()
@@ -513,12 +516,13 @@ class UserMenu(Gtk.ListBox):
         box.set_layout(Gtk.ButtonBoxStyle.CENTER)
         box.set_spacing(20)
 
-        boton_confi.connect('clicked', lambda widget:
-                            self.emit('open-settings-window'))
+        boton_confi.connect('clicked', lambda widget: self.emit('open-settings-window'))
         boton_cerrar.connect('clicked', lambda widget: self.emit('close'))
 
         box.add(boton_confi)
         box.add(boton_cerrar)
+
+        self.add(self.menu)
 
     def set_value(self, widget, button):
 
@@ -537,42 +541,39 @@ class UserMenu(Gtk.ListBox):
         row = Gtk.ListBoxRow()
 
         row.add(widget)
-        self.add(row)
+        self.menu.add(row)
 
         return widget
 
 
-class UserButton(Gtk.ScaleButton):
+class UserButton(Gtk.Button):
 
     def __init__(self):
 
-        Gtk.ScaleButton.__init__(self)
+        Gtk.Button.__init__(self)
 
         self.set_relief(Gtk.ReliefStyle.NONE)
-        self.hack()
+        self.set_label('Aplicaciones')
 
-    def hack(self):
+        self.connect('clicked', self.do_clicked_cb)
 
-        self.label = Gtk.Label(os.getlogin())
+        self.new_menu()
+
+    def do_clicked_cb(self, widget):
+
+        self.menu.show_all()
+
+    def new_menu(self, *args):
+
         self.menu = UserMenu()
-        scrolled = Gtk.ScrolledWindow()
 
-        scrolled.set_size_request(400, 500)
+        self.menu.connect('delete-event', self.close_menu)
+        #self.emit('new-applications-menu', self.aplicaciones)
 
-        self.remove(self.get_children()[0])
-        self.add(self.label)
+    def close_menu(self, *args):
 
-        win = self.get_popup()
-        frame = win.get_children()[0]
-        _vbox = frame.get_children()[0]
-        vbox = Gtk.VBox()
-
-        scrolled.add(self.menu)
-        vbox.add(scrolled)
-        frame.remove(_vbox)
-        frame.add(vbox)
-
-        self.show_all()
+        self.menu.hide()
+        return True
 
     def get_menu(self):
 
