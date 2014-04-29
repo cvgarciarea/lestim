@@ -26,7 +26,36 @@ icon_theme = Gtk.IconTheme()
 icons = icon_theme.list_icons(None)
 
 
-class PopupEntrySearch(Gtk.Window):
+class WindowWithoutTitleBar(Gtk.Window):
+    
+    def __init__(self, position=None, destroy_when_close=True):
+        
+        Gtk.Window.__init__(self)
+
+        if position:
+            self.move(*position)
+
+        self._destroy = destroy_when_close
+
+        self.connect('realize', self.do_realized)
+        self.connect('focus-out-event', self.close_cb)
+
+    def do_realized(self, widget):
+        
+        win = self.get_window()
+        win.set_decorations(False)
+        win.process_all_updates()
+
+    def close_cb(self, *args):
+        
+        if self._destroy:
+            self.destroy()
+        
+        else:
+            self.hide()
+
+
+class PopupEntrySearch(WindowWithoutTitleBar):
 
     __gsignals__ = {
         'search-changed': (GObject.SIGNAL_RUN_FIRST, None, [str])
@@ -34,29 +63,22 @@ class PopupEntrySearch(Gtk.Window):
 
     def __init__(self):
 
-        Gtk.Window.__init__(self)
-        
         tx = 200
         ty = 35
+
+        WindowWithoutTitleBar.__init__(self, (G.width, G.height - (ty * 2)))# (G.width - (tx / 2), G.height - (ty / 2)))
         
         self.entry = Gtk.SearchEntry()
-        self.entry.set_size_request(tx, ty)
-        self.move(G.width - (tx / 2), G.height - (ty / 2))
 
-        self.connect('realize', self.do_realized)
-        self.connect('destroy', lambda w: self.destroy())
+        self.resize(tx, ty)
+        self.entry.set_size_request(tx, ty)
+        self.entry.grab_focus()
+
         self.entry.connect('changed', lambda w: self.emit('search-changed', w.get_text()))
-        self.entry.connect('focus-out-event', lambda w, e: self.destroy())
         self.entry.connect('key-press-event', self.button_press_event_cb)
 
         self.add(self.entry)
         self.show_all()
-
-    def do_realized(self, *args):
-        
-        win = self.get_window()
-        win.set_decorations(False)
-        win.process_all_updates()
 
     def button_press_event_cb(self, widget, event):
         
@@ -187,6 +209,10 @@ class Area(Gtk.IconView):
 
 class Panel(Gtk.Box):
 
+    __gsignals__ = {
+        'new-applications-menu': (GObject.SIGNAL_RUN_FIRST, None, [object])
+        }
+
     def __init__(self, orientacion=Gtk.Orientation.HORIZONTAL):
 
         Gtk.Box.__init__(self, orientation=orientacion)
@@ -208,6 +234,8 @@ class Panel(Gtk.Box):
         self.pack_start(self.boton_calendario, False, False, 0)
         self.pack_start(separador2, True, True, 0)
         self.pack_end(self.boton_usuario, False, False, 0)
+
+        self.boton_aplicaciones.connect('new-applications-menu', lambda w, a: self.emit('new-applications-menu', a))
 
     def get_applications_menu(self):
 
@@ -410,45 +438,49 @@ class ApplicationsMenu(Gtk.HBox):
         self.buttonbox.show_all()
 
 
-class ApplicationsButton(Gtk.ScaleButton):
+class ApplicationsButton(Gtk.Button):
+
+    __gsignals__ = {
+        'new-applications-menu': (GObject.SIGNAL_RUN_FIRST, None, [object]),
+        }
 
     def __init__(self):
 
-        Gtk.ScaleButton.__init__(self)
+        Gtk.Button.__init__(self)
 
         self.set_relief(Gtk.ReliefStyle.NONE)
-        self.hack()
+        self.set_label('Aplicaciones')
 
-    def hack(self):
+        self.connect('clicked', self.do_clicked_cb)
 
-        self.label = Gtk.Label('Aplicaciones')
-        self.aplicaciones = ApplicationsMenu()
+        self.new_applications_menu()
 
-        self.aplicaciones.connect('open-application', self.close_menu)
+    def do_clicked_cb(self, widget):
 
-        self.remove(self.get_children()[0])
-        self.add(self.label)
-
-        win = self.get_popup()
-        frame = win.get_children()[0]
-        _vbox = frame.get_children()[0]
-        vbox = Gtk.VBox()
-
-        vbox.add(self.aplicaciones)
-        frame.remove(_vbox)
-        frame.add(vbox)
-
-        self.show_all()
+        self.menu.show_all()
+        self.aplicaciones.show_all()
 
     def get_applications_menu(self):
 
         return self.aplicaciones
 
+    def new_applications_menu(self, *args):
+
+        self.aplicaciones = ApplicationsMenu()
+        self.menu = WindowWithoutTitleBar((0, 0), False)
+
+        self.menu.connect('delete-event', self.close_menu)
+        self.aplicaciones.connect('open-application', self.close_menu)
+        self.emit('new-applications-menu', self.aplicaciones)
+
+        self.menu.add(self.aplicaciones)
+
     def close_menu(self, *args):
 
-        self.get_popup().hide()
+        self.menu.hide()
+        return True
 
-
+    
 class UserMenu(Gtk.ListBox):
 
     __gsignals__ = {
@@ -569,25 +601,38 @@ class CalendarButton(Gtk.ScaleButton):
 
         Gtk.ScaleButton.__init__(self)
 
+        self.label = Gtk.Label()
+
+        self.remove(self.get_children()[0])
+        self.add(self.label)
+
         self.hack()
         self.set_time()
         GObject.timeout_add(1000, self.set_time, ())
 
     def hack(self):
 
-        self.label = Gtk.Label()
-
-        self.remove(self.get_children()[0])
-        self.add(self.label)
-
         win = self.get_popup()
-        frame = win.get_children()[0]
-        _vbox = frame.get_children()[0]
-        vbox = Gtk.VBox()
 
-        vbox.add(Calendar())
-        frame.remove(_vbox)
-        frame.add(vbox)
+        if 'GtkWindow' in str(win):
+            frame = win.get_children()[0]
+            _vbox = frame.get_children()[0]
+            vbox = Gtk.VBox()
+
+            vbox.add(Calendar())
+            frame.remove(_vbox)
+            frame.add(vbox)
+
+        elif 'GtkPopover' in str(win):
+            vbox = win.get_children()[0]
+            calendario = Calendar()
+
+            vbox.remove(vbox.get_children()[0])
+            vbox.remove(vbox.get_children()[0])
+            vbox.remove(vbox.get_children()[0])
+            vbox.add(calendario)
+
+            vbox.show_all()
 
     def set_time(self, *args):
 

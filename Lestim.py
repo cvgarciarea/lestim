@@ -43,7 +43,6 @@ class Lestim(Gtk.Window):
         self.vbox = Gtk.VBox()
         self.panel = Panel()
         self.area = Area()
-        self.aplicaciones = self.panel.get_applications_menu()
         self.menu_de_usuario = self.panel.get_user_menu()
 
         self.set_icon_from_file(G.main_window_icon)
@@ -54,10 +53,10 @@ class Lestim(Gtk.Window):
         self.vbox.pack_start(self.area, True, True, 0)
 
         self.connect('delete-event', lambda w, e: sys.exit(0))
+        self.panel.connect('new-applications-menu', self.new_applications_menu)
         self.menu_de_usuario.connect(
             'open-settings-window', lambda x: SettingsWindow())
         self.menu_de_usuario.connect('close', lambda x: sys.exit(0))
-        self.aplicaciones.connect('open-application', self.app_exec)
 
         self.add(self.vbox)
         self.show_all()
@@ -83,6 +82,11 @@ class Lestim(Gtk.Window):
             os.system(app['ejecutar'])
 
         thread.start_new_thread(_exec, (app,))
+
+    def new_applications_menu(self, widget, menu):
+        
+        self.aplicaciones = self.panel.get_applications_menu()
+        self.aplicaciones.connect('open-application', self.app_exec)
 
     def close_application(self, canvas):
 
