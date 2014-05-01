@@ -67,6 +67,8 @@ class Lestim(Gtk.Window):
         self.show_all()
         self.set_defaults()
 
+    def _print(self, *args):
+        print args
     def set_defaults(self):
 
         win = self.get_window()

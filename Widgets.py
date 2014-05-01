@@ -443,6 +443,8 @@ class PopupMenuButton(Gtk.ScaleButton):
         self.remove(self.get_children()[0])
         self.add(self.label)
 
+        self.connect('clicked', self._clicked)
+
         self.hack()
 
     def hack(self):
@@ -467,6 +469,11 @@ class PopupMenuButton(Gtk.ScaleButton):
             vbox.add(self.popup_widget)
 
             vbox.show_all()
+
+    def _clicked(self, widget):
+        
+        if not self.popup_widget.get_visible():
+            self.popup_widget.show_all()
 
     
 class UserMenu(Gtk.ListBox):
