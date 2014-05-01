@@ -209,10 +209,6 @@ class Area(Gtk.IconView):
 
 class Panel(Gtk.Box):
 
-    __gsignals__ = {
-        'new-applications-menu': (GObject.SIGNAL_RUN_FIRST, None, [object])
-        }
-
     def __init__(self, orientacion=Gtk.Orientation.HORIZONTAL):
 
         Gtk.Box.__init__(self, orientation=orientacion)
@@ -220,7 +216,6 @@ class Panel(Gtk.Box):
         self.boton_aplicaciones = ApplicationsButton()
         self.boton_calendario = CalendarButton()
         self.boton_usuario = UserButton()
-        menu = self.boton_usuario.get_menu()
         separador1 = Gtk.SeparatorToolItem()
         separador2 = Gtk.SeparatorToolItem()
 
@@ -235,15 +230,13 @@ class Panel(Gtk.Box):
         self.pack_start(separador2, True, True, 0)
         self.pack_end(self.boton_usuario, False, False, 0)
 
-        self.boton_aplicaciones.connect('new-applications-menu', lambda w, a: self.emit('new-applications-menu', a))
-
     def get_applications_menu(self):
 
-        return self.boton_aplicaciones.get_applications_menu()
+        return self.boton_aplicaciones.aplicaciones
 
     def get_user_menu(self):
 
-        return self.boton_usuario.get_menu()
+        return self.boton_usuario.menu
 
 
 class ApplicationsMenu(Gtk.HBox):
@@ -271,8 +264,6 @@ class ApplicationsMenu(Gtk.HBox):
         self.area.set_pixbuf_column(1)
         self.area.set_columns(3)
         self.entrada.set_size_request(400, -1)
-        # self.entrada.set_icon_from_stock(
-        #     Gtk.EntryIconPosition.PRIMARY, Gtk.STOCK_FIND)
 
         vbox = Gtk.VBox()
         _hbox = Gtk.HBox()
@@ -437,51 +428,48 @@ class ApplicationsMenu(Gtk.HBox):
 
         self.buttonbox.show_all()
 
-
-class ApplicationsButton(Gtk.Button):
-
-    __gsignals__ = {
-        'new-applications-menu': (GObject.SIGNAL_RUN_FIRST, None, [object]),
-        }
-
-    def __init__(self):
-
-        Gtk.Button.__init__(self)
+        
+class PopupMenuButton(Gtk.ScaleButton):
+    
+    def __init__(self, label, popup_widget):
+        
+        Gtk.ScaleButton.__init__(self)
 
         self.set_relief(Gtk.ReliefStyle.NONE)
-        self.set_label('Aplicaciones')
 
-        self.connect('clicked', self.do_clicked_cb)
+        self.label = Gtk.Label(label)
+        self.popup_widget = popup_widget
 
-        self.new_applications_menu()
+        self.remove(self.get_children()[0])
+        self.add(self.label)
 
-    def do_clicked_cb(self, widget):
+        self.hack()
 
-        self.menu.show_all()
-        self.aplicaciones.show_all()
+    def hack(self):
 
-    def get_applications_menu(self):
+        win = self.get_popup()
 
-        return self.aplicaciones
+        if 'GtkWindow' in str(win):
+            frame = win.get_children()[0]
+            _vbox = frame.get_children()[0]
+            vbox = Gtk.VBox()
 
-    def new_applications_menu(self, *args):
+            vbox.add(self.popup_widget)
+            frame.remove(_vbox)
+            frame.add(vbox)
 
-        self.aplicaciones = ApplicationsMenu()
-        self.menu = WindowWithoutTitleBar((0, 0), False)
+        elif 'GtkPopover' in str(win):
+            vbox = win.get_children()[0]
 
-        self.menu.connect('delete-event', self.close_menu)
-        self.aplicaciones.connect('open-application', self.close_menu)
-        self.emit('new-applications-menu', self.aplicaciones)
+            vbox.remove(vbox.get_children()[0])
+            vbox.remove(vbox.get_children()[0])
+            vbox.remove(vbox.get_children()[0])
+            vbox.add(self.popup_widget)
 
-        self.menu.add(self.aplicaciones)
-
-    def close_menu(self, *args):
-
-        self.menu.hide()
-        return True
+            vbox.show_all()
 
     
-class UserMenu(WindowWithoutTitleBar):
+class UserMenu(Gtk.ListBox):
 
     __gsignals__ = {
         'open-settings-window': (GObject.SIGNAL_RUN_FIRST, None, []),
@@ -490,11 +478,9 @@ class UserMenu(WindowWithoutTitleBar):
 
     def __init__(self):
 
-        WindowWithoutTitleBar.__init__(self, (G.width, 0), False)
-
-        self.menu = Gtk.ListBox()
+        Gtk.ListBox.__init__(self)
         
-        self.menu.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.set_selection_mode(Gtk.SelectionMode.NONE)
         self.set_size_request(400, 500)
 
         _hbox = self.create_row()
@@ -522,8 +508,6 @@ class UserMenu(WindowWithoutTitleBar):
         box.add(boton_confi)
         box.add(boton_cerrar)
 
-        self.add(self.menu)
-
     def set_value(self, widget, button):
 
         button.set_value(widget.get_value() / 100)
@@ -541,99 +525,39 @@ class UserMenu(WindowWithoutTitleBar):
         row = Gtk.ListBoxRow()
 
         row.add(widget)
-        self.menu.add(row)
+        self.add(row)
 
         return widget
 
 
-class UserButton(Gtk.Button):
+class ApplicationsButton(PopupMenuButton):
 
     def __init__(self):
 
-        Gtk.Button.__init__(self)
+        self.aplicaciones = ApplicationsMenu()
+        self.aplicaciones.boton = self
 
-        self.set_relief(Gtk.ReliefStyle.NONE)
-        self.set_label('Aplicaciones')
+        PopupMenuButton.__init__(self, 'Aplicaciones', self.aplicaciones)
 
-        self.connect('clicked', self.do_clicked_cb)
 
-        self.new_menu()
+class UserButton(PopupMenuButton):
 
-    def do_clicked_cb(self, widget):
-
-        self.menu.show_all()
-
-    def new_menu(self, *args):
+    def __init__(self):
 
         self.menu = UserMenu()
+        self.menu.boton = self
 
-        self.menu.connect('delete-event', self.close_menu)
-        #self.emit('new-applications-menu', self.aplicaciones)
-
-    def close_menu(self, *args):
-
-        self.menu.hide()
-        return True
-
-    def get_menu(self):
-
-        return self.menu
+        PopupMenuButton.__init__(self, 'Aplicaciones', self.menu)
 
 
-class Calendar(Gtk.Calendar):
-
-    # Esta clase se crea para que cuando se haga clic sobre el calendario, este
-    # no se cierre
+class CalendarButton(PopupMenuButton):
 
     def __init__(self):
 
-        Gtk.Calendar.__init__(self)
+        PopupMenuButton.__init__(self, '', Gtk.Calendar())
 
-        self.connect('button-press-event', self.click)
-
-    def click(self, widget, event):
-
-        return True
-
-
-class CalendarButton(Gtk.ScaleButton):
-
-    def __init__(self):
-
-        Gtk.ScaleButton.__init__(self)
-
-        self.label = Gtk.Label()
-
-        self.remove(self.get_children()[0])
-        self.add(self.label)
-
-        self.hack()
         self.set_time()
         GObject.timeout_add(1000, self.set_time, ())
-
-    def hack(self):
-
-        win = self.get_popup()
-
-        if 'GtkWindow' in str(win):
-            frame = win.get_children()[0]
-            _vbox = frame.get_children()[0]
-            vbox = Gtk.VBox()
-
-            vbox.add(Calendar())
-            frame.remove(_vbox)
-            frame.add(vbox)
-
-        elif 'GtkPopover' in str(win):
-            vbox = win.get_children()[0]
-            calendario = Calendar()
-
-            vbox.remove(vbox.get_children()[0])
-            vbox.remove(vbox.get_children()[0])
-            vbox.remove(vbox.get_children()[0])
-            vbox.add(calendario)
-
-            vbox.show_all()
 
     def set_time(self, *args):
 
