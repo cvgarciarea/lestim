@@ -1,8 +1,9 @@
+/*
 GtkIconView.cell:selected, GtkIconView.cell:selected:focus {
     background-color: transparent;
 
     border-style: solid;
-    /*border-radius: 150px;*/
+    border-radius: 150px;
     border-width: 120px;
     border-color: alpha (#025, 0.50);
 
@@ -20,9 +21,15 @@ GtkIconView.cell:selected, GtkIconView.cell:selected:focus {
     color: @theme_unfocused_selected_fg_color;
     outline-color: transparent;
 }
+*/
 
 DesktopArea {
     background-color: transparent;
     outline-color: transparent;
     background-image: url("/home/cristian/.lestim/background.jpg");
+}
+
+FavouriteApplications {
+    background-color: transparent;
+    color: transparent;
 }

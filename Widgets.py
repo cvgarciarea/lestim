@@ -66,7 +66,7 @@ class PopupEntrySearch(WindowWithoutTitleBar):
         tx = 200
         ty = 35
 
-        WindowWithoutTitleBar.__init__(self, (G.width, G.height - (ty * 2)))# (G.width - (tx / 2), G.height - (ty / 2)))
+        WindowWithoutTitleBar.__init__(self, (G.width, G.height - ty))# (G.width - (tx / 2), G.height - (ty / 2)))
         
         self.entry = Gtk.SearchEntry()
 
@@ -90,17 +90,22 @@ class Area(Gtk.IconView):
 
     __gtype_name__ = 'DesktopArea'
 
+    __gsignals__ = {
+        'show-panel': (GObject.SIGNAL_RUN_FIRST, None, [bool])
+        }
+
     def __init__(self):
 
         Gtk.IconView.__init__(self)
 
+        self.show_forever = False
         self.modelo = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
         self.scan_foolder = ScanFolder.ScanFolder(G.get_desktop_directory())
 
         self.set_selection_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_model(self.modelo)
-        self.set_text_column(0)
-        self.set_pixbuf_column(1)
+        self.set_text_column(G.ICONVIEW_TEXT_COLUMN)
+        self.set_pixbuf_column(G.ICONVIEW_PIXBUF_COLUMN)
         self.set_item_orientation(Gtk.Orientation.VERTICAL)
         # self.set_item_width(100)
         # self.set_margin(0)
@@ -108,9 +113,31 @@ class Area(Gtk.IconView):
         self.set_reorderable(True)
         # self.set_columns(2)
 
+        self.add_events(
+            Gdk.EventMask.KEY_PRESS_MASK |
+            Gdk.EventMask.KEY_RELEASE_MASK |
+            Gdk.EventMask.POINTER_MOTION_MASK |
+            Gdk.EventMask.POINTER_MOTION_HINT_MASK |
+            Gdk.EventMask.BUTTON_MOTION_MASK |
+            Gdk.EventMask.BUTTON_PRESS_MASK |
+            Gdk.EventMask.BUTTON_RELEASE_MASK
+        )
+
         self.connect('button-press-event', self.on_click_press)
         self.connect('key-press-event', self.on_button_press)
         self.scan_foolder.connect('files-changed', self.agregar_iconos)
+
+    def do_motion_notify_event(self, event):
+
+        x, y = (int(event.x), int(event.y))
+        rect = self.get_allocation()
+        xx, yy, ww, hh = (rect.x, rect.y, rect.width, rect.height)
+
+        if y in range(G.height - 100, G.height) and not self.show_forever:
+            self.emit('show-panel', True)
+
+        elif y not in range(G.height - 100, G.height) and not self.show_forever:
+            self.emit('show-panel', False)
 
     def on_click_press(self, widget, event):
 
@@ -206,8 +233,17 @@ class Area(Gtk.IconView):
 
         self.direccion = direccion
 
+    def set_panel_visible(self, visible):
+        
+        self.show_forever = visible
+        self.emit('show-panel', self.show_forever)
+
 
 class Panel(Gtk.Box):
+
+    __gsignals__ = {
+        'show-panel': (GObject.SIGNAL_RUN_FIRST, None, [bool])
+        }
 
     def __init__(self, orientacion=Gtk.Orientation.HORIZONTAL):
 
@@ -224,6 +260,8 @@ class Panel(Gtk.Box):
         separador1.set_draw(False)
         separador2.set_draw(False)
 
+        self.boton_aplicaciones.connect('show-panel', lambda x, s: self.emit('show-panel', s))
+ 
         self.pack_start(self.boton_aplicaciones, False, False, 0)
         self.pack_start(separador1, True, True, 0)
         self.pack_start(self.boton_calendario, False, False, 0)
@@ -239,10 +277,114 @@ class Panel(Gtk.Box):
         return self.boton_usuario.menu
 
 
-class ApplicationsMenu(Gtk.HBox):
+class FavouriteApplications(Gtk.ButtonBox):
+    
+    __gname_type__ = 'FavouriteApplications'
 
     __gsignals__ = {
         'open-application': (GObject.SIGNAL_RUN_FIRST, None, [object])
+        }
+
+    def __init__(self):
+        
+        Gtk.ButtonBox.__init__(self)
+
+        settings = G.get_settings()
+        self.aplicaciones = settings['aplicaciones-favoritas']
+        self.area = None
+
+        self.set_layout(Gtk.ButtonBoxStyle.CENTER)
+        self.set_spacing(10)
+        self.set_size_request(-1, 48)
+
+        self.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.COPY)
+        self.connect('drag-drop', self.on_drag_data_received)
+
+        self.update_buttons()
+        self.show_all()
+
+    def on_drag_data_received(self, widget, drag_context, data, info, time):
+        
+        path = self.area.get_selected_items()[0]
+        _iter = self.area.get_model().get_iter(path)
+        text = self.area.get_model().get_value(_iter, G.ICONVIEW_TEXT_COLUMN)
+
+        confi = G.get_settings()
+        lista = []
+        nombres = []
+        iconos = []
+        
+        for x in self.aplicaciones + [self.area._parent.iters[text]]:
+            x['icono'] = x['icono-str']
+            
+            if (not x in lista) and not (x['nombre'] in nombres and x['icono-str'] in iconos):
+                nombres.append(x['nombre'])
+                iconos.append(x['icono-str'])
+                lista.append(x)
+
+        confi['aplicaciones-favoritas'] = lista
+        G.set_settings(confi)
+
+        self.update_buttons()
+        self.area.unselect_all()
+
+    def update_buttons(self):
+
+        while self.get_children():
+            self.remove(self.get_children()[0])
+        
+        for x in self.aplicaciones:
+            boton = Gtk.Button()
+            boton.dicc = x
+            pixbuf = G.get_icon(x['icono-str'])
+            imagen = Gtk.Image.new_from_pixbuf(pixbuf)
+            
+            boton.set_image(imagen)
+            boton.set_tooltip_text(x['nombre'])
+            boton.set_relief(Gtk.ReliefStyle.NONE)
+            
+            boton.connect('clicked', self._open_application)
+            self.add(boton)
+            boton.show()
+
+    def _open_application(self, widget):
+        
+        self.emit('open-application', widget.dicc)
+
+
+class ApplicationsArea(Gtk.IconView):
+
+    __gsignals__ = {
+        'show-panel': (GObject.SIGNAL_RUN_FIRST, None, [bool])
+        }
+
+    def __init__(self):
+        
+        Gtk.IconView.__init__(self)
+
+        self.modelo = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
+
+        #self.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.set_model(self.modelo)
+        self.set_text_column(G.ICONVIEW_TEXT_COLUMN)
+        self.set_pixbuf_column(G.ICONVIEW_PIXBUF_COLUMN)
+        self.set_columns(3)
+        self.set_size_request(400, -1)
+
+        self.enable_model_drag_source(Gdk.ModifierType.BUTTON1_MASK, [], Gdk.DragAction.COPY)
+        self.connect('drag-begin', lambda *a: self.emit('show-panel', True))
+        self.connect('drag-data-get', self.on_drag_data_get)
+
+    def on_drag_data_get(self, widget, drag_context, data, info, time):
+        
+        pass
+
+
+class ApplicationsMenu(Gtk.HBox):
+
+    __gsignals__ = {
+        'open-application': (GObject.SIGNAL_RUN_FIRST, None, [object]),
+        'show-panel': (GObject.SIGNAL_RUN_FIRST, None, [bool]),
         }
 
     def __init__(self):
@@ -250,20 +392,15 @@ class ApplicationsMenu(Gtk.HBox):
         Gtk.HBox.__init__(self)
 
         self.listbox = Gtk.ListBox()
-        self.area = Gtk.IconView()
+        self.area = ApplicationsArea()
+        self.area._parent = self
+        self.modelo = self.area.modelo
         self.entrada = Gtk.SearchEntry()
         self.buttonbox = Gtk.HBox()
-        self.modelo = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
         self.programas = {}
         self.iters = {}
 
         self.set_apps()
-        self.area.set_selection_mode(Gtk.SelectionMode.NONE)
-        self.area.set_model(self.modelo)
-        self.area.set_text_column(0)
-        self.area.set_pixbuf_column(1)
-        self.area.set_columns(3)
-        self.entrada.set_size_request(400, -1)
 
         vbox = Gtk.VBox()
         _hbox = Gtk.HBox()
@@ -284,7 +421,8 @@ class ApplicationsMenu(Gtk.HBox):
             self.listbox.add(row)
 
         self.listbox.connect('row-activated', self.category_changed)
-        self.area.connect('button-press-event', self.click)
+        #self.area.connect('button-press-event', self.click)
+        self.area.connect('show-panel', lambda w, s: self.emit('show-panel', s))
         self.entrada.connect('changed', self.app_search)
         self.entrada.connect('activate', self.app_search)
 
@@ -539,12 +677,18 @@ class UserMenu(Gtk.ListBox):
 
 class ApplicationsButton(PopupMenuButton):
 
+    __gsignals__ = {
+        'show-panel': (GObject.SIGNAL_RUN_FIRST, None, [bool])
+        }
+
     def __init__(self):
 
         self.aplicaciones = ApplicationsMenu()
         self.aplicaciones.boton = self
 
         PopupMenuButton.__init__(self, 'Aplicaciones', self.aplicaciones)
+
+        self.aplicaciones.connect('show-panel', lambda x, s: self.emit('show-panel', s))
 
 
 class UserButton(PopupMenuButton):

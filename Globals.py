@@ -59,12 +59,17 @@ if not os.path.isfile(settings_path):
     archivo = open(settings_path, 'w')
     configuracion = '''{
     "fondo-simbolico": "%s",
+    "aplicaciones-favoritas": []
 }''' % os.path.join(os.path.dirname(__file__), 'images/background.jpg')
 
     archivo.write(configuracion)
     archivo.close()
 
 GLib.set_application_name('Lestim')
+
+
+ICONVIEW_TEXT_COLUMN = 0
+ICONVIEW_PIXBUF_COLUMN = 1
 
 
 def get_networks(dispositivo='wlan0'):
@@ -226,6 +231,7 @@ def get_applications():
             if nombre and icono and ejecutar and _categoria:
                 aplicacion = {
                     'nombre': nombre,
+                    'icono-str': icono,
                     'icono': get_icon(icono),
                     'ejecutar': ejecutar,
                     'categoria': _categoria,
@@ -325,7 +331,6 @@ def set_background():
     direccion = os.path.join(os.path.dirname(__file__), 'Lestim.css')
     archivo = open(direccion)
     lista = archivo.read().split('"')
-    print lista
     width, height = get_display_dimensions()
     texto = lista[0] + '"' + get_background() + '"' + lista[-1]
 
