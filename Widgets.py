@@ -55,6 +55,53 @@ class WindowWithoutTitleBar(Gtk.Window):
             self.hide()
 
 
+class PopupMenuButton(Gtk.ScaleButton):
+    
+    def __init__(self, label, popup_widget):
+        
+        Gtk.ScaleButton.__init__(self)
+
+        self.set_relief(Gtk.ReliefStyle.NONE)
+
+        self.label = Gtk.Label(label)
+        self.popup_widget = popup_widget
+
+        self.remove(self.get_children()[0])
+        self.add(self.label)
+
+        self.connect('clicked', self._clicked)
+
+        self.hack()
+
+    def hack(self):
+
+        win = self.get_popup()
+
+        if 'GtkWindow' in str(win):
+            frame = win.get_children()[0]
+            _vbox = frame.get_children()[0]
+            vbox = Gtk.VBox()
+
+            vbox.add(self.popup_widget)
+            frame.remove(_vbox)
+            frame.add(vbox)
+
+        elif 'GtkPopover' in str(win):
+            vbox = win.get_children()[0]
+
+            vbox.remove(vbox.get_children()[0])
+            vbox.remove(vbox.get_children()[0])
+            vbox.remove(vbox.get_children()[0])
+            vbox.add(self.popup_widget)
+
+            vbox.show_all()
+
+    def _clicked(self, widget):
+        
+        if not self.popup_widget.get_visible():
+            self.popup_widget.show_all()
+
+
 class PopupEntrySearch(WindowWithoutTitleBar):
 
     __gsignals__ = {
@@ -277,6 +324,84 @@ class Panel(Gtk.Box):
         return self.boton_usuario.menu
 
 
+class FavouriteApplicationsMenu(Gtk.ListBox):
+    
+    __gsignals__ = {
+        'open-application': (GObject.SIGNAL_RUN_FIRST, None, []),
+        'remove-from-favourites': (GObject.SIGNAL_RUN_FIRST, None, []),
+        }
+
+    def __init__(self, boton):
+        
+        Gtk.ListBox.__init__(self)
+
+        # self.set_selection_mode(Gtk.SelectionMode.NONE)
+
+        row = Gtk.ListBoxRow()
+        row.add(Gtk.Label('Abrir'))
+        self.add(row)
+
+        row = Gtk.ListBoxRow()
+        row.add(Gtk.Label('Eliminar de favoritos'))
+        self.add(row)
+
+        self.connect('row-activated', self.on_selection_changed)
+
+    def on_selection_changed(self, widget, row):
+        
+        texto = row.get_children()[0].get_label()
+        self.emit('open-application' if texto == 'Abrir' else 'remove-from-favourites')
+
+
+class FavouriteApplicationsButton(PopupMenuButton):
+    
+    __gsignals__ = {
+        'open-application': (GObject.SIGNAL_RUN_FIRST, None, [object]),
+        'remove-from-favourites': (GObject.SIGNAL_RUN_FIRST, None, [object]),
+        'open-menu': (GObject.SIGNAL_RUN_FIRST, None, []),
+        }
+
+    def __init__(self, app):
+
+        menu = FavouriteApplicationsMenu(self)
+
+        PopupMenuButton.__init__(self, '', menu)
+
+        self.dicc = app
+        self.popover = self.popup_widget.get_parent().get_parent()
+
+        pixbuf = G.get_icon(app['icono-str'])
+        imagen = Gtk.Image.new_from_pixbuf(pixbuf)
+
+        self.set_image(imagen)
+        self.set_tooltip_text(app['nombre'])
+        self.set_relief(Gtk.ReliefStyle.NONE)
+        self.popover.set_modal(True)
+
+        menu.connect('open-application', lambda x: self.emit('open-application', self.dicc))
+        menu.connect('open-application', lambda x: self.popup_widget.hide())
+        menu.connect('remove-from-favourites', lambda x: self.emit('remove-from-favourites', self.dicc))
+        menu.connect('remove-from-favourites', lambda x: self.popup_widget.hide())
+        self.disconnect_by_func(self._clicked)
+        self.connect('button-press-event', self._on_button_press_event)
+        self.connect('open-menu', lambda x: self.popover.show_all())
+        self.connect('clicked', lambda x: self.popover.hide())
+
+        self.show_all()
+
+    def _on_button_press_event(self, widget, event):
+        
+        boton = event.button
+        posx = event.x
+        posy = event.y
+
+        if event.type.value_name == 'GDK_BUTTON_PRESS' and boton == 3:
+            self.emit('open-menu')
+
+        if event.type.value_name == 'GDK_BUTTON_PRESS' and boton == 1:
+            self.emit('open-application', self.dicc)
+
+
 class FavouriteApplications(Gtk.ButtonBox):
     
     __gname_type__ = 'FavouriteApplications'
@@ -313,16 +438,19 @@ class FavouriteApplications(Gtk.ButtonBox):
         lista = []
         nombres = []
         iconos = []
-        
+
         for x in self.aplicaciones + [self.area._parent.iters[text]]:
             x['icono'] = x['icono-str']
-            
-            if (not x in lista) and not (x['nombre'] in nombres and x['icono-str'] in iconos):
+            # ^^^ Evitando un error de sintaxis
+
+            if (not x in lista) and (not x['nombre'] in nombres and not x['icono-str'] in iconos):
                 nombres.append(x['nombre'])
                 iconos.append(x['icono-str'])
                 lista.append(x)
 
         confi['aplicaciones-favoritas'] = lista
+        self.aplicaciones = lista
+
         G.set_settings(confi)
 
         self.update_buttons()
@@ -334,22 +462,26 @@ class FavouriteApplications(Gtk.ButtonBox):
             self.remove(self.get_children()[0])
         
         for x in self.aplicaciones:
-            boton = Gtk.Button()
-            boton.dicc = x
-            pixbuf = G.get_icon(x['icono-str'])
-            imagen = Gtk.Image.new_from_pixbuf(pixbuf)
+            boton = FavouriteApplicationsButton(x)
             
-            boton.set_image(imagen)
-            boton.set_tooltip_text(x['nombre'])
-            boton.set_relief(Gtk.ReliefStyle.NONE)
-            
-            boton.connect('clicked', self._open_application)
+            boton.connect('open-application', self._open_application)
+            boton.connect('remove-from-favourites', self._remove_from_favourites)
             self.add(boton)
             boton.show()
 
-    def _open_application(self, widget):
+    def _open_application(self, widget, app):
         
-        self.emit('open-application', widget.dicc)
+        self.emit('open-application', app)
+
+    def _remove_from_favourites(self, widget, app):
+
+        confi = G.get_settings()
+        self.aplicaciones.remove(app)
+        confi['aplicaciones-favoritas'] = self.aplicaciones
+        
+        G.set_settings(confi)
+
+        self.update_buttons()
 
 
 class ApplicationsArea(Gtk.IconView):
@@ -530,7 +662,7 @@ class ApplicationsMenu(Gtk.HBox):
 
         if index in iters.keys():
             for x in iters[index]:
-                iter = self.modelo.append([x['nombre'], x['icono']])
+                iter = self.modelo.append([x['nombre'], G.get_icon(x['icono-str'])])
                 self.iters[x['nombre']] = x
 
     def set_buttons(self, numero=0, iters={}):
@@ -565,53 +697,6 @@ class ApplicationsMenu(Gtk.HBox):
             self.buttonbox.pack_start(boton, False, False, 0)
 
         self.buttonbox.show_all()
-
-        
-class PopupMenuButton(Gtk.ScaleButton):
-    
-    def __init__(self, label, popup_widget):
-        
-        Gtk.ScaleButton.__init__(self)
-
-        self.set_relief(Gtk.ReliefStyle.NONE)
-
-        self.label = Gtk.Label(label)
-        self.popup_widget = popup_widget
-
-        self.remove(self.get_children()[0])
-        self.add(self.label)
-
-        self.connect('clicked', self._clicked)
-
-        self.hack()
-
-    def hack(self):
-
-        win = self.get_popup()
-
-        if 'GtkWindow' in str(win):
-            frame = win.get_children()[0]
-            _vbox = frame.get_children()[0]
-            vbox = Gtk.VBox()
-
-            vbox.add(self.popup_widget)
-            frame.remove(_vbox)
-            frame.add(vbox)
-
-        elif 'GtkPopover' in str(win):
-            vbox = win.get_children()[0]
-
-            vbox.remove(vbox.get_children()[0])
-            vbox.remove(vbox.get_children()[0])
-            vbox.remove(vbox.get_children()[0])
-            vbox.add(self.popup_widget)
-
-            vbox.show_all()
-
-    def _clicked(self, widget):
-        
-        if not self.popup_widget.get_visible():
-            self.popup_widget.show_all()
 
     
 class UserMenu(Gtk.ListBox):
