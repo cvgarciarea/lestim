@@ -376,7 +376,6 @@ class FavouriteApplicationsButton(PopupMenuButton):
         self.set_image(imagen)
         self.set_tooltip_text(app['nombre'])
         self.set_relief(Gtk.ReliefStyle.NONE)
-        self.popover.set_modal(True)
 
         menu.connect('open-application', lambda x: self.emit('open-application', self.dicc))
         menu.connect('open-application', lambda x: self.popup_widget.hide())
