@@ -145,7 +145,7 @@ class Area(Gtk.IconView):
 
         Gtk.IconView.__init__(self)
 
-        self.show_forever = False
+        self.always_visible = G.get_settings()['panel-siempre-visible']
         self.modelo = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
         self.scan_foolder = ScanFolder.ScanFolder(G.get_desktop_directory())
 
@@ -180,10 +180,10 @@ class Area(Gtk.IconView):
         rect = self.get_allocation()
         xx, yy, ww, hh = (rect.x, rect.y, rect.width, rect.height)
 
-        if y in range(G.height - 100, G.height) and not self.show_forever:
+        if y in range(G.height - 100, G.height) and not self.always_visible:
             self.emit('show-panel', True)
 
-        elif y not in range(G.height - 100, G.height) and not self.show_forever:
+        elif y not in range(G.height - 100, G.height) and not self.always_visible:
             self.emit('show-panel', False)
 
     def on_click_press(self, widget, event):
@@ -282,8 +282,8 @@ class Area(Gtk.IconView):
 
     def set_panel_visible(self, visible):
         
-        self.show_forever = visible
-        self.emit('show-panel', self.show_forever)
+        self.always_visible = visible
+        self.emit('show-panel', self.always_visible)
 
 
 class Panel(Gtk.Box):
@@ -355,6 +355,8 @@ class FavouriteApplicationsMenu(Gtk.ListBox):
 
 class FavouriteApplicationsButton(PopupMenuButton):
     
+    __gtype_name__ = 'FavouriteApplicationsButton'
+
     __gsignals__ = {
         'open-application': (GObject.SIGNAL_RUN_FIRST, None, [object]),
         'remove-from-favourites': (GObject.SIGNAL_RUN_FIRST, None, [object]),
@@ -403,7 +405,7 @@ class FavouriteApplicationsButton(PopupMenuButton):
 
 class FavouriteApplications(Gtk.ButtonBox):
     
-    __gname_type__ = 'FavouriteApplications'
+    __gname_type__ = 'FavouriteApplicationsPanel'
 
     __gsignals__ = {
         'open-application': (GObject.SIGNAL_RUN_FIRST, None, [object])
@@ -504,11 +506,6 @@ class ApplicationsArea(Gtk.IconView):
 
         self.enable_model_drag_source(Gdk.ModifierType.BUTTON1_MASK, [], Gdk.DragAction.COPY)
         self.connect('drag-begin', lambda *a: self.emit('show-panel', True))
-        self.connect('drag-data-get', self.on_drag_data_get)
-
-    def on_drag_data_get(self, widget, drag_context, data, info, time):
-        
-        pass
 
 
 class ApplicationsMenu(Gtk.HBox):
@@ -552,7 +549,7 @@ class ApplicationsMenu(Gtk.HBox):
             self.listbox.add(row)
 
         self.listbox.connect('row-activated', self.category_changed)
-        #self.area.connect('button-press-event', self.click)
+        self.area.connect('button-release-event', self.click)
         self.area.connect('show-panel', lambda w, s: self.emit('show-panel', s))
         self.entrada.connect('changed', self.app_search)
         self.entrada.connect('activate', self.app_search)
@@ -579,9 +576,12 @@ class ApplicationsMenu(Gtk.HBox):
             aplicacion = self.iters[self.modelo.get_value(iter, 0)]
 
             self.emit('open-application', aplicacion)
+            return False
 
         except TypeError:
             pass
+
+        return True
 
     def set_apps(self):
 
@@ -841,6 +841,12 @@ class CalendarButton(PopupMenuButton):
 
 class SettingsWindow(Gtk.Window):
 
+    __gtype_name__ = 'FavouriteApplicationsPanel'
+
+    __gsignals__ = {
+        'settings-changed': (GObject.SIGNAL_RUN_FIRST, None, [object])
+        }
+    
     def __init__(self):
 
         Gtk.Window.__init__(self)
@@ -908,14 +914,48 @@ class SettingsWindow(Gtk.Window):
         self.stack.add_titled(vbox, 'Sonido', 'Sonido')
 
         vbox = Gtk.VBox()
-        self.stack.add_titled(vbox, 'Teclado', 'Teclado')
+        listbox = Gtk.ListBox()
+        hbox = self.create_row(listbox)
+        switch = Gtk.Switch()
+        
+        listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        switch.set_active(self.confi['panel-siempre-visible'])
+
+        switch.connect('notify::active', lambda w, x: self.settings_changed(w, 'panel-siempre-visible', w.get_active()))
+
+        hbox.pack_start(Gtk.Label('Ocultar automáticamente'), False, False, 0)
+        hbox.pack_end(switch, False, False, 0)
+
+        vbox.pack_start(listbox, True, True, 5)
+        self.stack.add_titled(vbox, 'Panel inferior', 'Panel inferior')
 
         self.stack_switcher.set_stack(self.stack)
         self.titlebar.add(self.stack_switcher)
         self.vbox.pack_start(self.stack, True, True, 0)
 
+        self.connect('settings-changed', self.save_settings)
+
         self.add(self.vbox)
         self.show_all()
+
+    def settings_changed(self, widget, key, value):
+        
+        self.confi[key] = value
+        self.emit('settings-changed', self.confi)
+
+    def save_settings(self, *args):
+        
+        G.set_settings(self.confi)
+
+    def create_row(self, listbox):
+        
+        row = Gtk.ListBoxRow()
+        hbox = Gtk.HBox()
+        
+        row.add(hbox)
+        listbox.add(row)
+
+        return hbox
 
     def file_chooser_images(self, widget):
 

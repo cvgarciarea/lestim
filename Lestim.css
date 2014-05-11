@@ -1,5 +1,4 @@
-/*
-GtkIconView.cell:selected, GtkIconView.cell:selected:focus {
+DesktopArea.cell:selected, DesktopArea.cell:selected:focus {
     background-color: transparent;
 
     border-style: solid;
@@ -10,26 +9,20 @@ GtkIconView.cell:selected, GtkIconView.cell:selected:focus {
     outline-color: transparent;
 }
 
-.view:selected {
+DesktopArea:selected {
     background-color: @theme_selected_bg_color;
     color: @theme_selected_fg_color;
     outline-color: transparent;
 }
 
-.view:backdrop:selected {
+DesktopArea:backdrop:selected {
     background-color: @theme_unfocused_selected_bg_color;
     color: @theme_unfocused_selected_fg_color;
     outline-color: transparent;
 }
-*/
 
 DesktopArea {
     background-color: transparent;
     outline-color: transparent;
     background-image: url("/home/cristian/.lestim/background.jpg");
-}
-
-FavouriteApplications {
-    background-color: transparent;
-    color: transparent;
 }

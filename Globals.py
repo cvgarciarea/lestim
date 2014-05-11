@@ -59,6 +59,7 @@ if not os.path.isfile(settings_path):
     archivo = open(settings_path, 'w')
     configuracion = '''{
     "fondo-simbolico": "%s",
+    "panel-siempre-visible": False,
     "aplicaciones-favoritas": []
 }''' % os.path.join(os.path.dirname(__file__), 'images/background.jpg')
 

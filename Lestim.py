@@ -61,8 +61,7 @@ class Lestim(Gtk.Window):
         self.aplicaciones.connect('open-application', self.app_exec)
         self.menu_de_usuario.connect(
             'open-settings-window', lambda x: self.menu_de_usuario.hide())
-        self.menu_de_usuario.connect(
-            'open-settings-window', lambda x: SettingsWindow())
+        self.menu_de_usuario.connect('open-settings-window', self.settings_window)
         self.menu_de_usuario.connect('close', lambda x: sys.exit(0))
 
         self.vbox.pack_start(self.panel, False, False, 0)
@@ -87,6 +86,15 @@ class Lestim(Gtk.Window):
         self.move(0, 0)
 
         self.set_targets()
+
+    def settings_window(self, widget):
+        
+        win = SettingsWindow()
+        win.connect('settings-changed', self.settings_changed)
+
+    def settings_changed(self, widget, dicc):
+        
+        self.area.set_panel_visible(dicc['panel-siempre-visible'])
 
     def show_hide_panel(self, widget, if_show):
         
