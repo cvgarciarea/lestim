@@ -9,6 +9,11 @@ DesktopArea.cell:selected, DesktopArea.cell:selected:focus {
     outline-color: transparent;
 }
 
+DesktpArea.cell:selected:focus {
+    background-color: transparent;
+    color: #FFFFFF;
+}
+
 DesktopArea:selected {
     background-color: @theme_selected_bg_color;
     color: @theme_selected_fg_color;

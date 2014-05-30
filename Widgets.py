@@ -27,9 +27,9 @@ icons = icon_theme.list_icons(None)
 
 
 class WindowWithoutTitleBar(Gtk.Window):
-    
+
     def __init__(self, position=None, destroy_when_close=True):
-        
+
         Gtk.Window.__init__(self)
 
         if position:
@@ -41,24 +41,24 @@ class WindowWithoutTitleBar(Gtk.Window):
         self.connect('focus-out-event', self.close_cb)
 
     def do_realized(self, widget):
-        
+
         win = self.get_window()
         win.set_decorations(False)
         win.process_all_updates()
 
     def close_cb(self, *args):
-        
+
         if self._destroy:
             self.destroy()
-        
+
         else:
             self.hide()
 
 
 class PopupMenuButton(Gtk.ScaleButton):
-    
+
     def __init__(self, label, popup_widget):
-        
+
         Gtk.ScaleButton.__init__(self)
 
         self.set_relief(Gtk.ReliefStyle.NONE)
@@ -97,7 +97,7 @@ class PopupMenuButton(Gtk.ScaleButton):
             vbox.show_all()
 
     def _clicked(self, widget):
-        
+
         if not self.popup_widget.get_visible():
             self.popup_widget.show_all()
 
@@ -113,8 +113,8 @@ class PopupEntrySearch(WindowWithoutTitleBar):
         tx = 200
         ty = 35
 
-        WindowWithoutTitleBar.__init__(self, (G.width, G.height - ty))# (G.width - (tx / 2), G.height - (ty / 2)))
-        
+        WindowWithoutTitleBar.__init__(self, (G.width, G.height - ty))
+
         self.entry = Gtk.SearchEntry()
 
         self.resize(tx, ty)
@@ -128,7 +128,7 @@ class PopupEntrySearch(WindowWithoutTitleBar):
         self.show_all()
 
     def button_press_event_cb(self, widget, event):
-        
+
         if event.string == "": # En realidad esta cadena alberga el caracter "Escape"
             self.destroy()
 
@@ -148,6 +148,8 @@ class Area(Gtk.IconView):
         self.always_visible = G.get_settings()['panel-siempre-visible']
         self.modelo = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
         self.scan_foolder = ScanFolder.ScanFolder(G.get_desktop_directory())
+        numero = len(os.listdir(G.get_desktop_directory())) / 8.0
+        numero = int(numero) + 1 if (int(str(numero).split('.')[1][0]) >= 5) else int(numero)
 
         self.set_selection_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_model(self.modelo)
@@ -158,7 +160,7 @@ class Area(Gtk.IconView):
         # self.set_margin(0)
         # self.set_item_padding(0)
         self.set_reorderable(True)
-        # self.set_columns(2)
+        self.set_columns(numero)
 
         self.add_events(
             Gdk.EventMask.KEY_PRESS_MASK |
@@ -229,7 +231,7 @@ class Area(Gtk.IconView):
             win.entry.select_region(1, 1)
 
     def search_text(self, widget, text):
-        
+
         self.unselect_all()
 
         if text:
@@ -281,7 +283,7 @@ class Area(Gtk.IconView):
         self.direccion = direccion
 
     def set_panel_visible(self, visible):
-        
+
         self.always_visible = visible
         self.emit('show-panel', self.always_visible)
 
@@ -308,7 +310,7 @@ class Panel(Gtk.Box):
         separador2.set_draw(False)
 
         self.boton_aplicaciones.connect('show-panel', lambda x, s: self.emit('show-panel', s))
- 
+
         self.pack_start(self.boton_aplicaciones, False, False, 0)
         self.pack_start(separador1, True, True, 0)
         self.pack_start(self.boton_calendario, False, False, 0)
@@ -325,14 +327,14 @@ class Panel(Gtk.Box):
 
 
 class FavouriteApplicationsMenu(Gtk.ListBox):
-    
+
     __gsignals__ = {
         'open-application': (GObject.SIGNAL_RUN_FIRST, None, []),
         'remove-from-favourites': (GObject.SIGNAL_RUN_FIRST, None, []),
         }
 
     def __init__(self, boton):
-        
+
         Gtk.ListBox.__init__(self)
 
         # self.set_selection_mode(Gtk.SelectionMode.NONE)
@@ -348,13 +350,13 @@ class FavouriteApplicationsMenu(Gtk.ListBox):
         self.connect('row-activated', self.on_selection_changed)
 
     def on_selection_changed(self, widget, row):
-        
+
         texto = row.get_children()[0].get_label()
         self.emit('open-application' if texto == 'Abrir' else 'remove-from-favourites')
 
 
 class FavouriteApplicationsButton(PopupMenuButton):
-    
+
     __gtype_name__ = 'FavouriteApplicationsButton'
 
     __gsignals__ = {
@@ -391,7 +393,7 @@ class FavouriteApplicationsButton(PopupMenuButton):
         self.show_all()
 
     def _on_button_press_event(self, widget, event):
-        
+
         boton = event.button
         posx = event.x
         posy = event.y
@@ -404,7 +406,7 @@ class FavouriteApplicationsButton(PopupMenuButton):
 
 
 class FavouriteApplications(Gtk.ButtonBox):
-    
+
     __gname_type__ = 'FavouriteApplicationsPanel'
 
     __gsignals__ = {
@@ -412,7 +414,7 @@ class FavouriteApplications(Gtk.ButtonBox):
         }
 
     def __init__(self):
-        
+
         Gtk.ButtonBox.__init__(self)
 
         settings = G.get_settings()
@@ -430,7 +432,7 @@ class FavouriteApplications(Gtk.ButtonBox):
         self.show_all()
 
     def on_drag_data_received(self, widget, drag_context, data, info, time):
-        
+
         path = self.area.get_selected_items()[0]
         _iter = self.area.get_model().get_iter(path)
         text = self.area.get_model().get_value(_iter, G.ICONVIEW_TEXT_COLUMN)
@@ -461,17 +463,17 @@ class FavouriteApplications(Gtk.ButtonBox):
 
         while self.get_children():
             self.remove(self.get_children()[0])
-        
+
         for x in self.aplicaciones:
             boton = FavouriteApplicationsButton(x)
-            
+
             boton.connect('open-application', self._open_application)
             boton.connect('remove-from-favourites', self._remove_from_favourites)
             self.add(boton)
             boton.show()
 
     def _open_application(self, widget, app):
-        
+
         self.emit('open-application', app)
 
     def _remove_from_favourites(self, widget, app):
@@ -479,7 +481,7 @@ class FavouriteApplications(Gtk.ButtonBox):
         confi = G.get_settings()
         self.aplicaciones.remove(app)
         confi['aplicaciones-favoritas'] = self.aplicaciones
-        
+
         G.set_settings(confi)
 
         self.update_buttons()
@@ -492,7 +494,7 @@ class ApplicationsArea(Gtk.IconView):
         }
 
     def __init__(self):
-        
+
         Gtk.IconView.__init__(self)
 
         self.modelo = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
@@ -697,7 +699,7 @@ class ApplicationsMenu(Gtk.HBox):
 
         self.buttonbox.show_all()
 
-    
+
 class UserMenu(Gtk.ListBox):
 
     __gsignals__ = {
@@ -708,7 +710,7 @@ class UserMenu(Gtk.ListBox):
     def __init__(self):
 
         Gtk.ListBox.__init__(self)
-        
+
         self.set_selection_mode(Gtk.SelectionMode.NONE)
         self.set_size_request(400, 500)
 
@@ -846,7 +848,7 @@ class SettingsWindow(Gtk.Window):
     __gsignals__ = {
         'settings-changed': (GObject.SIGNAL_RUN_FIRST, None, [object])
         }
-    
+
     def __init__(self):
 
         Gtk.Window.__init__(self)
@@ -867,6 +869,7 @@ class SettingsWindow(Gtk.Window):
 
         # Sección: Apariencia
         vbox = Gtk.VBox()
+
         hbox = Gtk.HBox()
         entrada = Gtk.Entry()
         boton = Gtk.Button()
@@ -892,6 +895,7 @@ class SettingsWindow(Gtk.Window):
         maximo = brightness.get_max_brightness()
 
         vbox = Gtk.VBox()
+
         hbox = Gtk.HBox()
         adj = Gtk.Adjustment(actual, minimo, maximo, 10, 0)
         scale = Gtk.HScale(adjustment=adj)
@@ -915,9 +919,10 @@ class SettingsWindow(Gtk.Window):
 
         vbox = Gtk.VBox()
         listbox = Gtk.ListBox()
+
         hbox = self.create_row(listbox)
         switch = Gtk.Switch()
-        
+
         listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         switch.set_active(self.confi['panel-siempre-visible'])
 
@@ -929,6 +934,22 @@ class SettingsWindow(Gtk.Window):
         vbox.pack_start(listbox, True, True, 5)
         self.stack.add_titled(vbox, 'Panel inferior', 'Panel inferior')
 
+        vbox = Gtk.VBox()
+        listbox = Gtk.ListBox()
+
+        hbox = self.create_row(listbox)
+        switch = Gtk.Switch()
+
+        listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        switch.set_active(self.confi['gestion-del-escritorio'])
+
+        switch.connect('notify::active', lambda w, x: self.settings_changed(w, 'panel-siempre-visible', w.get_active()))
+
+        hbox.pack_start(Gtk.Label('Hacer que el explorador de archivos gestione el escritorio'), False, False, 0)
+        hbox.pack_end(switch, False, False, 0)
+        vbox.pack_start(listbox, True, True, 5)
+        self.stack.add_titled(vbox, 'Escritorio', 'Escritorio')
+
         self.stack_switcher.set_stack(self.stack)
         self.titlebar.add(self.stack_switcher)
         self.vbox.pack_start(self.stack, True, True, 0)
@@ -939,19 +960,19 @@ class SettingsWindow(Gtk.Window):
         self.show_all()
 
     def settings_changed(self, widget, key, value):
-        
+
         self.confi[key] = value
         self.emit('settings-changed', self.confi)
 
     def save_settings(self, *args):
-        
+
         G.set_settings(self.confi)
 
     def create_row(self, listbox):
-        
+
         row = Gtk.ListBoxRow()
         hbox = Gtk.HBox()
-        
+
         row.add(hbox)
         listbox.add(row)
 

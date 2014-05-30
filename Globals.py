@@ -60,7 +60,8 @@ if not os.path.isfile(settings_path):
     configuracion = '''{
     "fondo-simbolico": "%s",
     "panel-siempre-visible": False,
-    "aplicaciones-favoritas": []
+    "aplicaciones-favoritas": [],
+    "gestion-del-escritorio: True",
 }''' % os.path.join(os.path.dirname(__file__), 'images/background.jpg')
 
     archivo.write(configuracion)
@@ -74,7 +75,7 @@ ICONVIEW_PIXBUF_COLUMN = 1
 
 
 def get_networks(dispositivo='wlan0'):
-    
+
     return escanea.ObtieneRedes(dispositivo)
 
 
