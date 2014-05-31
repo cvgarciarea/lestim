@@ -429,7 +429,9 @@ class FavouriteApplications(Gtk.ButtonBox):
         self.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.COPY)
         self.connect('drag-drop', self.on_drag_data_received)
 
+        # thread.start_new_thread(self.update_buttons, ())
         self.update_buttons()
+
         self.show_all()
 
     def on_drag_data_received(self, widget, drag_context, data, info, time):
@@ -594,6 +596,9 @@ class ApplicationsMenu(Gtk.HBox):
             aplicacion = self.iters[self.modelo.get_value(iter, 0)]
 
             self.emit('open-application', aplicacion)
+
+            self.area.unselect_all()
+
             return False
 
         except TypeError:
