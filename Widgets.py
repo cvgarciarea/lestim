@@ -9,7 +9,7 @@ import sys
 import time
 import cairo
 import alsaaudio
-# import thread
+import thread
 import ConfigParser
 import Globals as G
 
@@ -352,7 +352,8 @@ class FavouriteApplicationsMenu(Gtk.ListBox):
     def on_selection_changed(self, widget, row):
 
         texto = row.get_children()[0].get_label()
-        self.emit('open-application' if texto == 'Abrir' else 'remove-from-favourites')
+        self.emit('open-application' if texto == 'Abrir'
+                                     else 'remove-from-favourites')
 
 
 class FavouriteApplicationsButton(PopupMenuButton):
@@ -478,13 +479,20 @@ class FavouriteApplications(Gtk.ButtonBox):
 
     def _remove_from_favourites(self, widget, app):
 
-        confi = G.get_settings()
-        self.aplicaciones.remove(app)
-        confi['aplicaciones-favoritas'] = self.aplicaciones
+        def _definitive_remove(app):
+            # Se llama en un hilo a parte, porque sino da la sensación de  que
+            # la aplicación se cuelga
 
-        G.set_settings(confi)
+            confi = G.get_settings()
+            self.aplicaciones.remove(app)
+            confi['aplicaciones-favoritas'] = self.aplicaciones
 
-        self.update_buttons()
+            G.set_settings(confi)
+
+            self.update_buttons()
+
+        self.remove(widget)
+        thread.start_new_thread(_definitive_remove, (app,))
 
 
 class ApplicationsArea(Gtk.IconView):

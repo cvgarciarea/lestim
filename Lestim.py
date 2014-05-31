@@ -88,19 +88,19 @@ class Lestim(Gtk.Window):
         self.set_targets()
 
     def settings_window(self, widget):
-        
+
         win = SettingsWindow()
         win.connect('settings-changed', self.settings_changed)
 
     def settings_changed(self, widget, dicc):
-        
+
         self.area.set_panel_visible(dicc['panel-siempre-visible'])
 
     def show_hide_panel(self, widget, if_show):
-        
+
         if if_show:
             self.panel_aplicaciones_favoritas.show_all()
-        
+
         else:
             self.panel_aplicaciones_favoritas.hide()
 
