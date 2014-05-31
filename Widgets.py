@@ -434,6 +434,13 @@ class FavouriteApplications(Gtk.ButtonBox):
 
     def on_drag_data_received(self, widget, drag_context, data, info, time):
 
+        def _save_favourites_applications(lista):
+
+            confi['aplicaciones-favoritas'] = lista
+            self.aplicaciones = lista
+
+            G.set_settings(confi)
+
         path = self.area.get_selected_items()[0]
         _iter = self.area.get_model().get_iter(path)
         text = self.area.get_model().get_value(_iter, G.ICONVIEW_TEXT_COLUMN)
@@ -452,13 +459,16 @@ class FavouriteApplications(Gtk.ButtonBox):
                 iconos.append(x['icono-str'])
                 lista.append(x)
 
-        confi['aplicaciones-favoritas'] = lista
-        self.aplicaciones = lista
+        boton = FavouriteApplicationsButton(x)
 
-        G.set_settings(confi)
+        boton.connect('open-application', self._open_application)
+        boton.connect('remove-from-favourites', self._remove_from_favourites)
+        self.add(boton)
 
-        self.update_buttons()
+        boton.show()
+
         self.area.unselect_all()
+        thread.start_new_thread(_save_favourites_applications, (lista,))
 
     def update_buttons(self):
 
@@ -488,8 +498,6 @@ class FavouriteApplications(Gtk.ButtonBox):
             confi['aplicaciones-favoritas'] = self.aplicaciones
 
             G.set_settings(confi)
-
-            self.update_buttons()
 
         self.remove(widget)
         thread.start_new_thread(_definitive_remove, (app,))
