@@ -7,6 +7,7 @@
 import os
 import alsaaudio
 import ConfigParser
+import thread
 
 try:
     import Image
@@ -89,11 +90,15 @@ def get_settings():
 
 def set_settings(diccionario):
 
-    archivo = open(settings_path, 'w')
-    archivo.write(str(diccionario))
-    archivo.close()
+    def save_settings(diccionario):
 
-    set_background()
+        archivo = open(settings_path, 'w')
+        archivo.write(str(diccionario))
+        archivo.close()
+
+        set_background()
+
+    thread.start_new_thread(save_settings, (diccionario,))
 
 
 def get_display_dimensions():

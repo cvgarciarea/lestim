@@ -9,7 +9,6 @@ import sys
 import time
 import cairo
 import alsaaudio
-import thread
 import ConfigParser
 import Globals as G
 
@@ -452,19 +451,11 @@ class FavouriteApplications(Gtk.ButtonBox):
         self.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.COPY)
         self.connect('drag-drop', self.on_drag_data_received)
 
-        # thread.start_new_thread(self.update_buttons, ())
         self.update_buttons()
 
         self.show_all()
 
     def on_drag_data_received(self, widget, drag_context, data, info, time):
-
-        def _save_favourites_applications(lista):
-
-            confi['aplicaciones-favoritas'] = lista
-            self.aplicaciones = lista
-
-            G.set_settings(confi)
 
         path = self.area.get_selected_items()[0]
         _iter = self.area.get_model().get_iter(path)
@@ -493,7 +484,10 @@ class FavouriteApplications(Gtk.ButtonBox):
         boton.show()
 
         self.area.unselect_all()
-        thread.start_new_thread(_save_favourites_applications, (lista,))
+
+        confi['aplicaciones-favoritas'] = lista
+        self.aplicaciones = lista
+        G.set_settings(confi)
 
     def update_buttons(self):
 
@@ -514,18 +508,12 @@ class FavouriteApplications(Gtk.ButtonBox):
 
     def _remove_from_favourites(self, widget, app):
 
-        def _definitive_remove(app):
-            # Se llama en un hilo a parte, porque sino da la sensación de  que
-            # la aplicación se cuelga
-
-            confi = G.get_settings()
-            self.aplicaciones.remove(app)
-            confi['aplicaciones-favoritas'] = self.aplicaciones
-
-            G.set_settings(confi)
-
         self.remove(widget)
-        thread.start_new_thread(_definitive_remove, (app,))
+        confi = G.get_settings()
+        self.aplicaciones.remove(app)
+        confi['aplicaciones-favoritas'] = self.aplicaciones
+
+        G.set_settings(confi)
 
 
 class ApplicationsArea(Gtk.IconView):
@@ -675,8 +663,6 @@ class ApplicationsMenu(Gtk.HBox):
         self.show_applications(categoria)
 
     def app_search(self, widget):
-
-        # thread.start_new_thread(self.set_apps, ())
 
         resultados = []
         texto = G.clear_string(widget.get_text())
