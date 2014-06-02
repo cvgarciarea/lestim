@@ -216,6 +216,7 @@ class Area(Gtk.IconView):
                     os.system(cfg.has_option('Desktop Entry', 'Exec'))
 
         boton = event.button
+        tiempo = event.time
         posx = event.x
         posy = event.y
 
@@ -231,16 +232,41 @@ class Area(Gtk.IconView):
                 pass
 
         elif event.type.value_name == 'GDK_BUTTON_PRESS' and boton == 3:
+            menu = Gtk.Menu()
+            menu.attach_to_widget(self, None)
 
-            print dir(event)
-            #Gtk.
-            #popover = Gtk.Popover.new(self)
+            try:
+                path = self.get_path_at_pos(int(posx), int(posy))
+                iter = self.modelo.get_iter(path)
+                file = self.modelo.get_value(iter, 0)
 
-            #popover.add(Gtk.Label('FUNCIONAAAAA'))
+                item1 = Gtk.MenuItem('Abrir')
+                item2 = Gtk.MenuItem('Cortar')
+                item3 = Gtk.MenuItem('Copiar')
+                item4 = Gtk.MenuItem('Eliminar')
 
-            #popover.set_position(Gtk.PositionType.BOTTOM)
-            #popover.set_visible(True)
-            #popover.show_all()
+                menu.append(item1)
+                menu.append(Gtk.SeparatorMenuItem())
+                menu.append(item2)
+                menu.append(item3)
+                menu.append(Gtk.SeparatorMenuItem())
+                menu.append(item4)
+
+            except:
+                item1 = Gtk.MenuItem('Carpeta nueva')
+                item2 = Gtk.MenuItem('Pegar')
+                item3 = Gtk.MenuItem('Cambiar el fondo')
+
+                menu.append(item1)
+                menu.append(Gtk.SeparatorMenuItem())
+                menu.append(item2)
+                menu.append(Gtk.SeparatorMenuItem())
+                menu.append(item3)
+
+            menu.show_all()
+            menu.popup(None, None, None, None, boton, tiempo)
+
+            return True
 
     def on_button_press(self, widget, event):
 
