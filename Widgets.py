@@ -133,6 +133,15 @@ class PopupEntrySearch(WindowWithoutTitleBar):
             self.destroy()
 
 
+class Canvas(Gtk.VBox):
+
+    __gtype_name__ = 'Canvas'
+
+    def __init__(self):
+
+        Gtk.VBox.__init__(self)
+
+
 class Area(Gtk.IconView):
 
     __gtype_name__ = 'DesktopArea'
@@ -222,6 +231,18 @@ class Area(Gtk.IconView):
             except TypeError:
                 pass
 
+        elif event.type.value_name == 'GDK_BUTTON_PRESS' and boton == 3:
+
+            print dir(event)
+            #Gtk.
+            #popover = Gtk.Popover.new(self)
+
+            #popover.add(Gtk.Label('FUNCIONAAAAA'))
+
+            #popover.set_position(Gtk.PositionType.BOTTOM)
+            #popover.set_visible(True)
+            #popover.show_all()
+
     def on_button_press(self, widget, event):
 
         if event.string.isalpha():
@@ -290,6 +311,8 @@ class Area(Gtk.IconView):
 
 class Panel(Gtk.Box):
 
+    __gtype_name__ = 'DesktopPanel'
+
     __gsignals__ = {
         'show-panel': (GObject.SIGNAL_RUN_FIRST, None, [bool])
         }
@@ -337,7 +360,7 @@ class FavouriteApplicationsMenu(Gtk.ListBox):
 
         Gtk.ListBox.__init__(self)
 
-        # self.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.set_selection_mode(Gtk.SelectionMode.NONE)
 
         row = Gtk.ListBoxRow()
         row.add(Gtk.Label('Abrir'))
@@ -555,6 +578,7 @@ class ApplicationsMenu(Gtk.HBox):
         scrolled1 = Gtk.ScrolledWindow()
         scrolled2 = Gtk.ScrolledWindow()
 
+        self.entrada.set_size_request(400, -1)
         scrolled1.set_size_request(675, 400)
         scrolled1.set_can_focus(False)
         scrolled2.set_size_request(200, -1)
@@ -805,14 +829,16 @@ class UserButton(PopupMenuButton):
         self.menu = UserMenu()
         self.menu.boton = self
 
-        PopupMenuButton.__init__(self, 'Aplicaciones', self.menu)
+        PopupMenuButton.__init__(self, os.getlogin(), self.menu)
 
 
 class CalendarButton(PopupMenuButton):
 
     def __init__(self):
 
-        PopupMenuButton.__init__(self, '', Gtk.Calendar())
+        calendario = Gtk.Calendar()
+
+        PopupMenuButton.__init__(self, '', calendario)
 
         self.set_time()
         GObject.timeout_add(1000, self.set_time, ())

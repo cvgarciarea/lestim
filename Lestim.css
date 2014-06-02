@@ -1,3 +1,9 @@
+Canvas {
+    background-color: transparent;
+    outline-color: transparent;
+    background-image: url("/home/cristian/.lestim/background.jpg");
+}
+
 DesktopArea.cell:selected, DesktopArea.cell:selected:focus {
     background-color: transparent;
 
@@ -28,6 +34,25 @@ DesktopArea:backdrop:selected {
 
 DesktopArea {
     background-color: transparent;
-    outline-color: transparent;
-    background-image: url("/home/cristian/.lestim/background.jpg");
+}
+
+DesktopPanel {
+    background-color: alpha(#000, 0.50);
+}
+
+DesktopPanel GtkLabel {
+    color: #FFF;
+}
+
+DesktopPanel GtkButton, FavouriteApplicationsButton {
+    border-image: none;
+    background-image: none;
+}
+
+DesktopPanel GtkButton:hover {
+    background-color: alpha(#000, 0.20);
+}
+
+FavouriteApplicationsButton:hover {
+    background-color: alpha(#FFF, 0.15);
 }

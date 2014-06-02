@@ -13,6 +13,7 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
 
+from Widgets import Canvas
 from Widgets import Area
 from Widgets import Panel
 from Widgets import SettingsWindow
@@ -41,7 +42,7 @@ class Lestim(Gtk.Window):
 
         self.directorio = self.get_directory()
 
-        self.vbox = Gtk.VBox()
+        self.vbox = Canvas()
         self.panel = Panel()
         self.area = Area()
         self.panel_aplicaciones_favoritas = FavouriteApplications()
