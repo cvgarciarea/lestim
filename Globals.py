@@ -365,5 +365,23 @@ def get_background():
     return background_path
 
 
+def open_file(direccion):
+
+    if not direccion.endswith('.desktop'):
+        if ' ' in direccion:
+            direccion = direccion.replace(' ', '\ ')
+
+        os.system('xdg-open %s' % direccion)
+
+    else:
+        cfg = ConfigParser.ConfigParser()
+        cfg.read([direccion])
+
+        if cfg.has_option('Desktop Entry', 'Exec'):
+            os.system(cfg.has_option('Desktop Entry', 'Exec'))
+
+
 if not os.path.exists(background_path):
     set_background()
+
+

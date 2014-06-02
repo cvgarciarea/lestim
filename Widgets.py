@@ -198,23 +198,6 @@ class Area(Gtk.IconView):
 
     def on_click_press(self, widget, event):
 
-        def abrir_archivo(aplicacion):
-
-            direccion = os.path.join(self.direccion, aplicacion)
-
-            if not direccion.endswith('.desktop'):
-                if ' ' in direccion:
-                    direccion = direccion.replace(' ', '\ ')
-
-                os.system('xdg-open %s' % direccion)
-
-            else:
-                cfg = ConfigParser.ConfigParser()
-                cfg.read([direccion])
-
-                if cfg.has_option('Desktop Entry', 'Exec'):
-                    os.system(cfg.has_option('Desktop Entry', 'Exec'))
-
         boton = event.button
         tiempo = event.time
         posx = event.x
@@ -226,7 +209,7 @@ class Area(Gtk.IconView):
                 path = self.get_path_at_pos(int(posx), int(posy))
                 iter = self.modelo.get_iter(path)
 
-                abrir_archivo(self.modelo.get_value(iter, 0))
+                G.open_file(os.path.join(G.get_desktop_directory(), self.modelo.get_value(iter, 0)))
 
             except TypeError:
                 pass
@@ -240,10 +223,14 @@ class Area(Gtk.IconView):
                 iter = self.modelo.get_iter(path)
                 file = self.modelo.get_value(iter, 0)
 
+                self.select_path(path)
+
                 item1 = Gtk.MenuItem('Abrir')
                 item2 = Gtk.MenuItem('Cortar')
                 item3 = Gtk.MenuItem('Copiar')
                 item4 = Gtk.MenuItem('Eliminar')
+
+                item1.connect('activate', self.open_files)
 
                 menu.append(item1)
                 menu.append(Gtk.SeparatorMenuItem())
@@ -267,6 +254,24 @@ class Area(Gtk.IconView):
             menu.popup(None, None, None, None, boton, tiempo)
 
             return True
+
+    def open_files(self, *args):
+
+        for x in self.get_selected_items():
+            iter = self.modelo.get_iter(x)
+            nombre = self.modelo.get_value(iter, 0)
+            archivo = os.path.join(G.get_desktop_directory(), nombre)
+
+            if not os.path.exists(archivo):
+                for x in os.listdir(G.get_desktop_directory()):
+                    if x.endswith('.desktop'):
+                        if ConfigParser.has_option('Desktop Entry', 'Name') and \
+                            ConfigParser.get('Desktop Entry', 'Name') == nombre:
+                            archivo = os.path.join(G.get_desktop_directory(), x)
+
+                            break
+
+            G.open_file(archivo)
 
     def on_button_press(self, widget, event):
 
