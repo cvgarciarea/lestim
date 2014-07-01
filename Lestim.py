@@ -20,18 +20,7 @@ from Widgets import SettingsWindow
 from Widgets import FavouriteApplications
 
 
-screen = Gdk.Screen.get_default()
-css_provider = Gtk.CssProvider()
-style = os.path.join(os.path.dirname(__file__), 'Lestim.css')
-context = Gtk.StyleContext()
-
-css_provider.load_from_path(style)
-
-context.add_provider_for_screen(
-    screen,
-    css_provider,
-    Gtk.STYLE_PROVIDER_PRIORITY_USER
-)
+thread.start_new_thread(G.set_theme, ())
 
 
 class Lestim(Gtk.Window):
@@ -48,22 +37,24 @@ class Lestim(Gtk.Window):
         self.panel_aplicaciones_favoritas = FavouriteApplications()
         self.aplicaciones = self.panel.get_applications_menu()
         self.menu_de_usuario = self.panel.get_user_menu()
+        self.settings_win = SettingsWindow()
+        self.confi = G.get_settings()
 
         self.set_icon_from_file(G.main_window_icon)
         self.set_title('Lestim')
         self.area.set_direccion(self.directorio)
+        self.settings_win.hide()
 
         self.connect('delete-event', lambda w, e: sys.exit(0))
         self.panel.connect('show-panel', self.show_hide_panel)
         self.area.connect('show-panel', self.show_hide_panel)
         self.panel_aplicaciones_favoritas.connect('open-application', self.app_exec)
-        self.aplicaciones.connect(
-            'open-application', lambda *a: self.aplicaciones.hide())
+        self.aplicaciones.connect('open-application', lambda *a: self.aplicaciones.hide())
         self.aplicaciones.connect('open-application', self.app_exec)
-        self.menu_de_usuario.connect(
-            'open-settings-window', lambda x: self.menu_de_usuario.hide())
-        self.menu_de_usuario.connect('open-settings-window', self.settings_window)
+        self.menu_de_usuario.connect('open-settings-window', lambda x: self.menu_de_usuario.hide())
+        self.menu_de_usuario.connect('open-settings-window', lambda *a: self.settings_win.show_all())
         self.menu_de_usuario.connect('close', lambda x: sys.exit(0))
+        self.settings_win.connect('settings-changed', self.settings_changed)
 
         self.vbox.pack_start(self.panel, False, False, 0)
         self.vbox.pack_start(self.area, True, True, 0)
@@ -71,7 +62,8 @@ class Lestim(Gtk.Window):
 
         self.add(self.vbox)
         self.show_all()
-        self.set_defaults()
+
+        thread.start_new_thread(self.set_defaults, ())
 
     def set_defaults(self):
 
@@ -88,14 +80,13 @@ class Lestim(Gtk.Window):
 
         self.set_targets()
 
-    def settings_window(self, widget):
-
-        win = SettingsWindow()
-        win.connect('settings-changed', self.settings_changed)
-
     def settings_changed(self, widget, dicc):
 
-        self.area.set_panel_visible(dicc['panel-siempre-visible'])
+        self.confi = dicc
+
+        self.area.set_panel_visible(self.confi['panel-siempre-visible'])
+        G.set_background(self.confi['fondo-simbolico'])
+        G.set_theme()
 
     def show_hide_panel(self, widget, if_show):
 
@@ -112,10 +103,6 @@ class Lestim(Gtk.Window):
             os.system(app['ejecutar'])
 
         thread.start_new_thread(_exec, (app,))
-
-    def close_application(self, canvas):
-
-        pass
 
     def get_directory(self):
 

@@ -8,6 +8,7 @@ import os
 import sys
 import time
 import cairo
+import thread
 import alsaaudio
 import ConfigParser
 import Globals as G
@@ -155,10 +156,12 @@ class Area(Gtk.IconView):
 
         self.always_visible = G.get_settings()['panel-siempre-visible']
         self.modelo = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
+        #self.renderer = Gtk.CellRendererText.new()
         self.scan_foolder = ScanFolder.ScanFolder(G.get_desktop_directory())
         numero = len(os.listdir(G.get_desktop_directory())) / 8.0
         numero = int(numero) + 1 if (int(str(numero).split('.')[1][0]) >= 5) else int(numero)
 
+        #self.renderer.set_property('editable', True)
         self.set_selection_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_model(self.modelo)
         self.set_text_column(G.ICONVIEW_TEXT_COLUMN)
@@ -169,6 +172,9 @@ class Area(Gtk.IconView):
         # self.set_item_padding(0)
         self.set_reorderable(True)
         self.set_columns(numero)
+
+        #self.pack_start(self.renderer, G.ICONVIEW_TEXT_COLUMN)
+        #self.set_cell_data_func(self.renderer)
 
         self.add_events(
             Gdk.EventMask.KEY_PRESS_MASK |
@@ -183,6 +189,7 @@ class Area(Gtk.IconView):
         self.connect('button-press-event', self.on_click_press)
         self.connect('key-press-event', self.on_button_press)
         self.scan_foolder.connect('files-changed', self.agregar_iconos)
+        #self.renderer.connect('edited', self.rename_file)
 
     def do_motion_notify_event(self, event):
 
@@ -242,18 +249,23 @@ class Area(Gtk.IconView):
             except:
                 item1 = Gtk.MenuItem('Carpeta nueva')
                 item2 = Gtk.MenuItem('Pegar')
-                item3 = Gtk.MenuItem('Cambiar el fondo')
 
                 menu.append(item1)
                 menu.append(Gtk.SeparatorMenuItem())
                 menu.append(item2)
-                menu.append(Gtk.SeparatorMenuItem())
-                menu.append(item3)
 
             menu.show_all()
             menu.popup(None, None, None, None, boton, tiempo)
 
             return True
+
+    def on_button_press(self, widget, event):
+
+        if event.string.isalpha():
+            win = PopupEntrySearch()
+            win.connect('search-changed', self.search_text)
+            win.entry.set_text(event.string)
+            win.entry.select_region(1, 1)
 
     def open_files(self, *args):
 
@@ -272,14 +284,6 @@ class Area(Gtk.IconView):
                             break
 
             G.open_file(archivo)
-
-    def on_button_press(self, widget, event):
-
-        if event.string.isalpha():
-            win = PopupEntrySearch()
-            win.connect('search-changed', self.search_text)
-            win.entry.set_text(event.string)
-            win.entry.select_region(1, 1)
 
     def search_text(self, widget, text):
 
@@ -769,6 +773,8 @@ class UserMenu(Gtk.ListBox):
         'close': (GObject.SIGNAL_RUN_FIRST, None, []),
         }
 
+    __gtype_name__ = 'UserMenu'
+
     def __init__(self):
 
         Gtk.ListBox.__init__(self)
@@ -782,7 +788,7 @@ class UserMenu(Gtk.ListBox):
 
         expander.set_label('Wi-Fi')
 
-        hbox.add(Gtk.Label(G.get_ip()))
+        #hbox.add(Gtk.Label(G.get_ip()))
         expander.add(hbox)
         _hbox.add(expander)
 
@@ -922,38 +928,21 @@ class SettingsWindow(Gtk.Window):
         self.stack = Gtk.Stack()
         self.stack_switcher = Gtk.StackSwitcher()
         self.confi = G.get_settings()
+        self.fondos = G.get_backgrounds()
 
         self.set_titlebar(self.titlebar)
         self.titlebar.set_show_close_button(True)
         self.titlebar.set_tooltip_text(
             'Algunos cambios tendrán efecto en la siguiente sesión')
-        self.stack.set_transition_type(
-            Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
+        self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
         self.stack.set_transition_duration(1000)
 
-        # Sección: Apariencia
         vbox = Gtk.VBox()
 
-        hbox = Gtk.HBox()
-        entrada = Gtk.Entry()
-        boton = Gtk.Button()
-        label = Gtk.Label()
+        ### Apariencia ###
+        self.appearence()
 
-        entrada.set_editable(False)
-        entrada.set_text(self.confi['fondo-simbolico'])
-        label.set_markup("<big><big><big>···</big></big></big>")
-
-        boton.connect('clicked', self.file_chooser_images)
-
-        boton.add(label)
-        hbox.pack_start(Gtk.Label('Fondo de escritorio:'), False, False, 2)
-        hbox.pack_start(entrada, True, True, 5)
-        hbox.pack_end(boton, False, False, 0)
-        vbox.pack_start(hbox, False, False, 2)
-        self.stack.add_titled(vbox, 'Apariencia', 'Apariencia')
-
-        # Falta crear toda la interfaz y funcionalidad para el resto de las
-        # secciones de configuración
+        ### Energía ###
         actual = brightness.get_current_brightness()
         minimo = 0
         maximo = brightness.get_max_brightness()
@@ -975,22 +964,22 @@ class SettingsWindow(Gtk.Window):
         vbox.pack_start(hbox, False, False, 2)
         self.stack.add_titled(vbox, 'Energía', 'Energía')
 
+        ### Sonido ###
         vbox = Gtk.VBox()
         hbox = VolumeWidget()
 
         vbox.pack_start(hbox, False, False, 2)
         self.stack.add_titled(vbox, 'Sonido', 'Sonido')
 
+        ### Panel inferior ###
         vbox = Gtk.VBox()
-        listbox = Gtk.ListBox()
-
+        listbox = self.create_listbox()
         hbox = self.create_row(listbox)
         switch = Gtk.Switch()
 
-        listbox.set_selection_mode(Gtk.SelectionMode.NONE)
-        switch.set_active(self.confi['panel-siempre-visible'])
+        switch.set_active(not self.confi['panel-siempre-visible'])
 
-        switch.connect('notify::active', lambda w, x: self.settings_changed(w, 'panel-siempre-visible', w.get_active()))
+        switch.connect('notify::active', lambda w, x: self.settings_changed(w, 'panel-siempre-visible', not w.get_active()))
 
         hbox.pack_start(Gtk.Label('Ocultar automáticamente'), False, False, 0)
         hbox.pack_end(switch, False, False, 0)
@@ -998,34 +987,98 @@ class SettingsWindow(Gtk.Window):
         vbox.pack_start(listbox, True, True, 5)
         self.stack.add_titled(vbox, 'Panel inferior', 'Panel inferior')
 
-        vbox = Gtk.VBox()
-        listbox = Gtk.ListBox()
-
-        hbox = self.create_row(listbox)
-        switch = Gtk.Switch()
-
-        listbox.set_selection_mode(Gtk.SelectionMode.NONE)
-        switch.set_active(self.confi['gestion-del-escritorio'])
-
-        switch.connect('notify::active', lambda w, x: self.settings_changed(w, 'panel-siempre-visible', w.get_active()))
-
-        hbox.pack_start(Gtk.Label('Hacer que el explorador de archivos gestione el escritorio'), False, False, 0)
-        hbox.pack_end(switch, False, False, 0)
-        vbox.pack_start(listbox, True, True, 5)
-        self.stack.add_titled(vbox, 'Escritorio', 'Escritorio')
-
         self.stack_switcher.set_stack(self.stack)
         self.titlebar.add(self.stack_switcher)
         self.vbox.pack_start(self.stack, True, True, 0)
 
         self.connect('settings-changed', self.save_settings)
+        self.connect('delete-event', self._hide)
 
         self.add(self.vbox)
         self.show_all()
 
+    def appearence(self):
+
+        vbox = Gtk.VBox()
+        stack = Gtk.Stack()
+        stack_switcher = Gtk.StackSwitcher()
+
+        vbox.set_spacing(10)
+        stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
+        stack.set_transition_duration(1000)
+
+        _vbox = Gtk.VBox()
+        scrolled = Gtk.ScrolledWindow()
+        iconview = Gtk.IconView()
+        modelo = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
+        hbox = Gtk.HBox()
+        boton_ok = Gtk.Button.new_with_label('Seleccionar')
+
+        iconview.set_pixbuf_column(G.ICONVIEW_PIXBUF_COLUMN)
+        iconview.set_model(modelo)
+        boton_ok.set_sensitive(False)
+
+        for x in self.fondos['fondos']:
+            pix = GdkPixbuf.Pixbuf.new_from_file_at_size(x, 256, 128)
+            modelo.append([x, pix])
+
+        iconview.connect('selection-changed', lambda x: boton_ok.set_sensitive(bool(x.get_selected_items())))
+        boton_ok.connect('clicked', self.change_background, iconview)
+
+        hbox.pack_end(boton_ok, False, False, 5)
+        scrolled.add(iconview)
+        _vbox.pack_start(scrolled, True, True, 0)
+        _vbox.pack_end(hbox, False, False, 0)
+
+        stack.add_titled(_vbox, 'Fondos de escritorios', 'Fondos de escritorios')
+
+        _vbox = Gtk.VBox()
+        scrolled = Gtk.ScrolledWindow()
+        iconview = Gtk.IconView()
+        modelo = Gtk.ListStore(GdkPixbuf.Pixbuf, str)
+        hbox = Gtk.HBox()
+        boton_ok = Gtk.Button.new_with_label('Seleccionar')
+
+        iconview.set_pixbuf_column(0)
+        iconview.set_model(modelo)
+        iconview.set_item_width(260)
+        boton_ok.set_sensitive(False)
+
+        for x in self.fondos['imagenes']:
+            pix = GdkPixbuf.Pixbuf.new_from_file_at_size(x, 256, 128)
+            modelo.append([pix, x])
+
+        iconview.connect('selection-changed', lambda x: boton_ok.set_sensitive(bool(x.get_selected_items())))
+        boton_ok.connect('clicked', self.change_background, iconview)
+
+        hbox.pack_end(boton_ok, False, False, 5)
+        scrolled.add(iconview)
+        _vbox.pack_start(scrolled, True, True, 0)
+        _vbox.pack_end(hbox, False, False, 0)
+
+        stack.add_titled(_vbox, 'Imágenes', 'Imágenes')
+        stack.add_titled(Gtk.ScrolledWindow(), 'Colores', 'Colores')
+
+        stack_switcher.set_stack(stack)
+        vbox.pack_start(stack_switcher, False, False, 5)
+        vbox.pack_start(stack, True, True, 0)
+
+        self.stack.add_titled(vbox, 'Apariencia', 'Apariencia')
+        vbox.show_all()
+
     def settings_changed(self, widget, key, value):
 
         self.confi[key] = value
+        self.emit('settings-changed', self.confi)
+
+    def change_background(self, widget, iconview):
+
+        modelo = iconview.get_model()
+        item = iconview.get_selected_items()[0]
+        iter = modelo.get_iter(item)
+        archivo = modelo.get_value(iter, 1)
+        self.confi['fondo-simbolico'] = archivo
+
         self.emit('settings-changed', self.confi)
 
     def save_settings(self, *args):
@@ -1042,8 +1095,16 @@ class SettingsWindow(Gtk.Window):
 
         return hbox
 
+    def create_listbox(self):
+
+        listbox = Gtk.ListBox()
+        listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+
+        return listbox
+
     def file_chooser_images(self, widget):
 
+        """
         def abrir(widget, self, chooser):
 
             self.confi['fondo-simbolico'] = chooser.get_filename()
@@ -1077,6 +1138,15 @@ class SettingsWindow(Gtk.Window):
         buttonbox.add(boton_abrir)
 
         chooser.show_all()
+        """
+
+        chooser = ImagesFileChooser()
+
+    def _hide(self, *args):
+
+        self.hide()
+
+        return True
 
 
 class VolumeWidget(Gtk.HBox):

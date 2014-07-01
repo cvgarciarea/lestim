@@ -1,7 +1,7 @@
 Canvas {
     background-color: transparent;
     outline-color: transparent;
-    background-image: url("/home/cristian/.lestim/background.jpg");
+    background-image: url("");
 }
 
 DesktopArea.cell:selected, DesktopArea.cell:selected:focus {
