@@ -1,0 +1,67 @@
+PrincipalWindow {
+    background-color: transparent;
+    background-image: url("");
+    background-repeat: no-repeat;
+}
+
+CanvasVBox, CanvasHBox, WorkArea {
+	background-color: transparent;
+}
+
+DownPanel {
+	background: linear-gradient(transparent, black);
+}
+
+IndicatorsArea {
+	background-color: transparent;
+}
+
+IndicatorsArea > GtkButton {
+	background-color: alpha(#000, 0.25);
+	border-image: none;
+    background-image: none;
+    color: #FFFFFF;
+}
+
+LateralPanel {
+	background-color: alpha(#000, 0.50);
+	border-width: 5px;
+}
+
+.scale {
+     -GtkScale-slider-length: 15; /* x del circulito para desplazar*/
+     -GtkRange-slider-width: 20; /* y del circulito para desplazar*/
+     -GtkRange-trough-border: 3;
+}
+
+.scrollbar {
+ 	-GtkScrollbar-has-backward-stepper: 10;
+ 	-GtkScrollbar-has-forward-stepper: 10;
+ 	background-color: #0971B2;
+ 	background-image: none;
+ 	border-width: 10px;
+ 	border-radius: 5px;
+}
+
+AppButton {
+	background-color: alpha(#000, 0.50);
+	border-image: none;
+    background-image: none;
+    border-radius: 10px;
+    color: #FFFFFF;
+}
+
+AppButton:hover {
+	background-color: alpha(#000, 0.25);
+}
+
+AppsEntry {
+	background-color: alpha(#000, 0.25);
+	background-image: none;
+	border-image: none;
+	border-color: alpha(#000, 0.75);
+	border-radius: 25px;
+	border-width: 5px;
+	font-size: 20px;
+	color: alpha(#FFF, 0.75);
+}

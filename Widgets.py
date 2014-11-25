@@ -1,1179 +1,237 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#  Widgets.py por:
-#     Cristian García: cristian99garcia@gmail.com
-
 import os
-import sys
-import time
-import cairo
-import thread
-import alsaaudio
-import ConfigParser
-import Globals as G
-
-from modules import brightness
-from modules import ScanFolder
+import Globales
 
 from gi.repository import Gtk
-from gi.repository import Gdk
-from gi.repository import GdkPixbuf
 from gi.repository import GObject
-from gi.repository import Gio
-
-icon_theme = Gtk.IconTheme()
-icons = icon_theme.list_icons(None)
 
 
-class WindowWithoutTitleBar(Gtk.Window):
+Globales.set_theme()
 
-    def __init__(self, position=None, destroy_when_close=True):
 
+class WWTB(Gtk.Window):
+
+    __gtype_name__ = 'WindowWithoutTitleBar'
+
+    def __init__(self, pos=(300, 300), size=(300, 400)):
         Gtk.Window.__init__(self)
 
-        if position:
-            self.move(*position)
-
-        self._destroy = destroy_when_close
+        self.move(*pos)
+        self.resize(*size)
 
         self.connect('realize', self.do_realized)
-        self.connect('focus-out-event', self.close_cb)
 
     def do_realized(self, widget):
 
-        win = self.get_window()
-        win.set_decorations(False)
-        win.process_all_updates()
-
-    def close_cb(self, *args):
-
-        if self._destroy:
-            self.destroy()
-
-        else:
-            self.hide()
+        self.get_window().set_decorations(False)
+        self.get_window().process_all_updates()
 
 
-class PopupMenuButton(Gtk.ScaleButton):
+class WorkArea(Gtk.IconView):
 
-    def __init__(self, label, popup_widget):
+    __gtype_name__ = 'WorkArea'
 
-        Gtk.ScaleButton.__init__(self)
-
-        self.set_relief(Gtk.ReliefStyle.NONE)
-
-        self.label = Gtk.Label(label)
-        self.popup_widget = popup_widget
-
-        self.remove(self.get_children()[0])
-        self.add(self.label)
-
-        self.connect('clicked', self._clicked)
-
-        self.hack()
-
-    def hack(self):
-
-        win = self.get_popup()
-
-        if 'GtkWindow' in str(win):
-            frame = win.get_children()[0]
-            _vbox = frame.get_children()[0]
-            vbox = Gtk.VBox()
-
-            vbox.add(self.popup_widget)
-            frame.remove(_vbox)
-            frame.add(vbox)
-
-        elif 'GtkPopover' in str(win):
-            vbox = win.get_children()[0]
-
-            vbox.remove(vbox.get_children()[0])
-            vbox.remove(vbox.get_children()[0])
-            vbox.remove(vbox.get_children()[0])
-            vbox.add(self.popup_widget)
-
-            vbox.show_all()
-
-    def _clicked(self, widget):
-
-        if not self.popup_widget.get_visible():
-            self.popup_widget.show_all()
+    def __init___(swlf):
+        Gtk.IconView.__init__(self)
 
 
-class PopupEntrySearch(WindowWithoutTitleBar):
+class LateralPanel(Gtk.VBox):
 
-    __gsignals__ = {
-        'search-changed': (GObject.SIGNAL_RUN_FIRST, None, [str])
-        }
+    __gtype_name__ = 'LateralPanel'
 
     def __init__(self):
-
-        tx = 200
-        ty = 35
-
-        WindowWithoutTitleBar.__init__(self, (G.width, G.height - ty))
-
-        self.entry = Gtk.SearchEntry()
-
-        self.resize(tx, ty)
-        self.entry.set_size_request(tx, ty)
-        self.entry.grab_focus()
-
-        self.entry.connect('changed', lambda w: self.emit('search-changed', w.get_text()))
-        self.entry.connect('key-press-event', self.button_press_event_cb)
-
-        self.add(self.entry)
-        self.show_all()
-
-    def button_press_event_cb(self, widget, event):
-
-        if event.string == "": # En realidad esta cadena alberga el caracter "Escape"
-            self.destroy()
-
-
-class Canvas(Gtk.VBox):
-
-    __gtype_name__ = 'Canvas'
-
-    def __init__(self):
-
         Gtk.VBox.__init__(self)
 
-
-class Area(Gtk.IconView):
-
-    __gtype_name__ = 'DesktopArea'
-
-    __gsignals__ = {
-        'show-panel': (GObject.SIGNAL_RUN_FIRST, None, [bool])
-        }
-
-    def __init__(self):
-
-        Gtk.IconView.__init__(self)
-
-        self.always_visible = G.get_settings()['panel-siempre-visible']
-        self.modelo = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
-        #self.renderer = Gtk.CellRendererText.new()
-        self.scan_foolder = ScanFolder.ScanFolder(G.get_desktop_directory())
-        numero = len(os.listdir(G.get_desktop_directory())) / 8.0
-        numero = int(numero) + 1 if (int(str(numero).split('.')[1][0]) >= 5) else int(numero)
-
-        #self.renderer.set_property('editable', True)
-        self.set_selection_mode(Gtk.SelectionMode.MULTIPLE)
-        self.set_model(self.modelo)
-        self.set_text_column(G.ICONVIEW_TEXT_COLUMN)
-        self.set_pixbuf_column(G.ICONVIEW_PIXBUF_COLUMN)
-        self.set_item_orientation(Gtk.Orientation.VERTICAL)
-        # self.set_item_width(100)
-        # self.set_margin(0)
-        # self.set_item_padding(0)
-        self.set_reorderable(True)
-        self.set_columns(numero)
-
-        #self.pack_start(self.renderer, G.ICONVIEW_TEXT_COLUMN)
-        #self.set_cell_data_func(self.renderer)
-
-        self.add_events(
-            Gdk.EventMask.KEY_PRESS_MASK |
-            Gdk.EventMask.KEY_RELEASE_MASK |
-            Gdk.EventMask.POINTER_MOTION_MASK |
-            Gdk.EventMask.POINTER_MOTION_HINT_MASK |
-            Gdk.EventMask.BUTTON_MOTION_MASK |
-            Gdk.EventMask.BUTTON_PRESS_MASK |
-            Gdk.EventMask.BUTTON_RELEASE_MASK
-        )
-
-        self.connect('button-press-event', self.on_click_press)
-        self.connect('key-press-event', self.on_button_press)
-        self.scan_foolder.connect('files-changed', self.agregar_iconos)
-        #self.renderer.connect('edited', self.rename_file)
-
-    def do_motion_notify_event(self, event):
-
-        x, y = (int(event.x), int(event.y))
-        rect = self.get_allocation()
-        xx, yy, ww, hh = (rect.x, rect.y, rect.width, rect.height)
-
-        if y in range(G.height - 100, G.height) and not self.always_visible:
-            self.emit('show-panel', True)
-
-        elif y not in range(G.height - 100, G.height) and not self.always_visible:
-            self.emit('show-panel', False)
-
-    def on_click_press(self, widget, event):
-
-        boton = event.button
-        tiempo = event.time
-        posx = event.x
-        posy = event.y
-
-        if event.type.value_name == 'GDK_2BUTTON_PRESS' and boton == 1:
-
-            try:
-                path = self.get_path_at_pos(int(posx), int(posy))
-                iter = self.modelo.get_iter(path)
-
-                G.open_file(os.path.join(G.get_desktop_directory(), self.modelo.get_value(iter, 0)))
-
-            except TypeError:
-                pass
-
-        elif event.type.value_name == 'GDK_BUTTON_PRESS' and boton == 3:
-            menu = Gtk.Menu()
-            menu.attach_to_widget(self, None)
-
-            try:
-                path = self.get_path_at_pos(int(posx), int(posy))
-                iter = self.modelo.get_iter(path)
-                file = self.modelo.get_value(iter, 0)
-
-                self.select_path(path)
-
-                item1 = Gtk.MenuItem('Abrir')
-                item2 = Gtk.MenuItem('Cortar')
-                item3 = Gtk.MenuItem('Copiar')
-                item4 = Gtk.MenuItem('Eliminar')
-
-                item1.connect('activate', self.open_files)
-
-                menu.append(item1)
-                menu.append(Gtk.SeparatorMenuItem())
-                menu.append(item2)
-                menu.append(item3)
-                menu.append(Gtk.SeparatorMenuItem())
-                menu.append(item4)
-
-            except:
-                item1 = Gtk.MenuItem('Carpeta nueva')
-                item2 = Gtk.MenuItem('Pegar')
-
-                menu.append(item1)
-                menu.append(Gtk.SeparatorMenuItem())
-                menu.append(item2)
-
-            menu.show_all()
-            menu.popup(None, None, None, None, boton, tiempo)
-
-            return True
-
-    def on_button_press(self, widget, event):
-
-        if event.string.isalpha():
-            win = PopupEntrySearch()
-            win.connect('search-changed', self.search_text)
-            win.entry.set_text(event.string)
-            win.entry.select_region(1, 1)
-
-    def open_files(self, *args):
-
-        for x in self.get_selected_items():
-            iter = self.modelo.get_iter(x)
-            nombre = self.modelo.get_value(iter, 0)
-            archivo = os.path.join(G.get_desktop_directory(), nombre)
-
-            if not os.path.exists(archivo):
-                for x in os.listdir(G.get_desktop_directory()):
-                    if x.endswith('.desktop'):
-                        if ConfigParser.has_option('Desktop Entry', 'Name') and \
-                            ConfigParser.get('Desktop Entry', 'Name') == nombre:
-                            archivo = os.path.join(G.get_desktop_directory(), x)
-
-                            break
-
-            G.open_file(archivo)
-
-    def search_text(self, widget, text):
-
-        self.unselect_all()
-
-        if text:
-            text = G.clear_string(text)
-
-            for item in self.modelo:
-                label = G.clear_string(list(item)[0])
-
-                if label.startswith(text):
-                    self.select_path(item.path)
-                    break
-
-    def agregar_iconos(self, scan_foolder, lista):
-
-        self.limpiar()
-
-        for x in lista:
-            self.insertar_iter(x)
-
-    def insertar_iter(self, direccion):
-
-        nombre = direccion.split('/')[-1]
-        icono = G.get_icon(direccion)
-
-        if nombre.endswith('.desktop'):
-            cfg = ConfigParser.ConfigParser()
-            cfg.read([direccion])
-
-            if cfg.has_option('Desktop Entry', 'Name'):
-                nombre = cfg.get('Desktop Entry', 'Name')
-
-        iter = self.modelo.append([nombre, icono])
-        path = self.modelo.get_path(iter)
-
-        tooltip = Gtk.Tooltip()
-
-        tooltip.set_text(direccion)
-        tooltip.set_icon(icono)
-        self.set_tooltip_item(tooltip, path)
-
-        self.show_all()
-
-    def limpiar(self):
-
-        self.modelo.clear()
-
-    def set_direccion(self, direccion):
-
-        self.direccion = direccion
-
-    def set_panel_visible(self, visible):
-
-        self.always_visible = visible
-        self.emit('show-panel', self.always_visible)
-
-
-class Panel(Gtk.Box):
-
-    __gtype_name__ = 'DesktopPanel'
-
-    __gsignals__ = {
-        'show-panel': (GObject.SIGNAL_RUN_FIRST, None, [bool])
-        }
-
-    def __init__(self, orientacion=Gtk.Orientation.HORIZONTAL):
-
-        Gtk.Box.__init__(self, orientation=orientacion)
-
-        self.boton_aplicaciones = ApplicationsButton()
-        self.boton_calendario = CalendarButton()
-        self.boton_usuario = UserButton()
-        separador1 = Gtk.SeparatorToolItem()
-        separador2 = Gtk.SeparatorToolItem()
-
-        separador1.set_expand(True)
-        separador2.set_expand(True)
-        separador1.set_draw(False)
-        separador2.set_draw(False)
-
-        self.boton_aplicaciones.connect('show-panel', lambda x, s: self.emit('show-panel', s))
-
-        self.pack_start(self.boton_aplicaciones, False, False, 0)
-        self.pack_start(separador1, True, True, 0)
-        self.pack_start(self.boton_calendario, False, False, 0)
-        self.pack_start(separador2, True, True, 0)
-        self.pack_end(self.boton_usuario, False, False, 0)
-
-    def get_applications_menu(self):
-
-        return self.boton_aplicaciones.aplicaciones
-
-    def get_user_menu(self):
-
-        return self.boton_usuario.menu
-
-
-class FavouriteApplicationsMenu(Gtk.ListBox):
-
-    __gsignals__ = {
-        'open-application': (GObject.SIGNAL_RUN_FIRST, None, []),
-        'remove-from-favourites': (GObject.SIGNAL_RUN_FIRST, None, []),
-        }
-
-    def __init__(self, boton):
-
-        Gtk.ListBox.__init__(self)
-
-        self.set_selection_mode(Gtk.SelectionMode.NONE)
-
-        row = Gtk.ListBoxRow()
-        row.add(Gtk.Label('Abrir'))
-        self.add(row)
-
-        row = Gtk.ListBoxRow()
-        row.add(Gtk.Label('Eliminar de favoritos'))
-        self.add(row)
-
-        self.connect('row-activated', self.on_selection_changed)
-
-    def on_selection_changed(self, widget, row):
-
-        texto = row.get_children()[0].get_label()
-        self.emit('open-application' if texto == 'Abrir'
-                                     else 'remove-from-favourites')
-
-
-class FavouriteApplicationsButton(PopupMenuButton):
-
-    __gtype_name__ = 'FavouriteApplicationsButton'
-
-    __gsignals__ = {
-        'open-application': (GObject.SIGNAL_RUN_FIRST, None, [object]),
-        'remove-from-favourites': (GObject.SIGNAL_RUN_FIRST, None, [object]),
-        'open-menu': (GObject.SIGNAL_RUN_FIRST, None, []),
-        }
-
-    def __init__(self, app):
-
-        menu = FavouriteApplicationsMenu(self)
-
-        PopupMenuButton.__init__(self, '', menu)
-
-        self.dicc = app
-        self.popover = self.popup_widget.get_parent().get_parent()
-
-        pixbuf = G.get_icon(app['icono-str'])
-        imagen = Gtk.Image.new_from_pixbuf(pixbuf)
-
-        self.set_image(imagen)
-        self.set_tooltip_text(app['nombre'])
-        self.set_relief(Gtk.ReliefStyle.NONE)
-
-        menu.connect('open-application', lambda x: self.emit('open-application', self.dicc))
-        menu.connect('open-application', lambda x: self.popup_widget.hide())
-        menu.connect('remove-from-favourites', lambda x: self.emit('remove-from-favourites', self.dicc))
-        menu.connect('remove-from-favourites', lambda x: self.popup_widget.hide())
-        self.disconnect_by_func(self._clicked)
-        self.connect('button-press-event', self._on_button_press_event)
-        self.connect('open-menu', lambda x: self.popover.show_all())
-        self.connect('clicked', lambda x: self.popover.hide())
-
-        self.show_all()
-
-    def _on_button_press_event(self, widget, event):
-
-        boton = event.button
-        posx = event.x
-        posy = event.y
-
-        if event.type.value_name == 'GDK_BUTTON_PRESS' and boton == 3:
-            self.emit('open-menu')
-
-        if event.type.value_name == 'GDK_BUTTON_PRESS' and boton == 1:
-            self.emit('open-application', self.dicc)
-
-
-class FavouriteApplications(Gtk.ButtonBox):
-
-    __gname_type__ = 'FavouriteApplicationsPanel'
-
-    __gsignals__ = {
-        'open-application': (GObject.SIGNAL_RUN_FIRST, None, [object])
-        }
-
-    def __init__(self):
-
-        Gtk.ButtonBox.__init__(self)
-
-        settings = G.get_settings()
-        self.aplicaciones = settings['aplicaciones-favoritas']
-        self.area = None
-
-        self.set_layout(Gtk.ButtonBoxStyle.CENTER)
-        self.set_spacing(10)
-        self.set_size_request(-1, 48)
-
-        self.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.COPY)
-        self.connect('drag-drop', self.on_drag_data_received)
-
-        self.update_buttons()
-
-        self.show_all()
-
-    def on_drag_data_received(self, widget, drag_context, data, info, time):
-
-        path = self.area.get_selected_items()[0]
-        _iter = self.area.get_model().get_iter(path)
-        text = self.area.get_model().get_value(_iter, G.ICONVIEW_TEXT_COLUMN)
-
-        confi = G.get_settings()
-        lista = []
-        nombres = []
-        iconos = []
-
-        for x in self.aplicaciones + [self.area._parent.iters[text]]:
-            x['icono'] = x['icono-str']
-            # ^^^ Evitando un error de sintaxis
-
-            if (not x in lista) and (not x['nombre'] in nombres and not x['icono-str'] in iconos):
-                nombres.append(x['nombre'])
-                iconos.append(x['icono-str'])
-                lista.append(x)
-
-        boton = FavouriteApplicationsButton(x)
-
-        boton.connect('open-application', self._open_application)
-        boton.connect('remove-from-favourites', self._remove_from_favourites)
-        self.add(boton)
-
-        boton.show()
-
-        self.area.unselect_all()
-
-        confi['aplicaciones-favoritas'] = lista
-        self.aplicaciones = lista
-        G.set_settings(confi)
-
-    def update_buttons(self):
-
-        while self.get_children():
-            self.remove(self.get_children()[0])
-
-        for x in self.aplicaciones:
-            boton = FavouriteApplicationsButton(x)
-
-            boton.connect('open-application', self._open_application)
-            boton.connect('remove-from-favourites', self._remove_from_favourites)
-            self.add(boton)
-            boton.show()
-
-    def _open_application(self, widget, app):
-
-        self.emit('open-application', app)
-
-    def _remove_from_favourites(self, widget, app):
-
-        self.remove(widget)
-        confi = G.get_settings()
-        self.aplicaciones.remove(app)
-        confi['aplicaciones-favoritas'] = self.aplicaciones
-
-        G.set_settings(confi)
-
-
-class ApplicationsArea(Gtk.IconView):
-
-    __gsignals__ = {
-        'show-panel': (GObject.SIGNAL_RUN_FIRST, None, [bool])
-        }
-
-    def __init__(self):
-
-        Gtk.IconView.__init__(self)
-
-        self.modelo = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
-
-        #self.set_selection_mode(Gtk.SelectionMode.NONE)
-        self.set_model(self.modelo)
-        self.set_text_column(G.ICONVIEW_TEXT_COLUMN)
-        self.set_pixbuf_column(G.ICONVIEW_PIXBUF_COLUMN)
-        self.set_columns(3)
-        self.set_size_request(400, -1)
-
-        self.enable_model_drag_source(Gdk.ModifierType.BUTTON1_MASK, [], Gdk.DragAction.COPY)
-        self.connect('drag-begin', lambda *a: self.emit('show-panel', True))
-
-
-class ApplicationsMenu(Gtk.HBox):
-
-    __gsignals__ = {
-        'open-application': (GObject.SIGNAL_RUN_FIRST, None, [object]),
-        'show-panel': (GObject.SIGNAL_RUN_FIRST, None, [bool]),
-        }
-
-    def __init__(self):
-
-        Gtk.HBox.__init__(self)
-
-        self.listbox = Gtk.ListBox()
-        self.area = ApplicationsArea()
-        self.area._parent = self
-        self.modelo = self.area.modelo
-        self.entrada = Gtk.SearchEntry()
-        self.buttonbox = Gtk.HBox()
-        self.programas = {}
-        self.iters = {}
-
-        self.set_apps()
-
-        vbox = Gtk.VBox()
-        _hbox = Gtk.HBox()
-        scrolled1 = Gtk.ScrolledWindow()
-        scrolled2 = Gtk.ScrolledWindow()
-
-        self.entrada.set_size_request(400, -1)
-        scrolled1.set_size_request(675, 400)
-        scrolled1.set_can_focus(False)
-        scrolled2.set_size_request(200, -1)
-        scrolled2.set_can_focus(False)
-
-        for x in self.categorias:
-            row = Gtk.ListBoxRow()
-            hbox = Gtk.HBox()
-
-            hbox.pack_start(Gtk.Label(x), False, False, 0)
-            row.add(hbox)
-            self.listbox.add(row)
-
-        self.listbox.connect('row-activated', self.category_changed)
-        self.area.connect('button-release-event', self.click)
-        self.area.connect('show-panel', lambda w, s: self.emit('show-panel', s))
-        self.entrada.connect('changed', self.app_search)
-        self.entrada.connect('activate', self.app_search)
-
-        scrolled1.add(self.area)
-        scrolled2.add(self.listbox)
-        _hbox.pack_end(self.entrada, False, False, 10)
-        vbox.pack_start(_hbox, False, False, 2)
-        vbox.pack_start(scrolled1, True, True, 0)
-        vbox.pack_end(self.buttonbox, False, False, 0)
-        self.pack_start(scrolled2, False, False, 5)
-        self.pack_start(vbox, True, True, 0)
-
-        self.show_applications(self.categorias[0])
-
-    def click(self, widget, event):
-
-        posx = event.x
-        posy = event.y
-
-        try:
-            path = self.area.get_path_at_pos(int(posx), int(posy))
-            iter = self.modelo.get_iter(path)
-            aplicacion = self.iters[self.modelo.get_value(iter, 0)]
-
-            self.emit('open-application', aplicacion)
-
-            self.area.unselect_all()
-
-            return False
-
-        except TypeError:
-            pass
-
-        return True
-
-    def set_apps(self):
-
-        self.modelo.clear()
-        self.programas = G.get_applications()
-        self.categorias = self.programas.keys()
-
-    def show_applications(self, categoria, apps=None):
-
-        numero = 0
-        index = 0
-        iters = {}
-        self.modelo.clear()
-
-        if apps is None:
-            if categoria in self.programas.keys():
-                for x in self.programas[categoria]:
-                    index += 1 if numero % 12 == 0 else 0
-                    numero += 1
-
-                    if index not in iters.keys():
-                        iters[index] = []
-
-                    iters[index].append(x)
-                    iters[index].sort()
-
-        else:
-            for x in apps:
-                index += 1 if numero % 12 == 0 else 0
-                numero += 1
-
-                if index not in iters.keys():
-                    iters[index] = []
-
-                iters[index].append(x)
-                iters[index].sort()
-
-        self.app_switch(None, iters, 1)
-        self.set_buttons(numero, iters)
-
-    def category_changed(self, widget, row):
-
-        categoria = row.get_children()[0].get_children()[0].get_label()
-        self.show_applications(categoria)
-
-    def app_search(self, widget):
-
-        resultados = []
-        texto = G.clear_string(widget.get_text())
-        self.entrada.set_progress_pulse_step(0.2)
-
-        if len(texto):
-            for categoria in self.categorias:
-                for programa in self.programas[categoria]:
-                    if type(programa) == dict:
-                        app = G.clear_string(programa['nombre'])
-
-                        if texto in app:
-                            resultados.append(programa)
-                            self.entrada.progress_pulse()
-
-        else:
-            resultados = self.programas[self.categorias[0]]
-
-        self.entrada.set_progress_pulse_step(0)
-        self.show_applications(None, resultados)
-
-    def app_switch(self, widget, iters, index=None):
-
-        if index is None:
-            index = widget.index
-
-        self.modelo.clear()
-        self.iters = {}
-
-        if index in iters.keys():
-            for x in iters[index]:
-                iter = self.modelo.append([x['nombre'], G.get_icon(x['icono-str'])])
-                self.iters[x['nombre']] = x
-
-    def set_buttons(self, numero=0, iters={}):
-
-        while self.buttonbox.get_children():
-            self.buttonbox.remove(self.buttonbox.get_children()[0])
-
-        s1 = Gtk.HSeparator()
-        s2 = Gtk.HSeparator()
-
-        s1.set_hexpand(True)
-        s2.set_hexpand(True)
-
-        self.buttonbox.pack_start(s1, True, True, 0)
-        self.buttonbox.pack_end(s2, True, True, 0)
-
-        cantidad = numero / 12 if numero % 12 > 0 else 0
-        _boton = Gtk.RadioButton.new_from_widget(None)
-        _boton.index = 1
-        _boton.connect('toggled', self.app_switch, iters)
-        _boton.set_hexpand(False)
-
-        self.buttonbox.pack_start(_boton, False, False, 0)
-
-        for x in range(1, cantidad + 1):
-            boton = Gtk.RadioButton.new_from_widget(_boton)
-            boton.index = x+1
-
-            boton.set_hexpand(False)
-
-            boton.connect('toggled', self.app_switch, iters)
-            self.buttonbox.pack_start(boton, False, False, 0)
-
-        self.buttonbox.show_all()
-
-
-class UserMenu(Gtk.ListBox):
-
-    __gsignals__ = {
-        'open-settings-window': (GObject.SIGNAL_RUN_FIRST, None, []),
-        'close': (GObject.SIGNAL_RUN_FIRST, None, []),
-        }
-
-    __gtype_name__ = 'UserMenu'
-
-    def __init__(self):
-
-        Gtk.ListBox.__init__(self)
-
-        self.set_selection_mode(Gtk.SelectionMode.NONE)
-        self.set_size_request(400, 500)
-
-        _hbox = self.create_row()
+        s_volumen = Gtk.HScale()
+        a_volumen = Gtk.Adjustment(Globales.get_actual_volume(), 0, 100, 1, 10)
+        i_volumen = Gtk.Image.new_from_icon_name('audio-volume-muted', Gtk.IconSize.MENU)
+        s_brillo = Gtk.HScale()
+        a_brillo = Gtk.Adjustment(Globales.get_actual_brightness(), 10, 100, 1, 10)
+        i_brillo = Gtk.Image.new_from_icon_name('display-brightness-symbolic', Gtk.IconSize.MENU)
+
+        s_volumen.set_adjustment(a_volumen)
+        s_volumen.set_draw_value(False)
+        s_brillo.set_adjustment(a_brillo)
+        s_brillo.set_draw_value(False)
+        self.set_size_request(300, -1)
+
+        s_brillo.connect('value-changed', lambda w: Globales.set_brightness(w.get_value()))
+
+        self.add_widgets(i_volumen, s_volumen)
+        self.add_widgets(i_brillo, s_brillo)
+
+    def add_widgets(self, icono, widget):
         hbox = Gtk.HBox()
-        expander = Gtk.Expander()
-
-        expander.set_label('Wi-Fi')
-
-        #hbox.add(Gtk.Label(G.get_ip()))
-        expander.add(hbox)
-        _hbox.add(expander)
-
-        hbox = self.create_row(VolumeWidget())
-
-        box = self.create_row(Gtk.ButtonBox())
-        boton_confi = Gtk.Button(stock=Gtk.STOCK_PREFERENCES)
-        boton_cerrar = Gtk.Button('Salir')
-
-        box.set_layout(Gtk.ButtonBoxStyle.CENTER)
-        box.set_spacing(20)
-
-        boton_confi.connect('clicked', lambda widget: self.emit('open-settings-window'))
-        boton_cerrar.connect('clicked', lambda widget: self.emit('close'))
-
-        box.add(boton_confi)
-        box.add(boton_cerrar)
-
-    def set_value(self, widget, button):
-
-        button.set_value(widget.get_value() / 100)
-        G.mixer.setvolume(int(button.get_value() * 100))
-
-    def create_row(self, widget=None):
-
-        # No se puede establecer la variable widget directamente como una HBox
-        # porque sino, cada vez que se llame a la función, se tomará en cuenta
-        # a la misma HBox, y esto no permite el normal empaquetamiento
-
-        if not widget:
-            widget = Gtk.HBox()
-
-        row = Gtk.ListBoxRow()
-
-        row.add(widget)
-        self.add(row)
-
-        return widget
+        hbox.pack_start(icono, False, False, 1)
+        hbox.pack_start(widget, True, True, 0)
+        self.pack_start(hbox, False, False, 1)
 
 
-class ApplicationsButton(PopupMenuButton):
+class AppButtonMenu(Gtk.Window):
 
-    __gsignals__ = {
-        'show-panel': (GObject.SIGNAL_RUN_FIRST, None, [bool])
-        }
+    __gtype_name__ = 'AppButtonMenu'
 
-    def __init__(self):
-
-        self.aplicaciones = ApplicationsMenu()
-        self.aplicaciones.boton = self
-
-        PopupMenuButton.__init__(self, 'Aplicaciones', self.aplicaciones)
-
-        self.aplicaciones.connect('show-panel', lambda x, s: self.emit('show-panel', s))
-
-
-class UserButton(PopupMenuButton):
-
-    def __init__(self):
-
-        self.menu = UserMenu()
-        self.menu.boton = self
-
-        PopupMenuButton.__init__(self, os.getlogin(), self.menu)
-
-
-class CalendarButton(PopupMenuButton):
-
-    def __init__(self):
-
-        calendario = Gtk.Calendar()
-
-        PopupMenuButton.__init__(self, '', calendario)
-
-        self.set_time()
-        GObject.timeout_add(1000, self.set_time, ())
-
-    def set_time(self, *args):
-
-        actual = time.asctime()
-
-        if actual:
-            dia = actual.split(' ')[0]
-            mes = actual.split(' ')[1]
-            fecha = actual.split(' ')[2]
-            hora = actual.split(' ')[3]
-            anyo = actual.split(' ')[4]
-
-            dias = {
-                'Sun': 'Dom',
-                'Mon': 'Lun',
-                'Tue': 'Mar',
-                'Wed': 'Mié',
-                'Thu': 'Jue',
-                'Fri': 'Vie',
-                'Sat': 'Sáb',
-            }
-
-            meses = {
-                'Jan': 'Ene',
-                'Feb': 'Feb',
-                'Mar': 'Mar',
-                'Apr': 'Abr',
-                'May': 'May',
-                'Jun': 'Jun',
-                'Jul': 'Jul',
-                'Aug': 'Ago',
-                'Sep': 'Sep',
-                'Nov': 'Nov',
-                'Dec': 'Dic',
-            }
-
-            texto = hora + '  ' + \
-                dias[dia] + ', ' + \
-                fecha + ' de ' + \
-                meses[mes] + ' del ' + anyo
-
-            self.label.set_text(texto)
-
-        return True
-
-
-class SettingsWindow(Gtk.Window):
-
-    __gtype_name__ = 'FavouriteApplicationsPanel'
-
-    __gsignals__ = {
-        'settings-changed': (GObject.SIGNAL_RUN_FIRST, None, [object])
-        }
-
-    def __init__(self):
-
+    def __init__(self, button):
         Gtk.Window.__init__(self)
 
-        self.titlebar = Gtk.HeaderBar()
-        self.vbox = Gtk.VBox()
-        self.stack = Gtk.Stack()
-        self.stack_switcher = Gtk.StackSwitcher()
-        self.confi = G.get_settings()
-        self.fondos = G.get_backgrounds()
 
-        self.set_titlebar(self.titlebar)
-        self.titlebar.set_show_close_button(True)
-        self.titlebar.set_tooltip_text(
-            'Algunos cambios tendrán efecto en la siguiente sesión')
-        self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
-        self.stack.set_transition_duration(1000)
+class AppButtonPopover(Gtk.Popover):
 
-        vbox = Gtk.VBox()
+    __gtype_name__ = 'AppButtonPopover'
 
-        ### Apariencia ###
-        self.appearence()
+    def __init__(self, button):
+        Gtk.Window.__init__(self)
 
-        ### Energía ###
-        actual = brightness.get_current_brightness()
-        minimo = 0
-        maximo = brightness.get_max_brightness()
+
+class AppButton(Gtk.Button):
+
+    __gtype_name__ = 'AppButton'
+
+    def __init__(self, app, label=None, icon_size=32):
+        Gtk.Button.__init__(self)
+
+        self.app = app
 
         vbox = Gtk.VBox()
+        pixbuf = Globales.get_icon(app['icono'], icon_size)
+        imagen = Gtk.Image.new_from_pixbuf(pixbuf)
 
-        hbox = Gtk.HBox()
-        adj = Gtk.Adjustment(actual, minimo, maximo, 10, 0)
-        scale = Gtk.HScale(adjustment=adj)
+        if not label:
+            self.set_tooltip_text(app['nombre'])
 
-        scale.set_adjustment(adj)
-        scale.set_draw_value(False)
+        elif label:
+            texto = app['nombre']
+            texto = texto[:20] + '...' if len(texto) > 20 else texto
+            vbox.pack_end(Gtk.Label(texto), False, False, 0)
 
-        scale.connect('value-changed', lambda w:
-                      brightness.set_brightness(w.get_value()))
+        vbox.pack_start(imagen, True, True, 0)
 
-        hbox.pack_start(Gtk.Label('Brillo'), False, False, 10)
-        hbox.pack_end(scale, True, True, 0)
-        vbox.pack_start(hbox, False, False, 2)
-        self.stack.add_titled(vbox, 'Energía', 'Energía')
-
-        ### Sonido ###
-        vbox = Gtk.VBox()
-        hbox = VolumeWidget()
-
-        vbox.pack_start(hbox, False, False, 2)
-        self.stack.add_titled(vbox, 'Sonido', 'Sonido')
-
-        ### Panel inferior ###
-        vbox = Gtk.VBox()
-        listbox = self.create_listbox()
-        hbox = self.create_row(listbox)
-        switch = Gtk.Switch()
-
-        switch.set_active(not self.confi['panel-siempre-visible'])
-
-        switch.connect('notify::active', lambda w, x: self.settings_changed(w, 'panel-siempre-visible', not w.get_active()))
-
-        hbox.pack_start(Gtk.Label('Ocultar automáticamente'), False, False, 0)
-        hbox.pack_end(switch, False, False, 0)
-
-        vbox.pack_start(listbox, True, True, 5)
-        self.stack.add_titled(vbox, 'Panel inferior', 'Panel inferior')
-
-        self.stack_switcher.set_stack(self.stack)
-        self.titlebar.add(self.stack_switcher)
-        self.vbox.pack_start(self.stack, True, True, 0)
-
-        self.connect('settings-changed', self.save_settings)
-        self.connect('delete-event', self._hide)
-
-        self.add(self.vbox)
-        self.show_all()
-
-    def appearence(self):
-
-        vbox = Gtk.VBox()
-        stack = Gtk.Stack()
-        stack_switcher = Gtk.StackSwitcher()
-
-        vbox.set_spacing(10)
-        stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
-        stack.set_transition_duration(1000)
-
-        _vbox = Gtk.VBox()
-        scrolled = Gtk.ScrolledWindow()
-        iconview = Gtk.IconView()
-        modelo = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
-        hbox = Gtk.HBox()
-        boton_ok = Gtk.Button.new_with_label('Seleccionar')
-
-        iconview.set_pixbuf_column(G.ICONVIEW_PIXBUF_COLUMN)
-        iconview.set_model(modelo)
-        boton_ok.set_sensitive(False)
-
-        for x in self.fondos['fondos']:
-            pix = GdkPixbuf.Pixbuf.new_from_file_at_size(x, 256, 128)
-            modelo.append([x, pix])
-
-        iconview.connect('selection-changed', lambda x: boton_ok.set_sensitive(bool(x.get_selected_items())))
-        boton_ok.connect('clicked', self.change_background, iconview)
-
-        hbox.pack_end(boton_ok, False, False, 5)
-        scrolled.add(iconview)
-        _vbox.pack_start(scrolled, True, True, 0)
-        _vbox.pack_end(hbox, False, False, 0)
-
-        stack.add_titled(_vbox, 'Fondos de escritorios', 'Fondos de escritorios')
-
-        _vbox = Gtk.VBox()
-        scrolled = Gtk.ScrolledWindow()
-        iconview = Gtk.IconView()
-        modelo = Gtk.ListStore(GdkPixbuf.Pixbuf, str)
-        hbox = Gtk.HBox()
-        boton_ok = Gtk.Button.new_with_label('Seleccionar')
-
-        iconview.set_pixbuf_column(0)
-        iconview.set_model(modelo)
-        iconview.set_item_width(260)
-        boton_ok.set_sensitive(False)
-
-        for x in self.fondos['imagenes']:
-            pix = GdkPixbuf.Pixbuf.new_from_file_at_size(x, 256, 128)
-            modelo.append([pix, x])
-
-        iconview.connect('selection-changed', lambda x: boton_ok.set_sensitive(bool(x.get_selected_items())))
-        boton_ok.connect('clicked', self.change_background, iconview)
-
-        hbox.pack_end(boton_ok, False, False, 5)
-        scrolled.add(iconview)
-        _vbox.pack_start(scrolled, True, True, 0)
-        _vbox.pack_end(hbox, False, False, 0)
-
-        stack.add_titled(_vbox, 'Imágenes', 'Imágenes')
-        stack.add_titled(Gtk.ScrolledWindow(), 'Colores', 'Colores')
-
-        stack_switcher.set_stack(stack)
-        vbox.pack_start(stack_switcher, False, False, 5)
-        vbox.pack_start(stack, True, True, 0)
-
-        self.stack.add_titled(vbox, 'Apariencia', 'Apariencia')
-        vbox.show_all()
-
-    def settings_changed(self, widget, key, value):
-
-        self.confi[key] = value
-        self.emit('settings-changed', self.confi)
-
-    def change_background(self, widget, iconview):
-
-        modelo = iconview.get_model()
-        item = iconview.get_selected_items()[0]
-        iter = modelo.get_iter(item)
-        archivo = modelo.get_value(iter, 1)
-        self.confi['fondo-simbolico'] = archivo
-
-        self.emit('settings-changed', self.confi)
-
-    def save_settings(self, *args):
-
-        G.set_settings(self.confi)
-
-    def create_row(self, listbox):
-
-        row = Gtk.ListBoxRow()
-        hbox = Gtk.HBox()
-
-        row.add(hbox)
-        listbox.add(row)
-
-        return hbox
-
-    def create_listbox(self):
-
-        listbox = Gtk.ListBox()
-        listbox.set_selection_mode(Gtk.SelectionMode.NONE)
-
-        return listbox
-
-    def file_chooser_images(self, widget):
-
-        """
-        def abrir(widget, self, chooser):
-
-            self.confi['fondo-simbolico'] = chooser.get_filename()
-            G.set_settings(self.confi)
-
-        chooser = Gtk.FileChooserDialog()
-        buttonbox = chooser.get_children()[0].get_children()[1]
-        boton_abrir = Gtk.Button(stock=Gtk.STOCK_OPEN)
-        boton_cancelar = Gtk.Button(stock=Gtk.STOCK_CANCEL)
-        _filter = Gtk.FileFilter()
-
-        _filter.set_name('Imágnes')
-        _filter.add_mime_type("image/*")
-        chooser.set_filename(self.confi['fondo-simbolico']
-                             if os.path.exists(self.confi['fondo-simbolico'])
-                             else os.path.join(
-                                os.path.expanduser('~/'), os.getlogin())
-                             )
-
-        chooser.set_title('Seleccione una imagen')
-        chooser.set_action(Gtk.FileChooserAction.OPEN)
-        chooser.add_filter(_filter)
-        chooser.set_parent(self)
-        chooser.set_modal(True)
-
-        boton_abrir.connect('clicked', abrir, self, chooser)
-        boton_abrir.connect('clicked', lambda x: chooser.destroy())
-        boton_cancelar.connect('clicked', lambda x: chooser.destroy())
-
-        buttonbox.add(boton_cancelar)
-        buttonbox.add(boton_abrir)
-
-        chooser.show_all()
-        """
-
-        chooser = ImagesFileChooser()
-
-    def _hide(self, *args):
-
-        self.hide()
-
-        return True
+        self.add(vbox)
 
 
-class VolumeWidget(Gtk.HBox):
+class IndicatorsArea(Gtk.HBox):
+
+    __gtype_name__ = 'IndicatorsArea'
+
+    __gsignals__ = {
+        'show-lateral-panel': (GObject.SIGNAL_RUN_FIRST, None, [bool]),
+        }
 
     def __init__(self):
-
         Gtk.HBox.__init__(self)
 
-        adj = Gtk.Adjustment(int(G.mixer.getvolume()[0]), 25, 100, 1, 10, 0)
-        self.button = Gtk.VolumeButton()
-        self.scale = Gtk.HScale(adjustment=adj)
+        self.boton_calendario = Gtk.Button(Globales.get_time())
+        self.boton_panel_lateral = Gtk.Button('>')
 
-        self.button.set_sensitive(False)
-        self.button.set_opacity(1)
-        self.button.set_value(self.scale.get_value() / 100)
-        self.scale.set_show_fill_level(True)
-        self.scale.set_draw_value(False)
+        GObject.timeout_add(500, self.set_time, ())
+        self.boton_panel_lateral.connect('clicked', self.show_lateral_panel)
 
-        self.scale.connect('value-changed', lambda x: self.set_value())
+        self.pack_end(self.boton_panel_lateral, False, False, 1)
+        self.pack_end(self.boton_calendario, False, False, 1)
 
-        self.pack_start(self.button, False, False, 0)
-        self.pack_start(self.scale, True, True, 0)
+    def set_time(self, *args):
+        self.boton_calendario.set_label(Globales.get_time())
+        return True
 
-    def set_value(self, valor=None):
+    def show_lateral_panel(self, widget):
 
-        if valor is None:
-            valor = int(self.scale.get_value())
+        if widget.get_label() == '>':
+            widget.set_label('<')
+            self.emit('show-lateral-panel', True)
 
-        self.button.set_value(valor / 100.0)
-        G.mixer.setvolume(valor)
+        elif widget.get_label() == '<':
+            widget.set_label('>')
+            self.emit('show-lateral-panel', False)
+
+
+class DownPanel(Gtk.HBox):
+
+    __gtype_name__ = 'DownPanel'
+
+    __gsignals__ = {
+        'show-apps': (GObject.SIGNAL_RUN_FIRST, None, []),
+        'show-lateral-panel': (GObject.SIGNAL_RUN_FIRST, None, [bool]),
+        }
+
+    def __init__(self):
+        Gtk.HBox.__init__(self)
+
+        self.lanzador = AppButton({'icono': 'distributor-logo', 'nombre': 'Mostrar aplicaciones'})
+        self.buttons_area = Gtk.HBox()
+        self.indicadores = IndicatorsArea()
+
+        self.lanzador.connect('clicked', lambda w: self.emit('show-apps'))
+        self.indicadores.connect('show-lateral-panel', lambda w, v: self.emit('show-lateral-panel', v))
+
+        self.pack_start(self.buttons_area, True, True, 2)
+        self.pack_end(self.indicadores, False, False, 0)
+        self.add_app_button(self.lanzador)
+
+    def add_app_button(self, boton):
+        self.buttons_area.pack_start(boton, False, False, 1)
+
+
+class AppsEntry(Gtk.Entry):
+
+    __gtype_name__ = 'AppsEntry'
+
+    def __init__(self):
+        Gtk.Entry.__init__(self)
+
+        self.set_placeholder_text('Buscar...')
+        self.props.xalign = 0.015
+
+
+class AppsView(Gtk.VBox):
+
+    __gtype_name__ = 'AppsView'
+
+    __gsignals__ = {
+        'run-app': (GObject.SIGNAL_RUN_FIRST, None, [object]),
+        }
+
+    def __init__(self):
+        Gtk.VBox.__init__(self)
+
+        scrolled = Gtk.ScrolledWindow()
+        self.entry = AppsEntry()
+        self.fbox = Gtk.FlowBox()
+
+        GObject.idle_add(self.show_all_apps)
+        self.fbox.set_max_children_per_line(5)
+
+        self.entry.connect('changed', self.search_app)
+
+        scrolled.add(self.fbox)
+        self.pack_start(self.entry, False, False, 20)
+        self.pack_start(scrolled, True, True, 0)
+
+    def show_all_apps(self, *args):
+        apps = {}
+
+        for archivo in os.listdir(Globales.Paths.APPS_DIR):
+            app = Globales.get_app(archivo)
+
+            if app:
+                apps[app['nombre']] = app
+
+        n_apps = apps.keys()
+        n_apps.sort()
+
+        for x in n_apps:
+            boton = AppButton(apps[x], label=True, icon_size=64)
+            boton.connect('clicked', lambda w: self.emit('run-app', apps[x]))
+            self.fbox.add(boton)
+
+        self.show_all()
+
+    def search_app(self, widget):
+        for x in self.fbox.get_children():
+            boton = x.get_children()[0]
+            if widget.get_text().lower() in boton.app['nombre'].lower():
+                x.show_all()
+
+            else:
+                x.hide()
