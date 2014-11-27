@@ -7,9 +7,9 @@ import Globales as G
 
 from Widgets import WWTB
 from Widgets import WorkArea
-from Widgets import LateralPanel
-from Widgets import DownPanel
 from Widgets import AppsView
+from Widgets import DownPanel
+from Widgets import LateralPanel
 
 
 class Ventana(WWTB):
@@ -25,9 +25,6 @@ class Ventana(WWTB):
 		self.appsview = AppsView()
 		self.vbox = Gtk.VBox()
 		self.hbox = Gtk.HBox()
-
-		self.vbox.set_name('CanvasVBox')
-		self.hbox.set_name('CanvasHBox')
 
 		self.connect('destroy', Gtk.main_quit)
 		self.downpanel.connect('show-apps', self.show_apps)
@@ -51,6 +48,7 @@ class Ventana(WWTB):
 		self.hbox.remove(self.hbox.get_children()[0])
 		self.hbox.pack_start(widget, True, True, 0)
 		self.show_all()
+		self.downpanel.indicadores.boton_panel_lateral.set_label('>')
 		self.lateralpanel.hide()
 
 	def show_apps(self, widget):

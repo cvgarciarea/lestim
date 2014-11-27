@@ -4,6 +4,7 @@
 import os
 import time
 import thread
+import commands
 import subprocess
 import ConfigParser
 
@@ -18,11 +19,6 @@ try:
 except ImportError:
     from PIL import Image
 
-os.system('cp /home/cristian/Documentos/Desktop/Desktop.css /home/cristian/.desktop/Desktop.css')
-t = open('/home/cristian/.desktop/Desktop.css').read()
-f = open('/home/cristian/.desktop/Desktop.css', 'w')
-f.write(t.replace('""', '"/home/cristian/.desktop/background.jpg"'))
-f.close()
 
 screen = Gdk.Screen.get_default()
 css_provider = Gtk.CssProvider()
@@ -45,10 +41,72 @@ class Paths:
     BACKGROUNDS_DIR = os.path.join(WORK_DIR, 'backgrounds')
     LOCAL_BACKGROUNDS_DIR = os.path.join(os.path.dirname(__file__), 'backgrounds')
     APPS_DIR = '/usr/share/applications'
+    ICON_SHUTDOWN = os.path.join(os.path.dirname(__file__), 'icons/shutdown.svg')
+    ICON_REBOOT = os.path.join(os.path.dirname(__file__), 'icons/reboot.svg')
+    ICON_LOCK = os.path.join(os.path.dirname(__file__), 'icons/lock.svg')
+
+
+def get_user_directories():
+    direccion = os.path.expanduser('~/.config/user-dirs.dirs')
+    usuario = os.path.expanduser('~/')
+    escritorio = None
+    descargas = None
+    documentos = None
+    imagenes = None
+    musica = None
+    videos = None
+    papelera = None
+
+    if os.path.isfile(direccion):
+        texto = open(direccion).read()
+
+        for linea in texto.splitlines():
+            if linea.startswith('XDG_DESKTOP_DIR='):
+                escritorio = commands.getoutput('echo %s' % linea.split('"')[1])
+
+            elif linea.startswith('XDG_DOWNLOAD_DIR='):
+                descargas = commands.getoutput('echo %s' % linea.split('"')[1])
+
+            elif linea.startswith('XDG_DOCUMENTS_DIR='):
+                documentos = commands.getoutput('echo %s' % linea.split('"')[1])
+
+            elif linea.startswith('XDG_MUSIC_DIR='):
+                musica = commands.getoutput('echo %s' % linea.split('"')[1])
+
+            elif linea.startswith('XDG_PICTURES_DIR='):
+                imagenes = commands.getoutput('echo %s' % linea.split('"')[1])
+
+            elif linea.startswith('XDG_VIDEOS_DIR='):
+                videos = commands.getoutput('echo %s' % linea.split('"')[1])
+
+    return {
+        'usuario': usuario,
+        'escritorio': escritorio,
+        'descargas': descargas,
+        'documentos': documentos,
+        'imagenes': imagenes,
+        'musica': musica,
+        'videos': videos,
+        'papelera': papelera,
+    }
+
+
+def open_file(direccion):
+    if not direccion.endswith('.desktop'):
+        if ' ' in direccion:
+            direccion = direccion.replace(' ', '\ ')
+
+        os.system('xdg-open %s' % direccion)
+
+    else:
+        cfg = ConfigParser.ConfigParser()
+        cfg.read([direccion])
+
+        if cfg.has_option('Desktop Entry', 'Exec'):
+            os.system(cfg.has_option('Desktop Entry', 'Exec'))
 
 
 def get_settings():
-
     confi = eval(open(Paths.SETTINGS_PATH).read())
     #confi['tamano-de-los-iconos'] = int(confi['tamano-de-los-iconos'])
     #confi['gestion-del-escritorio'] = bool(confi['gestion-del-escritorio'])
