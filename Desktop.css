@@ -65,7 +65,8 @@ LateralPanel {
 AppButton,
 ShutdownButton,
 RebootButton,
-LockButton {
+LockButton,
+SettingsButton {
 	background-color: alpha(#000, 0.50);
 	border-image: none;
     background-image: none;
@@ -76,8 +77,16 @@ LockButton {
 AppButton:hover,
 ShutdownButton:hover,
 RebootButton:hover,
-LockButton:hover {
+LockButton:hover, 
+SettingsButton:hover {
 	background-color: alpha(#000, 0.25);
+}
+
+AppButtonPopover {
+	background-color: alpha(#000, 0.50);
+	border-color: alpha(#000, 0.75);
+	border-width: 2px;
+	color: #FFF;
 }
 
 AppsEntry {

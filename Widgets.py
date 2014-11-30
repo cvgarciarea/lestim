@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import thread
 import Globales
 
 from gi.repository import Gtk
@@ -169,12 +170,6 @@ class WorkArea(Gtk.IconView):
         iter = self.modelo.append([nombre, icono])
         path = self.modelo.get_path(iter)
 
-        #tooltip = Gtk.Tooltip()
-
-        #tooltip.set_text(direccion)
-        #tooltip.set_icon(icono)
-        #self.set_tooltip_item(tooltip, path)
-
         self.show_all()
 
 
@@ -186,6 +181,7 @@ class ShutdownButton(Gtk.Button):
         Gtk.Button.__init__(self)
 
         self.imagen = Gtk.Image.new_from_file(Globales.Paths.ICON_SHUTDOWN)
+        self.set_tooltip_text('Apagar')
         self.add(self.imagen)
 
 
@@ -197,6 +193,7 @@ class RebootButton(Gtk.Button):
         Gtk.Button.__init__(self)
 
         self.imagen = Gtk.Image.new_from_file(Globales.Paths.ICON_REBOOT)
+        self.set_tooltip_text('Reiniciar')
         self.add(self.imagen)
 
 
@@ -208,12 +205,29 @@ class LockButton(Gtk.Button):
         Gtk.Button.__init__(self)
 
         self.imagen = Gtk.Image.new_from_file(Globales.Paths.ICON_LOCK)
+        self.set_tooltip_text('Bloquear')
+        self.add(self.imagen)
+
+
+class SettingsButton(Gtk.Button):
+
+    __gtype_name__ = 'SettingsButton'
+
+    def __init__(self):
+        Gtk.Button.__init__(self)
+
+        self.imagen = Gtk.Image.new_from_file(Globales.Paths.ICON_SETTINGS)
+        self.set_tooltip_text('Ajustes')
         self.add(self.imagen)
 
 
 class LateralPanel(Gtk.VBox):
 
     __gtype_name__ = 'LateralPanel'
+
+    __gsignals__ = {
+        'settings': (GObject.SIGNAL_RUN_FIRST, None, [])
+        }
 
     def __init__(self):
         Gtk.VBox.__init__(self)
@@ -229,6 +243,7 @@ class LateralPanel(Gtk.VBox):
         b_apagar = ShutdownButton()
         b_reiniciar = RebootButton()
         b_bloquear = LockButton()
+        b_ajustes = SettingsButton()
 
         s_volumen.set_adjustment(a_volumen)
         s_volumen.set_draw_value(False)
@@ -237,10 +252,12 @@ class LateralPanel(Gtk.VBox):
         self.set_size_request(300, -1)
 
         s_brillo.connect('value-changed', lambda w: Globales.set_brightness(w.get_value()))
+        b_ajustes.connect('clicked', lambda w: self.emit('settings'))
 
         hbox.pack_start(b_apagar, True, True, 10)
         hbox.pack_start(b_reiniciar, True, True, 10)
         hbox.pack_start(b_bloquear, True, True, 10)
+        hbox.pack_start(b_ajustes, True, True, 10)
         self.pack_end(hbox, False, False, 10)
         self.add_widgets(i_volumen, s_volumen)
         self.add_widgets(i_brillo, s_brillo)
@@ -256,10 +273,26 @@ class AppButtonPopover(Gtk.Popover):
 
     __gtype_name__ = 'AppButtonPopover'
 
-    def __init__(self, button):
+    __gsignals__ = {
+        'favorited': (GObject.SIGNAL_RUN_FIRST, None, [bool]),
+        }
+
+    def __init__(self, button, app):
         Gtk.Popover.__init__(self)
 
+        self.vbox = Gtk.VBox()
+        self.c_favorito = Gtk.CheckButton('En favoritos')
+
         self.set_relative_to(button)
+        self.c_favorito.set_active(app in Globales.get_settings()['aplicaciones-favoritas'])
+        
+        self.c_favorito.connect('toggled', self.favorited)
+
+        self.vbox.pack_start(self.c_favorito, True, True, 1)
+        self.add(self.vbox)
+
+    def favorited(self, *args):
+        self.emit('favorited', self.c_favorito.get_active())
 
 
 class AppButton(Gtk.Button):
@@ -267,14 +300,15 @@ class AppButton(Gtk.Button):
     __gtype_name__ = 'AppButton'
 
     __gsignals__ = {
-        'run-app': (GObject.SIGNAL_RUN_FIRST, None, [])
+        'run-app': (GObject.SIGNAL_RUN_FIRST, None, []),
+        'favorited': (GObject.SIGNAL_RUN_FIRST, None, []),
         }
 
     def __init__(self, app, label=None, icon_size=32):
         Gtk.Button.__init__(self)
 
         self.app = app
-        self.popover = AppButtonPopover(self)
+        self.popover = AppButtonPopover(self, app)
 
         vbox = Gtk.VBox()
         pixbuf = Globales.get_icon(app['icono'], icon_size)
@@ -288,19 +322,31 @@ class AppButton(Gtk.Button):
             texto = texto[:20] + '...' if len(texto) > 20 else texto
             vbox.pack_end(Gtk.Label(texto), False, False, 0)
 
-        self.connect('button-press-event', self.button_press_event_cb)
+        self.connect('button-release-event', self.button_press_event_cb)
+        self.popover.connect('favorited', self.favorited_cb)
 
         vbox.pack_start(imagen, True, True, 0)
 
         self.add(vbox)
 
     def button_press_event_cb(self, widget, event):
-        
         if event.button == 1:
             self.emit('run-app')
 
         elif event.button == 3:
-            print "I need a menu"
+            self.popover.show_all()
+
+    def favorited_cb(self, widget, favorito):
+        configuracion = Globales.get_settings()
+
+        if favorito:
+            configuracion['aplicaciones-favoritas'].append(self.app)
+
+        elif not favorito and self.app in configuracion['aplicaciones-favoritas']:
+            configuracion['aplicaciones-favoritas'].remove(self.app)
+
+        Globales.set_settings(configuracion)
+        self.emit('favorited')
 
 
 class IndicatorsArea(Gtk.HBox):
@@ -328,7 +374,6 @@ class IndicatorsArea(Gtk.HBox):
         return True
 
     def show_lateral_panel(self, widget):
-
         if widget.get_label() == '>':
             widget.set_label('<')
             self.emit('show-lateral-panel', True)
@@ -357,12 +402,26 @@ class DownPanel(Gtk.HBox):
         self.lanzador.connect('clicked', lambda w: self.emit('show-apps'))
         self.indicadores.connect('show-lateral-panel', lambda w, v: self.emit('show-lateral-panel', v))
 
+        self.pack_start(self.lanzador, False, False, 2)
         self.pack_start(self.buttons_area, True, True, 2)
         self.pack_end(self.indicadores, False, False, 0)
-        self.add_app_button(self.lanzador)
 
-    def add_app_button(self, boton):
-        self.buttons_area.pack_start(boton, False, False, 1)
+        self.update_buttons()
+        self.show_all()
+
+    def add_app_button(self, app):
+        boton = AppButton(app)
+        boton.connect('favorited', self.update_buttons)
+        self.buttons_area.pack_start(boton, False, False, 0)
+
+    def update_buttons(self, *args):
+        while self.buttons_area.get_children():
+            self.buttons_area.remove(self.buttons_area.get_children()[-1])
+
+        for app in Globales.get_settings()['aplicaciones-favoritas']:
+            self.add_app_button(app)
+
+        self.show_all()
 
 
 class AppsEntry(Gtk.Entry):
@@ -382,6 +441,7 @@ class AppsView(Gtk.VBox):
 
     __gsignals__ = {
         'run-app': (GObject.SIGNAL_RUN_FIRST, None, [object]),
+        'favorited-app': (GObject.SIGNAL_RUN_FIRST, None, []),
         }
 
     def __init__(self):
@@ -415,6 +475,7 @@ class AppsView(Gtk.VBox):
         for x in n_apps:
             boton = AppButton(apps[x], label=True, icon_size=64)
             boton.connect('clicked', lambda w: self.emit('run-app', apps[x]))
+            boton.connect('favorited', lambda w: self.emit('favorited-app'))
             self.fbox.add(boton)
 
         self.show_all()
@@ -427,3 +488,59 @@ class AppsView(Gtk.VBox):
 
             else:
                 x.hide()
+
+
+class SettingsWindow(Gtk.Window):
+
+    __gtype_name__ = 'SettingsWindow'
+
+    def __init__(self):
+        Gtk.Window.__init__(self)
+
+        headerbar = Gtk.HeaderBar()
+        self.icon_view = Gtk.IconView()
+
+        headerbar.set_show_close_button(True)
+        self.set_titlebar(headerbar)
+
+        self.make_view_backgrounds()
+
+    def make_view_backgrounds(self):
+        # Permitir que se puedan seleccionar varios fondos, y seleccionar a cada
+        # cuantos segundos pasan
+
+        self.selector_de_fondo = Gtk.VBox()
+        scrolled = Gtk.ScrolledWindow()
+        hbox = Gtk.HBox()
+        b_ok = Gtk.Button.new_from_stock(Gtk.STOCK_OK)
+        box = Gtk.FlowBox()
+        box.change = False
+        backgrounds = Globales.get_backgrounds()
+
+        for x in backgrounds:
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(x, 300, 150)
+            imagen = Gtk.Image.new_from_pixbuf(pixbuf)
+            imagen.archivo = x
+            box.add(imagen)
+
+        box.set_homogeneous(True)
+        box.set_selection_mode(Gtk.SelectionMode.SINGLE)
+        box.unselect_all()
+
+        box.connect('selected-children-changed', self.set_fondo)
+
+        hbox.pack_end(b_ok, False, False, 2)
+        scrolled.add(box)
+        self.selector_de_fondo.add(scrolled)
+        self.selector_de_fondo.pack_end(hbox, False, False, 2)
+
+    def set_fondo(self, widget):
+        if not widget.change: # La primera vez se activa solo
+            widget.change = True
+            return
+
+        if widget.get_selected_children():
+            imagen = widget.get_selected_children()[0].get_children()[0]
+            archivo = imagen.archivo
+
+            GObject.idle_add(Globales.set_background, archivo, True)

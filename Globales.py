@@ -36,14 +36,46 @@ class Paths:
     SETTINGS_PATH = os.path.expanduser('~/.desktop/settings.json')
     THEME_PATH = os.path.join(WORK_DIR, 'Desktop.css')
     LOCAL_THEME_PATH = os.path.join(os.path.dirname(__file__), 'Desktop.css')
-    BACKGROUND_PATH = os.path.expanduser('~/.desktop/background.jpg')
-    LOCAL_BACKGROUND_PATH = os.path.join(os.path.dirname(__file__), 'backgrounds/colorful.jpg')
+
     BACKGROUNDS_DIR = os.path.join(WORK_DIR, 'backgrounds')
+    BACKGROUND_PATH = os.path.join(WORK_DIR, 'background.jpg')
+    LOCAL_BACKGROUND_PATH = os.path.join(os.path.dirname(__file__), 'backgrounds/colorful.jpg')
     LOCAL_BACKGROUNDS_DIR = os.path.join(os.path.dirname(__file__), 'backgrounds')
+
+    SYSTEM_BACKGROUNDS_DIR = '/usr/share/backgrounds'
     APPS_DIR = '/usr/share/applications'
+
     ICON_SHUTDOWN = os.path.join(os.path.dirname(__file__), 'icons/shutdown.svg')
     ICON_REBOOT = os.path.join(os.path.dirname(__file__), 'icons/reboot.svg')
     ICON_LOCK = os.path.join(os.path.dirname(__file__), 'icons/lock.svg')
+    ICON_SETTINGS = os.path.join(os.path.dirname(__file__), 'icons/settings.svg')
+
+
+def get_backgrounds():
+    lista = []
+    soportados = ['jpg', 'jpeg', 'png', '.gif', '.svg']
+
+    if os.path.exists(Paths.SYSTEM_BACKGROUNDS_DIR):
+        for x in os.listdir(Paths.SYSTEM_BACKGROUNDS_DIR):
+            path = os.path.join(Paths.SYSTEM_BACKGROUNDS_DIR, x)
+
+            if os.path.isdir(path):
+                for _x in os.listdir(path):
+                    if '.' in _x and _x.split('.')[-1] in soportados:
+                        lista.append(os.path.join(path, _x))
+
+
+            elif os.path.isfile(path):
+                if '.' in path and path.split('.')[-1] in soportados:
+                    lista.append(path)
+
+    if os.path.exists(Paths.BACKGROUNDS_DIR):
+        for x in os.listdir(Paths.BACKGROUNDS_DIR):
+            path = os.path.join(Paths.BACKGROUNDS_DIR, x)
+            if '.' in _x and path.split('.')[-1] in soportados:
+                lista.append(path)
+
+    return lista
 
 
 def get_user_directories():
@@ -150,7 +182,6 @@ def set_brightness(valor):
 
 def set_settings(dicc):
     def save_settings(dicc):
-        """
         texto = '{\n'
 
         for x in dicc:
@@ -169,24 +200,18 @@ def set_settings(dicc):
         texto = texto.replace('"False"', '""')
         texto = texto.replace('"True"', '"True"')
 
-        archivo = open(settings_path, 'w')
-        archivo.write(texto)
-        archivo.close()
-        """
-        texto = str({'aplicaciones-favoritas': dicc['aplicaciones-favoritas']})
         archivo = open(Paths.SETTINGS_PATH, 'w')
         archivo.write(texto)
         archivo.close()
-        set_background()
 
     thread.start_new_thread(save_settings, (dicc,))
 
 
-def set_background(background=Paths.BACKGROUND_PATH):
+def set_background(background=Paths.BACKGROUND_PATH, load_theme=False):
     archivo = open(Paths.LOCAL_THEME_PATH)
     lista = archivo.read().split('"')
     width, height = Sizes.DISPLAY_SIZE
-    texto = lista[0] + '"' + background + '"' + lista[-1]
+    texto = lista[0] + '"' + Paths.BACKGROUND_PATH + '"' + lista[-1]
 
     archivo.close()
 
@@ -196,10 +221,13 @@ def set_background(background=Paths.BACKGROUND_PATH):
 
     dicc = get_settings()
     width, height = Sizes.DISPLAY_SIZE
-    img = Image.open(Paths.LOCAL_BACKGROUND_PATH)
+    img = Image.open(background)
     img = img.resize((width, height), Image.ANTIALIAS)
 
     img.save(Paths.BACKGROUND_PATH)
+
+    if load_theme:
+        set_theme()
 
 
 def set_theme():
@@ -222,7 +250,6 @@ def get_time():
 
 
 def get_app(archivo):
-
     categorias = {}
     icon_theme = Gtk.IconTheme()
     aplicacion = None
@@ -326,7 +353,6 @@ def get_icon(path, size=32):
 
 def run_app(app):
     def run(app):
-        print app['ejecutar']
         os.system(app['ejecutar'])
 
     thread.start_new_thread(run, (app,))
@@ -335,19 +361,23 @@ def run_app(app):
 if not os.path.isdir(Paths.WORK_DIR):
     os.makedirs(Paths.WORK_DIR)
 
+
 if not os.path.isdir(Paths.BACKGROUNDS_DIR):
     os.makedirs(Paths.BACKGROUNDS_DIR)
 
+    for x in os.listdir(Paths.LOCAL_BACKGROUNDS_DIR):
+        p = os.path.join(Paths.LOCAL_BACKGROUNDS_DIR, x)
+        os.system('cp %s %s' % (p, Paths.BACKGROUNDS_DIR))
+
+
 if not os.path.isfile(Paths.SETTINGS_PATH):
     diccionario = {
-    "fondo-simbolico": Paths.LOCAL_BACKGROUND_PATH,
-    #"panel-siempre-visible": False,
     "aplicaciones-favoritas": [],
     #"gestion-del-escritorio": True,
-    #"tamano-de-los-iconos": 64
     }
 
     set_settings(diccionario)
+
 
 if not os.path.isfile(Paths.THEME_PATH):
     archivo = open(Paths.LOCAL_THEME_PATH)
