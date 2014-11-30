@@ -498,12 +498,19 @@ class SettingsWindow(Gtk.Window):
         Gtk.Window.__init__(self)
 
         headerbar = Gtk.HeaderBar()
-        self.icon_view = Gtk.IconView()
-
-        headerbar.set_show_close_button(True)
-        self.set_titlebar(headerbar)
+        self.vbox = Gtk.VBox()
+        self.notebook = Gtk.Notebook()
 
         self.make_view_backgrounds()
+
+        headerbar.set_show_close_button(True)
+        self.notebook.append_page(self.selector_de_fondo, Gtk.Label('Escritorio'))
+        self.set_titlebar(headerbar)
+        self.resize(840, 580)
+
+        self.vbox.pack_start(self.notebook, True, True, 2)
+        self.add(self.vbox)
+        self.show_all()
 
     def make_view_backgrounds(self):
         # Permitir que se puedan seleccionar varios fondos, y seleccionar a cada
@@ -514,7 +521,6 @@ class SettingsWindow(Gtk.Window):
         hbox = Gtk.HBox()
         b_ok = Gtk.Button.new_from_stock(Gtk.STOCK_OK)
         box = Gtk.FlowBox()
-        box.change = False
         backgrounds = Globales.get_backgrounds()
 
         for x in backgrounds:
@@ -535,10 +541,6 @@ class SettingsWindow(Gtk.Window):
         self.selector_de_fondo.pack_end(hbox, False, False, 2)
 
     def set_fondo(self, widget):
-        if not widget.change: # La primera vez se activa solo
-            widget.change = True
-            return
-
         if widget.get_selected_children():
             imagen = widget.get_selected_children()[0].get_children()[0]
             archivo = imagen.archivo

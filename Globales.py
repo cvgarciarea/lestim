@@ -207,7 +207,7 @@ def set_settings(dicc):
     thread.start_new_thread(save_settings, (dicc,))
 
 
-def set_background(background=Paths.BACKGROUND_PATH, load_theme=False):
+def set_background(background=Paths.LOCAL_BACKGROUND_PATH, load_theme=False):
     archivo = open(Paths.LOCAL_THEME_PATH)
     lista = archivo.read().split('"')
     width, height = Sizes.DISPLAY_SIZE
