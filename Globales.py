@@ -53,6 +53,7 @@ class Paths:
 
 def get_backgrounds():
     lista = []
+    imagenes = []
     soportados = ['jpg', 'jpeg', 'png', '.gif', '.svg']
 
     if os.path.exists(Paths.SYSTEM_BACKGROUNDS_DIR):
@@ -61,7 +62,7 @@ def get_backgrounds():
 
             if os.path.isdir(path):
                 for _x in os.listdir(path):
-                    if '.' in _x and _x.split('.')[-1] in soportados:
+                    if '.' in x and _x.split('.')[-1] in soportados:
                         lista.append(os.path.join(path, _x))
 
 
@@ -70,12 +71,18 @@ def get_backgrounds():
                     lista.append(path)
 
     if os.path.exists(Paths.BACKGROUNDS_DIR):
-        for x in os.listdir(Paths.BACKGROUNDS_DIR):
+        for _x in os.listdir(Paths.BACKGROUNDS_DIR):
             path = os.path.join(Paths.BACKGROUNDS_DIR, x)
             if '.' in _x and path.split('.')[-1] in soportados:
                 lista.append(path)
 
-    return lista
+    for imagen in lista:
+        if ' ' in imagen:
+            imagen = imagen.replace(' ', '\ ')
+
+        imagenes.append(imagen)
+
+    return imagenes
 
 
 def get_user_directories():

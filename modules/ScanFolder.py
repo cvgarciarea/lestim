@@ -27,7 +27,6 @@ class ScanFolder(GObject.GObject):
         GObject.timeout_add(1000, self.scan)
 
     def scan(self):
-
         files = []
         directories = []
 
@@ -41,7 +40,6 @@ class ScanFolder(GObject.GObject):
         return True
 
     def get_files(self):
-
         directories = []
         files = []
         _files = os.listdir(self.foolder)
@@ -62,8 +60,7 @@ class ScanFolder(GObject.GObject):
         return directories + files
 
     def set_show_hidden_files(self, if_show):
-        
         if type(if_show) != bool:
             raise TypeError('The parameter must to be a bool')
-        
+
         self.show_hidden_files = if_show

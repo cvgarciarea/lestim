@@ -10,7 +10,7 @@ from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import GdkPixbuf
 
-from modules import ScanFolder
+from modules.ScanFolder import ScanFolder
 
 Globales.set_theme()
 
@@ -59,7 +59,7 @@ class PopupEntrySearch(WWTB):
 
     def button_press_event_cb(self, widget, event):
 
-        if event.string == "": # En realidad esta cadena alberga el caracter "Escape"
+        if event.string == "": #  En realidad esta cadena alberga el caracter "Escape"
             self.destroy()
 
 
@@ -71,7 +71,7 @@ class WorkArea(Gtk.IconView):
         Gtk.IconView.__init__(self)
 
         self.modelo = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
-        self.scan_foolder = ScanFolder.ScanFolder(Globales.get_user_directories()['escritorio'])
+        self.scan_foolder = ScanFolder(Globales.get_user_directories()['escritorio'])
 
         self.set_selection_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_model(self.modelo)
@@ -87,7 +87,7 @@ class WorkArea(Gtk.IconView):
 
         self.connect('button-press-event', self.on_click_press)
         self.connect('key-press-event', self.buscar_archivo)
-        self.scan_foolder.connect('files-changed', self.agregar_iconos)
+        #self.scan_foolder.connect('files-changed', self.agregar_iconos)
 
     def on_click_press(self, widget, event):
         boton = event.button
@@ -285,7 +285,7 @@ class AppButtonPopover(Gtk.Popover):
 
         self.set_relative_to(button)
         self.c_favorito.set_active(app in Globales.get_settings()['aplicaciones-favoritas'])
-        
+
         self.c_favorito.connect('toggled', self.favorited)
 
         self.vbox.pack_start(self.c_favorito, True, True, 1)
@@ -524,6 +524,9 @@ class SettingsWindow(Gtk.Window):
         backgrounds = Globales.get_backgrounds()
 
         for x in backgrounds:
+            if not os.path.exists(x):
+                continue
+
             pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(x, 300, 150)
             imagen = Gtk.Image.new_from_pixbuf(pixbuf)
             imagen.archivo = x
