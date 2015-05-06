@@ -1,6 +1,6 @@
-PrincipalWindow {
+LestimWindow {
     background-color: transparent;
-    background-image: url("");
+    background-image: url('./background');
     background-repeat: no-repeat;
 }
 
@@ -12,27 +12,25 @@ GtkIconView {
 	background-color: alpha(#000, 0.0);
 }
 
-/*
+
 GtkIconView.view.cell:selected,
 GtkIconView.view.cell:selected:focused {
     border-style: solid;
-    border-radius: 10;
-    border-width: 3;
+    border-radius: 10px;
+    border-width: 3px;
     border-color: #d3d7cf;
 }
-*/
+
 WorkArea:backdrop:selected {
     background-color: #d3d7cf;
     color: #d3d7cf;
     outline-color: #d3d7cf;
 }
 
-DownPanel {
-	background: linear-gradient(transparent, black);
-}
-
 IndicatorsArea {
-	background-color: transparent;
+	background-color: alpha(#000, 0.4);
+    border-width: 0px;
+
 }
 
 IndicatorsArea > GtkButton {
@@ -42,15 +40,14 @@ IndicatorsArea > GtkButton {
     color: #FFFFFF;
 }
 
-LateralPanel {
+LateralPanel > GtkVBox {
 	background-color: alpha(#000, 0.50);
-	border-width: 5px;
 }
 
 .scale {
-     -GtkScale-slider-length: 15; /* x del circulito para desplazar*/
-     -GtkRange-slider-width: 20; /* y del circulito para desplazar*/
-     -GtkRange-trough-border: 3;
+     -GtkScale-slider-length: 15px; /* x del circulito para desplazar*/
+     -GtkRange-slider-width: 20px; /* y del circulito para desplazar*/
+     -GtkRange-trough-border: 3px;
 }
 
 .scrollbar {
@@ -63,6 +60,7 @@ LateralPanel {
 }
 
 AppButton,
+PanelAppsButton,
 ShutdownButton,
 RebootButton,
 LockButton,
@@ -75,14 +73,15 @@ SettingsButton {
 }
 
 AppButton:hover,
+PanelAppsButton:hover,
 ShutdownButton:hover,
 RebootButton:hover,
-LockButton:hover, 
+LockButton:hover,
 SettingsButton:hover {
 	background-color: alpha(#000, 0.25);
 }
 
-AppButtonPopover {
+AppButtonPopover, PanelAppsButton {
 	background-color: alpha(#000, 0.50);
 	border-color: alpha(#000, 0.75);
 	border-width: 2px;
@@ -98,4 +97,9 @@ AppsEntry {
 	border-width: 5px;
 	font-size: 20px;
 	color: alpha(#FFF, 0.75);
+}
+
+CalendarButton {
+    border-width: 0px;
+    background-image: none;
 }
