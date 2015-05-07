@@ -33,20 +33,34 @@ class SettingsWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self)
 
-        headerbar = Gtk.HeaderBar()
-        self.vbox = Gtk.VBox()
-        self.notebook = Gtk.Notebook()
+        self.headerbar = Gtk.HeaderBar()
+        self.headerbar.set_show_close_button(True)
 
+        self.vbox = Gtk.VBox()
+        self.add(self.vbox)
+
+        self.set_titlebar(self.headerbar)
+        self.resize(840, 580)
         self.make_view_backgrounds()
 
-        headerbar.set_show_close_button(True)
-        self.notebook.append_page(self.background_selector, Gtk.Label('Desktop'))
-        self.set_titlebar(headerbar)
-        self.resize(840, 580)
+        self.stack = Gtk.Stack()
+        self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
+        self.stack.set_transition_duration(200)
+        self.stack.set_hexpand(True)
+        self.stack.add_titled(self.background_selector, 'background', 'Background')
+        self.vbox.pack_start(self.stack, True, True, 0)
 
-        self.vbox.pack_start(self.notebook, True, True, 2)
-        self.add(self.vbox)
+        self.stack_switcher = Gtk.StackSwitcher()
+        self.stack_switcher.set_stack(self.stack)
+        self.headerbar.add(self.stack_switcher)
+
+        self.connect('delete-event', self.__delete_event_cb)
+
         self.hide()
+
+    def __delete_event_cb(self, window, event):
+        self.hide()
+        return True
 
     def make_view_backgrounds(self):
         # Permitir que se puedan seleccionar varios fondos, y seleccionar a cada
@@ -54,8 +68,6 @@ class SettingsWindow(Gtk.Window):
 
         self.background_selector = Gtk.VBox()
         scrolled = Gtk.ScrolledWindow()
-        hbox = Gtk.HBox()
-        ok_button = Gtk.Button('Ok')#.new_from_stock(Gtk.STOCK_OK)
         box = Gtk.FlowBox()
         backgrounds = G.get_backgrounds()
 
@@ -63,25 +75,28 @@ class SettingsWindow(Gtk.Window):
             if not os.path.exists(x):
                 continue
 
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(x, 300, 150)
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(x, 200, 100)
             image = Gtk.Image.new_from_pixbuf(pixbuf)
             image.file = x
             box.add(image)
 
+        box.first_time = True
         box.set_homogeneous(True)
         box.set_selection_mode(Gtk.SelectionMode.SINGLE)
-        box.unselect_all()
-
         box.connect('selected-children-changed', self.set_background)
 
-        hbox.pack_end(ok_button, False, False, 2)
         scrolled.add(box)
         self.background_selector.add(scrolled)
-        self.background_selector.pack_end(hbox, False, False, 2)
 
     def set_background(self, widget):
+        if widget.first_time:
+            widget.first_time = False
+            widget.unselect_all()
+            return
+
         if widget.get_selected_children():
             image = widget.get_selected_children()[0].get_children()[0]
             file = image.file
 
-            GObject.idle_add(G.set_background, file, True)
+            if os.path.isfile(file):
+                GObject.idle_add(G.set_background, file, True)
