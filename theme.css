@@ -30,7 +30,6 @@ WorkArea:backdrop:selected {
 IndicatorsArea {
 	background-color: alpha(#000, 0.4);
     border-width: 0px;
-
 }
 
 IndicatorsArea > GtkButton {
@@ -61,6 +60,7 @@ LateralPanel > GtkVBox {
 
 AppButton,
 PanelAppsButton,
+OpenedAppButton,
 ShutdownButton,
 RebootButton,
 LockButton,
@@ -74,6 +74,7 @@ SettingsButton {
 
 AppButton:hover,
 PanelAppsButton:hover,
+OpenedAppButton:hover,
 ShutdownButton:hover,
 RebootButton:hover,
 LockButton:hover,

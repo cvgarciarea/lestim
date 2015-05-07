@@ -289,6 +289,7 @@ def set_brightness(valor):
 
     cmdStatus = subprocess.check_output("xrandr --output %s --brightness %.2f" % (monitor, valor), shell=True)
 
+
 def set_process_name():
     from ctypes import cdll, byref, create_string_buffer
     libc = cdll.LoadLibrary('libc.so.6')

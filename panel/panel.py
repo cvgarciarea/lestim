@@ -19,6 +19,7 @@
 
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import Wnck
 from gi.repository import GObject
 
 import globals as G
@@ -103,6 +104,30 @@ class AppButton(Gtk.Button):
         self.emit('favorited')
 
 
+class OpenedAppButton(Gtk.Button):
+
+    __gtype_name__ = 'OpenedAppButton'
+
+    def __init__(self, window):
+        Gtk.Button.__init__(self)
+
+        self.window = window
+
+        self.image = Gtk.Image.new_from_pixbuf(window.get_icon())
+        self.set_image(self.image)
+        self.set_tooltip_text(window.get_name())
+
+        self.connect('button-release-event', self.__button_press_event_cb)
+
+    def __button_press_event_cb(self, widget, event):
+        if event.button == 1:
+            if not self.window.is_active():
+                self.window.activate(0)
+
+            else:
+                self.window.minimize()
+
+
 class PanelAppsButton(Gtk.Button):
 
     __gtype_name__ = 'PanelAppsButton'
@@ -151,6 +176,10 @@ class LestimPanel(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self)
 
+        self.screen = Wnck.Screen.get_default()
+        self.screen.connect('application-closed', self.update_opened_buttons)
+        self.screen.connect('application-opened', self.window_opened)
+
         self.box = Gtk.VBox()
         self.box.connect('check-resize', self.reset_y)
         self.add(self.box)
@@ -168,15 +197,23 @@ class LestimPanel(Gtk.Window):
         self.button.connect('clicked', self.__show_apps)
         self.box.pack_start(self.button, False, False, 2)
 
-        self.buttons_area = Gtk.VBox()
-        self.box.pack_start(self.buttons_area, True, True, 2)
+        self.favorite_area = Gtk.VBox()
+        self.favorite_area.connect('check-resize', self.reset_y)
+        self.box.pack_start(self.favorite_area, True, True, 2)
+
+        self.opened_apps_area = Gtk.VBox()
+        self.opened_apps_area.connect('check-resize', self.reset_y)
+        self.box.pack_start(self.opened_apps_area, True, True, 0)
 
         self.indicators = IndicatorsArea()
         self.indicators.connect('show-lateral-panel', self.__show_lateral_panel)
         self.box.pack_end(self.indicators, False, False, 0)
 
-        self.update_buttons()
+        self.update_favorite_buttons()
         self.show_all()
+        self.screen.force_update()
+
+        #print(window.get_icon(), window.get_icon_name(), window.has_icon_name(), window.get_mini_icon())
 
     def __realize_cb(self, widget):
         self.reset_y()
@@ -191,16 +228,36 @@ class LestimPanel(Gtk.Window):
         width, height = self.get_size()
         self.move(0, G.Sizes.DISPLAY_HEIGHT / 2.0 - height / 2.0)
 
+    def window_opened(self, screen, window):
+        if window.get_name() == 'Lestim.py':
+            return
+
+        if type(window) == Wnck.Application:
+            window = window.get_windows()[0]
+
+        button = OpenedAppButton(window)
+        self.opened_apps_area.pack_start(button, False, False, 0)
+        self.show_all()
+
     def add_app_button(self, app):
         button = AppButton(app)
-        button.connect('favorited', self.update_buttons)
-        self.buttons_area.pack_start(button, False, False, 0)
+        button.connect('favorited', self.update_favorite_buttons)
+        self.favorite_area.pack_start(button, False, False, 0)
 
-    def update_buttons(self, *args):
-        while self.buttons_area.get_children():
-            self.buttons_area.remove(self.buttons_area.get_children()[-1])
+    def update_favorite_buttons(self, *args):
+        while self.favorite_area.get_children():
+            self.favorite_area.remove(self.favorite_area.get_children()[-1])
 
         for app in G.get_settings()['favorites-apps']:
             self.add_app_button(app)
+
+        self.show_all()
+
+    def update_opened_buttons(self, *args):
+        while self.opened_apps_area.get_children():
+            self.opened_apps_area.remove(self.opened_apps_area.get_children()[-1])
+
+        for window in self.screen.get_windows():
+            self.window_opened(None, window)
 
         self.show_all()
