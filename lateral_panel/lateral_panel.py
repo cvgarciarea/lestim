@@ -21,9 +21,35 @@ import os
 
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import Pango
 from gi.repository import GObject
 
 import globals as G
+
+
+class CalendarItem(Gtk.VBox):
+
+    def __init__(self):
+        Gtk.VBox.__init__(self)
+
+        hbox = Gtk.HBox()
+        self.time_label = Gtk.Label('')
+        self.time_label.modify_font(Pango.FontDescription('Bold 35'))
+        hbox.pack_start(self.time_label, True, True, 0)
+        self.pack_start(hbox, False, False, 0)
+
+        hbox = Gtk.HBox()
+        self.day_label = Gtk.Label('')
+        self.day_label.modify_font(Pango.FontDescription('12'))
+        hbox.pack_start(self.day_label, True, True, 0)
+        self.pack_start(hbox, False, False, 0)
+
+        GObject.timeout_add(1000, self.__update_data)
+
+    def __update_data(self):
+        self.time_label.set_label(G.get_current_time())
+        self.day_label.set_label(G.get_week_day())
+        return True
 
 
 class ShutdownButton(Gtk.Button):
@@ -101,19 +127,22 @@ class LateralPanel(Gtk.Window):
         self.set_size_request(300, G.Sizes.DISPLAY_HEIGHT)
         self.set_type_hint(Gdk.WindowTypeHint.DOCK)
 
+        calendar = CalendarItem()
+        self.vbox.pack_start(calendar, False, False, 10)
+
         hscale = Gtk.HScale()
         adjust = Gtk.Adjustment(G.get_actual_volume(), 0, 100, 1, 10)
         hscale.set_adjustment(adjust)
         hscale.set_draw_value(False)
         hscale.connect('value-changed', self.__volume_changed)
-        image = Gtk.Image.new_from_icon_name('audio-volume-muted', Gtk.IconSize.MENU)
+        image = Gtk.Image.new_from_pixbuf(G.get_icon('audio-volume-muted', 24))
         self.add_widgets(image, hscale)
 
         scale = Gtk.HScale()
         #adjust = Gtk.Adjustment(G.get_actual_brightness(), 10, 100, 1, 10)
         #scale.set_adjustment(adjust)
         scale.set_draw_value(False)
-        image = Gtk.Image.new_from_icon_name('display-brightness-symbolic', Gtk.IconSize.MENU)
+        image = Gtk.Image.new_from_pixbuf(G.get_icon('display-brightness-symbolic', 24))
         self.add_widgets(image, scale)
 
         hbox = Gtk.HBox()

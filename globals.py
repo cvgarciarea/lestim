@@ -20,6 +20,7 @@
 import os
 import time
 import json
+import datetime
 import subprocess
 import configparser
 from Xlib import display
@@ -41,6 +42,7 @@ _CSS_PROVIDER = Gtk.CssProvider()
 _STYLE_CONTEXT = Gtk.StyleContext()
 _DISPLAY = display.Display()
 _ICON_THEME = Gtk.IconTheme.get_for_screen(_SCREEN)
+_WEEK_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 
 class Sizes:
@@ -157,12 +159,16 @@ def get_icon(path, size=48):
 
 
 def get_current_time():
-    _time = time.gmtime()
-    text = '%d/%d/%d  %d:%d:%d' % (_time[2], _time[1], _time[1], _time[3], _time[4], _time[5])
-    if len(text.split(':')[-1]) == 1:
-        text = text[:-1] + '0%d' % _time[5]
-
+    _time = time.localtime()
+    h = str(_time.tm_hour)
+    m = str(_time.tm_min)
+    text = ('0' + h if len(h) == 1 else h) + ':' + ('0' + m if len(m) == 1 else m)
     return text
+
+
+def get_week_day():
+    day = datetime.datetime.today().weekday()
+    return _WEEK_DAYS[day]
 
 
 def get_app(file):
