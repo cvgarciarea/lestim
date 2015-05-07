@@ -32,17 +32,25 @@ class CalendarItem(Gtk.VBox):
     def __init__(self):
         Gtk.VBox.__init__(self)
 
-        hbox = Gtk.HBox()
-        self.time_label = Gtk.Label('')
+        box = Gtk.EventBox()
+        box.connect('button-press-event', self.__revealer_calendar)
+        self.time_label = Gtk.Label()
         self.time_label.modify_font(Pango.FontDescription('Bold 35'))
-        hbox.pack_start(self.time_label, True, True, 0)
-        self.pack_start(hbox, False, False, 0)
+        box.add(self.time_label)
+        self.pack_start(box, False, False, 0)
 
-        hbox = Gtk.HBox()
-        self.day_label = Gtk.Label('')
+        box = Gtk.EventBox()
+        box.connect('button-press-event', self.__revealer_calendar)
+        self.day_label = Gtk.Label()
         self.day_label.modify_font(Pango.FontDescription('12'))
-        hbox.pack_start(self.day_label, True, True, 0)
-        self.pack_start(hbox, False, False, 0)
+        box.add(self.day_label)
+        self.pack_start(box, False, False, 0)
+
+        self.revealer = Gtk.Revealer()
+        self.revealer.set_reveal_child(False)
+        calendar = Gtk.Calendar()
+        self.revealer.add(calendar)
+        self.pack_start(self.revealer, False, False, 0)
 
         GObject.timeout_add(1000, self.__update_data)
 
@@ -50,6 +58,9 @@ class CalendarItem(Gtk.VBox):
         self.time_label.set_label(G.get_current_time())
         self.day_label.set_label(G.get_week_day())
         return True
+
+    def __revealer_calendar(self, box, event):
+        self.revealer.set_reveal_child(not self.revealer.get_reveal_child())
 
 
 class ShutdownButton(Gtk.Button):

@@ -43,6 +43,7 @@ class LestimWindow(Gtk.Window):
 
         self.settings_window = SettingsWindow()
 
+        #self.set_keep_below(True)
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.set_size_request(G.Sizes.DISPLAY_WIDTH, G.Sizes.DISPLAY_HEIGHT)
         self.move(0, 0)

@@ -167,7 +167,7 @@ def get_current_time():
 
 
 def get_week_day():
-    day = datetime.datetime.today().weekday()
+    day = datetime.datetime.today().weekday() - 1
     return _WEEK_DAYS[day]
 
 
