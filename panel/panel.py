@@ -33,14 +33,14 @@ class AppButtonPopover(Gtk.Popover):
         'favorited': (GObject.SIGNAL_RUN_FIRST, None, [bool]),
         }
 
-    def __init__(self, button, app):
+    def __init__(self, button, file):
         Gtk.Popover.__init__(self)
 
         self.set_relative_to(button)
 
         self.vbox = Gtk.VBox()
-        self.favorite_check = Gtk.CheckButton('En favoritos')
-        #self.favorite_check.set_active(app in Globales.get_settings()['favorites-apps'])
+        self.favorite_check = Gtk.CheckButton('In favorites')
+        self.favorite_check.set_active(file in G.get_settings()['favorites-apps'])
         self.favorite_check.connect('toggled', self.__favorited)
         self.vbox.pack_start(self.favorite_check, True, True, 1)
 
@@ -65,7 +65,7 @@ class AppButton(Gtk.Button):
         self.app = G.get_app(file)
         self.file = file
 
-        self.popover = AppButtonPopover(self, self.app)
+        self.popover = AppButtonPopover(self, self.file)
         self.popover.connect('favorited', self.favorited_cb)
 
         vbox = Gtk.VBox()
@@ -213,8 +213,6 @@ class LestimPanel(Gtk.Window):
         self.show_all()
         self.screen.force_update()
 
-        #print(window.get_icon(), window.get_icon_name(), window.has_icon_name(), window.get_mini_icon())
-
     def __realize_cb(self, widget):
         self.reset_y()
 
@@ -241,6 +239,7 @@ class LestimPanel(Gtk.Window):
 
     def add_app_button(self, app):
         button = AppButton(app)
+        button.popover.set_position(Gtk.PositionType.RIGHT)
         button.connect('favorited', self.update_favorite_buttons)
         self.favorite_area.pack_start(button, False, False, 0)
 
