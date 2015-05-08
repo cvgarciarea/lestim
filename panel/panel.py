@@ -176,6 +176,9 @@ class LestimPanel(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self)
 
+        self.visible = True
+        self.timeout = None
+
         self.screen = Wnck.Screen.get_default()
         self.screen.connect('application-closed', self.update_opened_buttons)
         self.screen.connect('application-opened', self.window_opened)
@@ -225,9 +228,62 @@ class LestimPanel(Gtk.Window):
     def __run_app(self, button):
         G.run_app(button.app)
 
+    def __reveal(self):
+        def move():
+            x, y = self.get_position()
+            w, h = self.get_size()
+            _y = G.Sizes.DISPLAY_HEIGHT / 2.0 - h / 2.0
+
+            if x < 0:
+                avance = (w - x) / 2
+                x = (x + avance)
+                self.move(x if x <= 0 else 0, _y)
+                return True
+
+            else:
+                self.timeout = None
+                return False
+
+        if self.timeout:
+            GObject.source_remove(self.timeout)
+
+        self.timeout = GObject.timeout_add(20, move)
+
+    def __disreveal(self):
+        def move():
+            x, y = self.get_position()
+            w, h = self.get_size()
+            _y = G.Sizes.DISPLAY_HEIGHT / 2.0 - h / 2.0
+
+            if x + w > 0:
+                avance = (x - w) / 2
+                self.move(x + avance, _y)
+                return True
+
+            else:
+                self.timeout = None
+                return False
+
+        if self.timeout:
+            GObject.source_remove(self.timeout)
+
+        self.timeout = GObject.timeout_add(20, move)
+
+    def reveal(self, visible):
+        if visible == self.visible:
+            return
+
+        self.visible = visible
+        if not self.visible:
+            self.__disreveal()
+
+        else:
+            self.__reveal()
+
     def reset_y(self, vbox=None):
         width, height = self.get_size()
-        self.move(0, G.Sizes.DISPLAY_HEIGHT / 2.0 - height / 2.0)
+        x, y = self.get_position()
+        self.move(x, G.Sizes.DISPLAY_HEIGHT / 2.0 - height / 2.0)
 
     def window_opened(self, screen, window):
         if window.get_name() == 'Lestim.py':

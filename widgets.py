@@ -48,6 +48,9 @@ class LestimWindow(Gtk.Window):
         self.set_size_request(G.Sizes.DISPLAY_WIDTH, G.Sizes.DISPLAY_HEIGHT)
         self.move(0, 0)
 
+        self.mouse = G.MouseDetector()
+        self.mouse.connect('mouse-motion', self.__mouse_motion_cb)
+
         self.apps_view = AppsView()
         self.apps_view.connect('run-app', self.run_app)
         self.apps_view.connect('favorited-app', self.update_favorited_buttons)
@@ -87,6 +90,16 @@ class LestimWindow(Gtk.Window):
 
     def __show_settings_cb(self, panel):
         self.settings_window.show_all()
+
+    def __mouse_motion_cb(self, detector, x1, y1):
+        w, h = self.panel.get_size()
+        x2, y2 = self.panel.get_position()
+
+        if (x1 <= w + 10):
+            self.panel.reveal(True)
+
+        else:
+            self.panel.reveal(False)
 
     def run_app(self, apps_view, app):
         self.set_principal_widget(self.work_area)

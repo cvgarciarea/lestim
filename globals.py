@@ -29,6 +29,7 @@ from Xlib import display
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Gio
+from gi.repository import GObject
 from gi.repository import GdkPixbuf
 
 try:
@@ -70,6 +71,29 @@ class Paths:
     ICON_REBOOT = os.path.join(os.path.dirname(__file__), 'icons/reboot.svg')
     ICON_LOCK = os.path.join(os.path.dirname(__file__), 'icons/lock.svg')
     ICON_SETTINGS = os.path.join(os.path.dirname(__file__), 'icons/settings.svg')
+
+
+class MouseDetector(GObject.GObject):
+
+    __gsignals__ = {
+        'mouse-motion': (GObject.SIGNAL_RUN_FIRST, None, [int, int]),
+    }
+
+    def __init__(self):
+        GObject.GObject.__init__(self)
+
+        self.position = (0, 0)
+
+        GObject.timeout_add(200, self.__detect_position)
+
+    def __detect_position(self):
+        coord = _DISPLAY.screen().root.query_pointer()._data
+        x, y = coord['root_x'], coord['root_y']
+        if (x, y) != self.position:
+            self.position = (x, y)
+            self.emit('mouse-motion', x, y)
+
+        return True
 
 
 def check_paths():
