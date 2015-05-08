@@ -29,6 +29,7 @@ from Xlib import display
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Gio
+from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import GdkPixbuf
 
@@ -63,6 +64,7 @@ class Paths:
     BACKGROUND_PATH = os.path.join(WORK_DIR, 'background')
     LOCAL_BACKGROUND_PATH = os.path.join(os.path.dirname(__file__), 'backgrounds/colorful.jpg')
     LOCAL_BACKGROUNDS_DIR = os.path.join(os.path.dirname(__file__), 'backgrounds')
+    IMAGES_DIR = GLib.get_user_special_dir(GLib.USER_DIRECTORY_PICTURES)
 
     SYSTEM_BACKGROUNDS_DIR = '/usr/share/backgrounds'
     APPS_DIR = '/usr/share/applications'
@@ -278,6 +280,11 @@ def get_backgrounds():
 
     for x in os.listdir(Paths.BACKGROUNDS_DIR):
         path = os.path.join(Paths.BACKGROUNDS_DIR, x)
+        if '.' in x and path.split('.')[-1] in supported:
+            list.append(path)
+
+    for x in os.listdir(Paths.IMAGES_DIR):
+        path = os.path.join(Paths.IMAGES_DIR, x)
         if '.' in x and path.split('.')[-1] in supported:
             list.append(path)
 
