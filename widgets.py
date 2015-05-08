@@ -49,6 +49,7 @@ class LestimWindow(Gtk.Window):
         self.move(0, 0)
 
         self.apps_view = AppsView()
+        self.apps_view.connect('run-app', self.run_app)
         self.apps_view.connect('favorited-app', self.update_favorited_buttons)
 
         self.box = Gtk.VBox()
@@ -87,6 +88,10 @@ class LestimWindow(Gtk.Window):
     def __show_settings_cb(self, panel):
         self.settings_window.show_all()
 
+    def run_app(self, apps_view, app):
+        self.set_principal_widget(self.work_area)
+        G.run_app(app)
+
     def update_favorited_buttons(self, *args):
         self.panel.update_buttons()
 
@@ -102,6 +107,9 @@ class LestimWindow(Gtk.Window):
         self.panel.indicators.lateral_panel_button.set_label('<' if visible else '>')
 
     def set_principal_widget(self, widget):
+        if widget == self.hbox.get_children()[0]:
+            return
+
         self.hbox.remove(self.hbox.get_children()[0])
         self.hbox.pack_start(widget, True, True, 0)
         self.show_all()
@@ -180,12 +188,14 @@ class AppsView(Gtk.VBox):
             button = AppButton(file, label=True, icon_size=64)
             button.set_hexpand(False)
             button.set_vexpand(False)
+            button.connect('run-app', self.__run_app_cb)
             button.connect('favorited', self.__favorited_app_cb)
-            #boton.connect('clicked', lambda w: self.emit('run-app', apps[x]))
-            #boton.connect('favorited', lambda w: self.emit('favorited-app'))
             self.fbox.add(button)
 
         self.show_all()
+
+    def __run_app_cb(self, button):
+        self.emit('run-app', button.app)
 
     def __favorited_app_cb(self, button):
         self.emit('favorited-app')

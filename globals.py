@@ -21,6 +21,7 @@ import os
 import time
 import json
 import datetime
+import threading
 import subprocess
 import configparser
 from Xlib import display
@@ -156,6 +157,14 @@ def get_icon(path, size=48):
         pixbuf = _ICON_THEME.load_icon(path if _ICON_THEME.has_icon(path) else 'gtk-file', size, 0)
 
     return pixbuf
+
+
+def run_app(app):
+    def run():
+        os.system(app['execute'])
+
+    thread = threading.Thread(target=run)
+    thread.start()
 
 
 def get_current_time():

@@ -222,6 +222,9 @@ class LestimPanel(Gtk.Window):
     def __show_lateral_panel(self, area, show):
         self.emit('show-lateral-panel', show)
 
+    def __run_app(self, button):
+        G.run_app(button.app)
+
     def reset_y(self, vbox=None):
         width, height = self.get_size()
         self.move(0, G.Sizes.DISPLAY_HEIGHT / 2.0 - height / 2.0)
@@ -240,6 +243,7 @@ class LestimPanel(Gtk.Window):
     def add_app_button(self, app):
         button = AppButton(app)
         button.popover.set_position(Gtk.PositionType.RIGHT)
+        button.connect('run-app', self.__run_app)
         button.connect('favorited', self.update_favorite_buttons)
         self.favorite_area.pack_start(button, False, False, 0)
 
