@@ -106,7 +106,7 @@ class LestimWindow(Gtk.Window):
         G.run_app(app)
 
     def update_favorited_buttons(self, *args):
-        self.panel.update_buttons()
+        self.panel.update_favorite_buttons()
 
     def show_apps(self, *args):
         if not self.apps_view in self.hbox.get_children():
