@@ -93,7 +93,7 @@ class LestimWindow(Gtk.Window):
         w, h = self.panel.get_size()
         x2, y2 = self.panel.get_position()
 
-        if (x1 <= w + 10):
+        if (x1 <= 10):
             self.panel.reveal(True)
 
         else:

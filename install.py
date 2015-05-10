@@ -71,11 +71,11 @@ if os.path.isdir(INSTALL_DIR):
         sys.exit('Error: You must execute this script with user root permissions')
 
 # Creating install directory
-if os.access(path, os.W_OK):
+try:
     os.makedirs(INSTALL_DIR)
     print('%s created successfully' % INSTALL_DIR)
 
-else:
+except:
     sys.exit('Error: You must execute this script with user root permissions')
 
 if not os.path.isdir(DESKTOP_FILE_PATH):

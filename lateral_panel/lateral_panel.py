@@ -69,6 +69,36 @@ class CalendarItem(Gtk.VBox):
         self.revealer.set_reveal_child(not self.revealer.get_reveal_child())
 
 
+class MonitorsItem(Gtk.HBox):
+
+    def __init__(self):
+        Gtk.HBox.__init__(self)
+
+        self.battery_deamon = G.BatteryDeamon()
+        self.battery_deamon.connect('percentage-changed', self.__porcentage_changed_cb)
+
+        self.battery_item = Gtk.VBox()
+        self.pack_start(self.battery_item, True, True, 10)
+
+        icon = Gtk.Image.new_from_pixbuf(G.get_icon('battery-full-symbolic', 24))
+        self.battery_item.pack_start(icon, False, False, 2)
+
+        self.battery_label = Gtk.Label(str(self.battery_deamon.percentage) + '%')
+        self.battery_item.pack_start(self.battery_label, False, False, 0)
+
+        self.network_item = Gtk.VBox()
+        self.pack_start(self.network_item, True, True, 10)
+
+        icon = Gtk.Image.new_from_pixbuf(G.get_icon('network-wireless-signal-excellent-symbolic', 24))
+        self.network_item.pack_start(icon, False, False, 2)
+
+        self.network_label = Gtk.Label()
+        self.network_item.pack_start(self.network_label, False, False, 0)
+
+    def __porcentage_changed_cb(self, deamon, porcentage):
+        self.battery_label.set_label(str(porcentage))
+
+
 class ShutdownButton(Gtk.Button):
 
     __gtype_name__ = 'ShutdownButton'
@@ -147,6 +177,9 @@ class LateralPanel(Gtk.Window):
 
         calendar = CalendarItem()
         self.vbox.pack_start(calendar, False, False, 10)
+
+        self.monitors = MonitorsItem()
+        self.vbox.pack_start(self.monitors, False, False, 0)
 
         hscale = Gtk.HScale()
         adjust = Gtk.Adjustment(G.get_actual_volume(), 0, 100, 1, 10)

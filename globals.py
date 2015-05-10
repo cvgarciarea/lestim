@@ -98,6 +98,42 @@ class MouseDetector(GObject.GObject):
         return True
 
 
+class BatteryDeamon(GObject.GObject):
+
+    __gsignals__ = {
+        'percentage-changed': (GObject.SIGNAL_RUN_FIRST, None, [int]),
+        'state-changed': (GObject.SIGNAL_RUN_FIRST, None, [str])
+    }
+
+    def __init__(self):
+        GObject.GObject.__init__(self)
+
+        self.percentage = 0
+        self.state = None
+
+        GObject.timeout_add(1000, self.check)
+
+    def check(self):
+        self.check_state()
+        return True
+
+    def check_state(self):
+        with open('/sys/class/power_supply/BAT1/status') as _file:
+            text = _file.read()
+
+        if text != self.state:
+            self.state = text
+            self.emit('state-changed', text)
+
+    def check_percentage(self):
+        command = "upower -i $(upower -e | grep BAT) | grep --color=never -E percentage|xargs|cut -d' ' -f2|sed s/%//"
+        percentage = subprocess.Popen(['/bin/bash', '-c', command], stdout=subprocess.PIPE)
+        out, err = percentage.communicate()
+        if int(out) != self.percentage:
+            self.percentage = int(out)
+            self.emit('percentage-changed', self.percentage)
+
+
 def check_paths():
     if not os.path.isdir(Paths.WORK_DIR):
         os.makedirs(Paths.WORK_DIR)
