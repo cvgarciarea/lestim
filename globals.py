@@ -45,7 +45,7 @@ _CSS_PROVIDER = Gtk.CssProvider()
 _STYLE_CONTEXT = Gtk.StyleContext()
 _DISPLAY = display.Display()
 _ICON_THEME = Gtk.IconTheme.get_for_screen(_SCREEN)
-_WEEK_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+_WEEK_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 
 class Sizes:
@@ -202,7 +202,7 @@ def get_current_time():
 
 
 def get_week_day():
-    day = datetime.datetime.today().weekday() - 1
+    day = datetime.datetime.today().weekday()
     return _WEEK_DAYS[day]
 
 
