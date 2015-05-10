@@ -63,14 +63,20 @@ Icon=
 Type=Application
 '''
 
-# Creating install directory
-if not os.path.exists(INSTALL_DIR):
-    try:
-        os.makedirs(INSTALL_DIR)
-        print('%s created successfully' % INSTALL_DIR)
+if os.path.isdir(INSTALL_DIR):
+    if os.access(INSTALL_DIR, os.W_OK):
+        os.system('rm -r %s' % INSTALL_DIR)
 
-    except:
+    else:
         sys.exit('Error: You must execute this script with user root permissions')
+
+# Creating install directory
+if os.access(path, os.W_OK):
+    os.makedirs(INSTALL_DIR)
+    print('%s created successfully' % INSTALL_DIR)
+
+else:
+    sys.exit('Error: You must execute this script with user root permissions')
 
 if not os.path.isdir(DESKTOP_FILE_PATH):
     os.makedirs(DESKTOP_FILE_PATH)
