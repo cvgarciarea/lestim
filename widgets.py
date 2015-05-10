@@ -67,6 +67,7 @@ class LestimWindow(Gtk.Window):
 
         self.lateral_panel = LateralPanel()
         self.lateral_panel.connect('show-settings', self.__show_settings_cb)
+        self.lateral_panel.connect('reveal-changed', self.__reveal_changed_cb)
 
         self.panel = LestimPanel()
         self.panel.connect('show-apps', self.show_apps)
@@ -98,6 +99,9 @@ class LestimWindow(Gtk.Window):
         else:
             self.panel.reveal(False)
 
+    def __reveal_changed_cb(self, panel, visible):
+        self.panel.set_reveal_state(visible)
+
     def run_app(self, apps_view, app):
         #self.set_principal_widget(self.work_area)
         G.run_app(app)
@@ -114,7 +118,6 @@ class LestimWindow(Gtk.Window):
 
     def show_lateral_panel(self, widget, visible):
         self.lateral_panel.reveal(visible)
-        self.panel.indicators.lateral_panel_button.set_label('<' if visible else '>')
 
 
 class WorkArea(Gtk.VBox):

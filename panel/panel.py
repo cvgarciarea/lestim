@@ -150,19 +150,16 @@ class IndicatorsArea(Gtk.VBox):
     def __init__(self):
         Gtk.VBox.__init__(self)
 
-        self.lateral_panel_button = Gtk.Button('>')
+        self.__panel_visible = False
+
+        self.lateral_panel_button = Gtk.Button()
         self.lateral_panel_button.set_name('ShowPanelButton')
         self.lateral_panel_button.connect('clicked', self.__show_lateral_panel)
         self.pack_end(self.lateral_panel_button, False, False, 1)
 
     def __show_lateral_panel(self, widget):
-        if widget.get_label() == '>':
-            widget.set_label('<')
-            self.emit('show-lateral-panel', True)
-
-        elif widget.get_label() == '<':
-            widget.set_label('>')
-            self.emit('show-lateral-panel', False)
+        self.__panel_visible = not self.__panel_visible
+        self.emit('show-lateral-panel', self.__panel_visible)
 
 
 class LestimPanel(Gtk.Window):
@@ -216,6 +213,7 @@ class LestimPanel(Gtk.Window):
         self.update_favorite_buttons()
         self.show_all()
         self.screen.force_update()
+        self.set_reveal_state(False)
 
     def __realize_cb(self, widget):
         self.reset_y()
@@ -321,3 +319,13 @@ class LestimPanel(Gtk.Window):
             self.window_opened(None, window)
 
         self.show_all()
+
+    def set_reveal_state(self, visible):
+        name = 'go-previous-symbolic' if not visible else 'go-next-symbolic'
+        image = Gtk.Image.new_from_pixbuf(G.get_icon(name, 24))
+        button = self.indicators.lateral_panel_button
+        if button.get_children():
+            button.remove(button.get_children()[0])
+
+        button.add(image)
+        button.show_all()

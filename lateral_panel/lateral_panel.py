@@ -127,7 +127,8 @@ class LateralPanel(Gtk.Window):
     __gtype_name__ = 'LateralPanel'
 
     __gsignals__ = {
-        'show-settings': (GObject.SIGNAL_RUN_FIRST, None, [])
+        'show-settings': (GObject.SIGNAL_RUN_FIRST, None, []),
+        'reveal-changed': (GObject.SIGNAL_RUN_FIRST, None, [bool])
         }
 
     def __init__(self):
@@ -172,10 +173,12 @@ class LateralPanel(Gtk.Window):
         hbox.pack_start(reboot_button, True, True, 10)
 
         lock_button = LockButton()
+        lock_button.connect('clicked', self.__disreveal_from_button)
         hbox.pack_start(lock_button, True, True, 10)
 
         settings_button = SettingsButton()
         settings_button.connect('clicked', self.__show_settings)
+        settings_button.connect('clicked', self.__disreveal_from_button)
         hbox.pack_start(settings_button, True, True, 10)
 
         self.connect('focus-out-event', self.__focus_out_event_cb)
@@ -192,6 +195,8 @@ class LateralPanel(Gtk.Window):
         G.set_brightness(scale.get_value())
 
     def __reveal(self):
+        self.emit('reveal-changed', True)
+
         def move():
             x, y = self.get_position()
             if x > G.Sizes.DISPLAY_WIDTH - 300:
@@ -209,6 +214,8 @@ class LateralPanel(Gtk.Window):
         self.timeout = GObject.timeout_add(20, move)
 
     def __disreveal(self):
+        self.emit('reveal-changed', False)
+
         def move():
             x, y = self.get_position()
             if x < G.Sizes.DISPLAY_WIDTH:
@@ -227,6 +234,9 @@ class LateralPanel(Gtk.Window):
 
     def __show_settings(self, button):
         self.emit('show-settings')
+
+    def __disreveal_from_button(self, button):
+        self.reveal(False)
 
     def add_widgets(self, icon, widget):
         hbox = Gtk.HBox()
