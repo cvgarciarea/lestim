@@ -93,10 +93,10 @@ class LestimWindow(Gtk.Window):
         w, h = self.panel.get_size()
         x2, y2 = self.panel.get_position()
 
-        if (x1 <= 10):
+        if ((x1 <= 10) and (y1 >= y2) and (y1 <= y2 + h)) and not self.panel.visible:
             self.panel.reveal(True)
 
-        else:
+        elif ((x1 >= w) or (y1 <= y2) or (y1 >= y2 + h)) and self.panel.visible:
             self.panel.reveal(False)
 
     def __reveal_changed_cb(self, panel, visible):
