@@ -4,14 +4,13 @@ LestimWindow {
     background-repeat: no-repeat;
 }
 
-CanvasVBox, CanvasHBox {
+Canvas {
 	background-color: transparent;
 }
 
 GtkIconView {
 	background-color: alpha(#000, 0.0);
 }
-
 
 GtkIconView.view.cell:selected,
 GtkIconView.view.cell:selected:focused {
@@ -89,6 +88,18 @@ AppButtonPopover, PanelAppsButton {
 	color: #FFF;
 }
 
+AppsView {
+    background-image: url('./background');
+}
+
+AppsBox {
+    background-color: transparent;
+}
+
+AppsGrid {
+    background-color: transparent;
+}
+
 AppsEntry {
 	background-color: alpha(#000, 0.25);
 	background-image: none;
@@ -98,9 +109,4 @@ AppsEntry {
 	border-width: 5px;
 	font-size: 20px;
 	color: alpha(#FFF, 0.75);
-}
-
-CalendarButton {
-    border-width: 0px;
-    background-image: none;
 }

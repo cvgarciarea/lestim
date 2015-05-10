@@ -29,6 +29,7 @@ from panel.panel import LestimPanel
 from panel.panel import AppButton
 from lateral_panel.lateral_panel import LateralPanel
 from settings_window.settings_window import SettingsWindow
+from apps_view.apps_view import AppsView
 
 import globals as G
 G.set_theme()
@@ -44,9 +45,11 @@ class LestimWindow(Gtk.Window):
         self.settings_window = SettingsWindow()
 
         #self.set_keep_below(True)
-        self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
+        self.set_type_hint(Gdk.WindowTypeHint.DESKTOP)
+        #self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.set_size_request(G.Sizes.DISPLAY_WIDTH, G.Sizes.DISPLAY_HEIGHT)
-        self.move(0, 0)
+        #self.move(0, 0)
+        #self.fullscreen()
 
         self.mouse = G.MouseDetector()
         self.mouse.connect('mouse-motion', self.__mouse_motion_cb)
@@ -56,24 +59,18 @@ class LestimWindow(Gtk.Window):
         self.apps_view.connect('favorited-app', self.update_favorited_buttons)
 
         self.box = Gtk.VBox()
-        self.box.set_name('CanvasVBox')
+        self.box.set_name('Canvas')
         self.add(self.box)
 
-        self.hbox = Gtk.HBox()
-        self.hbox.set_name('CanvasHBox')
-        self.box.pack_start(self.hbox, True, True, 0)
-
         self.work_area = WorkArea()
-        self.hbox.pack_start(self.work_area, True, True, 0)
+        self.box.pack_start(self.work_area, True, True, 0)
 
         self.lateral_panel = LateralPanel()
         self.lateral_panel.connect('show-settings', self.__show_settings_cb)
-        #self.hbox.pack_end(self.lateral_panel, False, False, 0)
 
         self.panel = LestimPanel()
         self.panel.connect('show-apps', self.show_apps)
         self.panel.connect('show-lateral-panel', self.show_lateral_panel)
-        #self.box.pack_start(self.panel, False, False, 0)
 
         self.connect('realize', self.__realize_cb)
         self.connect('destroy', self.__logout)
@@ -102,31 +99,22 @@ class LestimWindow(Gtk.Window):
             self.panel.reveal(False)
 
     def run_app(self, apps_view, app):
-        self.set_principal_widget(self.work_area)
+        #self.set_principal_widget(self.work_area)
         G.run_app(app)
 
     def update_favorited_buttons(self, *args):
         self.panel.update_favorite_buttons()
 
     def show_apps(self, *args):
-        if not self.apps_view in self.hbox.get_children():
-            self.set_principal_widget(self.apps_view)
+        if not self.apps_view.visible:
+            self.apps_view.reveal(True)
 
         else:
-            self.set_principal_widget(self.work_area)
+            self.apps_view.reveal(False)
 
     def show_lateral_panel(self, widget, visible):
-        self.lateral_panel.set_show(visible)
+        self.lateral_panel.reveal(visible)
         self.panel.indicators.lateral_panel_button.set_label('<' if visible else '>')
-
-    def set_principal_widget(self, widget):
-        if widget == self.hbox.get_children()[0]:
-            return
-
-        self.hbox.remove(self.hbox.get_children()[0])
-        self.hbox.pack_start(widget, True, True, 0)
-        self.show_all()
-        self.panel.indicators.lateral_panel_button.set_label('>')
 
 
 class WorkArea(Gtk.VBox):
@@ -153,71 +141,3 @@ class WorkArea(Gtk.VBox):
         #self.view.connect('button-press-event', self.__button_press_event_cb)
         #self.view.connect('key-press-event', self.__key_press_event_cb)
         #self.scan_foolder.connect('files-changed', self.agregar_iconos)
-
-
-class AppsEntry(Gtk.Entry):
-
-    __gtype_name__ = 'AppsEntry'
-
-    def __init__(self):
-        Gtk.Entry.__init__(self)
-
-        self.set_placeholder_text('Search...')
-        self.props.xalign = 0.015
-
-
-class AppsView(Gtk.VBox):
-
-    __gtype_name__ = 'AppsView'
-
-    __gsignals__ = {
-        'run-app': (GObject.SIGNAL_RUN_FIRST, None, [object]),
-        'favorited-app': (GObject.SIGNAL_RUN_FIRST, None, []),
-        }
-
-    def __init__(self):
-        Gtk.VBox.__init__(self)
-
-        self.set_border_width(50)
-
-        self.entry = AppsEntry()
-        self.entry.connect('changed', self.search_app)
-        self.pack_start(self.entry, False, False, 20)
-
-        scrolled = Gtk.ScrolledWindow()
-        self.pack_start(scrolled, True, True, 0)
-
-        self.fbox = Gtk.FlowBox()
-        self.fbox.set_max_children_per_line(4)
-        scrolled.add(self.fbox)
-
-        GObject.idle_add(self.show_all_apps)
-
-    def show_all_apps(self, *args):
-        for file in os.listdir(G.Paths.APPS_DIR):
-            if not G.get_app(file):
-                return
-
-            button = AppButton(file, label=True, icon_size=64)
-            button.set_hexpand(False)
-            button.set_vexpand(False)
-            button.connect('run-app', self.__run_app_cb)
-            button.connect('favorited', self.__favorited_app_cb)
-            self.fbox.add(button)
-
-        self.show_all()
-
-    def __run_app_cb(self, button):
-        self.emit('run-app', button.app)
-
-    def __favorited_app_cb(self, button):
-        self.emit('favorited-app')
-
-    def search_app(self, widget):
-        for x in self.fbox.get_children():
-            button = x.get_children()[0]
-            if widget.get_text().lower() in button.app['name'].lower():
-                x.show_all()
-
-            else:
-                x.hide()

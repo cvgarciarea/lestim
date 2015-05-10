@@ -172,7 +172,12 @@ class LateralPanel(Gtk.Window):
         settings_button.connect('clicked', self.__show_settings)
         hbox.pack_start(settings_button, True, True, 10)
 
+        self.connect('focus-out-event', self.__focus_out_event_cb)
+
         self.show_all()
+
+    def __focus_out_event_cb(self, window, event):
+        self.reveal()
 
     def __volume_changed(self, scale):
         G.set_volume(scale.get_value())
@@ -223,7 +228,7 @@ class LateralPanel(Gtk.Window):
         hbox.pack_start(widget, True, True, 0)
         self.vbox.pack_start(hbox, False, False, 1)
 
-    def set_show(self, visible):
+    def reveal(self, visible):
         if visible != self.visible:
             self.visible = visible
 

@@ -69,6 +69,8 @@ class AppButton(Gtk.Button):
         self.popover.connect('favorited', self.favorited_cb)
 
         vbox = Gtk.VBox()
+        self.add(vbox)
+
         image = Gtk.Image.new_from_pixbuf(G.get_icon(self.app['icon'], icon_size))
         vbox.pack_start(image, True, True, 0)
 
@@ -80,11 +82,9 @@ class AppButton(Gtk.Button):
             text = text[:20] + '...' if len(text) > 20 else text
             vbox.pack_end(Gtk.Label(text), False, False, 0)
 
-        self.connect('button-release-event', self.button_press_event_cb)
+        self.connect('button-release-event', self.__button_release_event_cb)
 
-        self.add(vbox)
-
-    def button_press_event_cb(self, widget, event):
+    def __button_release_event_cb(self, widget, event):
         if event.button == 1:
             self.emit('run-app')
 
@@ -179,6 +179,13 @@ class LestimPanel(Gtk.Window):
         self.visible = True
         self.timeout = None
 
+        self.set_keep_above(True)
+        #self.set_size_request(40, 400)
+        self.set_resizable(False)
+        self.set_type_hint(Gdk.WindowTypeHint.DOCK)
+        self.set_opacity(0.5)
+        self.move(0, G.Sizes.DISPLAY_HEIGHT / 2 - 200)
+
         self.screen = Wnck.Screen.get_default()
         self.screen.connect('application-closed', self.update_opened_buttons)
         self.screen.connect('application-opened', self.window_opened)
@@ -186,13 +193,6 @@ class LestimPanel(Gtk.Window):
         self.box = Gtk.VBox()
         self.box.connect('check-resize', self.reset_y)
         self.add(self.box)
-
-        self.set_keep_above(True)
-        #self.set_size_request(40, 400)
-        self.set_resizable(False)
-        self.set_type_hint(Gdk.WindowTypeHint.DOCK)
-        self.set_opacity(0.5)
-        #self.move(0, G.Sizes.DISPLAY_HEIGHT / 2 - 200)
 
         self.connect('realize', self.__realize_cb)
 
