@@ -151,6 +151,7 @@ class IndicatorsArea(Gtk.VBox):
         Gtk.VBox.__init__(self)
 
         self.lateral_panel_button = Gtk.Button('>')
+        self.lateral_panel_button.set_name('ShowPanelButton')
         self.lateral_panel_button.connect('clicked', self.__show_lateral_panel)
         self.pack_end(self.lateral_panel_button, False, False, 1)
 

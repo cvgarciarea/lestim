@@ -56,7 +56,7 @@ class AppsView(Gtk.Window):
 
         self.set_can_focus(True)
         self.set_border_width(50)
-        self.set_keep_above(False)
+        self.set_keep_above(True)
         self.set_type_hint(Gdk.WindowTypeHint.SPLASHSCREEN)
         self.set_size_request(G.Sizes.DISPLAY_WIDTH, G.Sizes.DISPLAY_HEIGHT)
         self.move(-G.Sizes.DISPLAY_WIDTH, 0)

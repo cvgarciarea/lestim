@@ -1,15 +1,10 @@
-LestimWindow {
-    background-color: transparent;
+AppsView, LestimWindow {
     background-image: url('./background');
     background-repeat: no-repeat;
 }
 
-Canvas {
-	background-color: transparent;
-}
-
-GtkIconView {
-	background-color: alpha(#000, 0.0);
+Canvas, GtkIconView, AppsBox, AppsGrid {
+    background-color: transparent;
 }
 
 GtkIconView.view.cell:selected,
@@ -26,87 +21,101 @@ WorkArea:backdrop:selected {
     outline-color: #d3d7cf;
 }
 
-IndicatorsArea {
-	background-color: alpha(#000, 0.4);
-    border-width: 0px;
+LateralPanel > GtkVBox, LestimPanel, IndicatorsArea {
+    background-color: #161616;
 }
 
-IndicatorsArea > GtkButton {
-	background-color: alpha(#000, 0.25);
-	border-image: none;
-    background-image: none;
-    color: #FFFFFF;
+AppsView > .scale {
+    -GtkScale-slider-length: 15px;
+    -GtkRange-slider-width: 15px;
+    -GtkRange-trough-border: 5px;
 }
 
-LateralPanel > GtkVBox {
-	background-color: alpha(#000, 0.50);
+AppsView > .scrollbar {
+    background-color: #0971B2;
 }
 
-.scale {
-     -GtkScale-slider-length: 15px; /* x del circulito para desplazar*/
-     -GtkRange-slider-width: 20px; /* y del circulito para desplazar*/
-     -GtkRange-trough-border: 3px;
-}
-
-.scrollbar {
- 	-GtkScrollbar-has-backward-stepper: 10;
- 	-GtkScrollbar-has-forward-stepper: 10;
- 	background-color: #0971B2;
- 	background-image: none;
- 	border-width: 10px;
- 	border-radius: 5px;
-}
-
-AppButton,
-PanelAppsButton,
-OpenedAppButton,
-ShutdownButton,
-RebootButton,
-LockButton,
-SettingsButton {
-	background-color: alpha(#000, 0.50);
-	border-image: none;
-    background-image: none;
+ShutdownButton, RebootButton, LockButton, SettingsButton {
+    background-color: #101010;
     border-radius: 10px;
-    color: #FFFFFF;
+    border-color: #080808;
 }
 
-AppButton:hover,
-PanelAppsButton:hover,
-OpenedAppButton:hover,
-ShutdownButton:hover,
-RebootButton:hover,
-LockButton:hover,
-SettingsButton:hover {
-	background-color: alpha(#000, 0.25);
+ShutdownButton:hover, RebootButton:hover, LockButton:hover, SettingsButton:hover {
+    background-color: #080808;
 }
 
-AppButtonPopover, PanelAppsButton {
-	background-color: alpha(#000, 0.50);
-	border-color: alpha(#000, 0.75);
-	border-width: 2px;
-	color: #FFF;
+AppButton, PanelAppsButton, OpenedAppButton, GtkButton#ShowPanelButton {
+    background-color: alpha(#000000, 0.25);
+    border-radius: 2px;
+    border-color: #212121;
 }
 
-AppsView {
-    background-image: url('./background');
+AppButton, PanelAppsButton, OpenedAppButton, ShutdownButton, RebootButton,
+LockButton, SettingsButton, GtkButton#ShowPanelButton {
+    border-image: none;
+    background-image: none;
 }
 
-AppsBox {
-    background-color: transparent;
+AppButton:hover, PanelAppsButton:hover, OpenedAppButton:hover, GtkButton#ShowPanelButton:hover {
+    background-color: alpha(#000000, 0.40);
 }
 
-AppsGrid {
-    background-color: transparent;
+AppButtonPopover {
+    background-color: alpha(#000, 0.50);
+    border-color: alpha(#000, 0.50);
+    border-width: 2px;
 }
 
 AppsEntry {
-	background-color: alpha(#000, 0.25);
-	background-image: none;
-	border-image: none;
-	border-color: alpha(#000, 0.75);
-	border-radius: 25px;
-	border-width: 5px;
-	font-size: 20px;
-	color: alpha(#FFF, 0.75);
+    background-color: alpha(#202020, 0.30);
+    background-image: none;
+    border-radius: 4px;
+    border-width: 0px;
+    border-style: none;
+    font-size: 20px;
+}
+
+GtkLabel#TimeLabel, GtkLabel#DayLabel {
+    color: #BBBBBB;
+}
+
+GtkLabel#TimeLabel {
+    font: Bold 40;
+}
+
+GtkLabel#DayLabel {
+    font-size: 15px;
+}
+
+GtkCalendar {
+    padding: 4px;
+    outline-offset: -1px;
+}
+
+GtkCalendar:inconsistent {
+    color: mix(#DCDCDC, #2D2D2D, 0.5);
+}
+
+GtkCalendar.view,
+GtkCalendar.header,
+GtkCalendar.button,
+GtkCalendar.button:hover,
+GtkCalendar.button:insensitive {
+    border-width: 0;
+    background-color: transparent;
+    background-image: none;
+}
+
+.highlight,
+GtkCalendar.highlight {
+    border-width: 0;
+    background-color: transparent;
+    color: #1A80B6;
+}
+
+GtkCalendar.button {
+    border-style: none;
+    background-color: transparent;
+    background-image: none;
 }

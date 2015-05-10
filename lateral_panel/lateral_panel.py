@@ -29,28 +29,34 @@ import globals as G
 
 class CalendarItem(Gtk.VBox):
 
+    __gtype_name__ = 'CalendarItem'
+
     def __init__(self):
         Gtk.VBox.__init__(self)
 
         box = Gtk.EventBox()
         box.connect('button-press-event', self.__revealer_calendar)
-        self.time_label = Gtk.Label()
-        self.time_label.modify_font(Pango.FontDescription('Bold 35'))
-        box.add(self.time_label)
         self.pack_start(box, False, False, 0)
+
+        self.time_label = Gtk.Label()
+        self.time_label.set_name('TimeLabel')
+        box.add(self.time_label)
 
         box = Gtk.EventBox()
         box.connect('button-press-event', self.__revealer_calendar)
-        self.day_label = Gtk.Label()
-        self.day_label.modify_font(Pango.FontDescription('12'))
-        box.add(self.day_label)
         self.pack_start(box, False, False, 0)
+
+        self.day_label = Gtk.Label()
+        self.day_label.set_name('DayLabel')
+        box.add(self.day_label)
 
         self.revealer = Gtk.Revealer()
         self.revealer.set_reveal_child(False)
-        calendar = Gtk.Calendar()
-        self.revealer.add(calendar)
         self.pack_start(self.revealer, False, False, 0)
+
+        calendar = Gtk.Calendar()
+        calendar.set_name('LateralCalendar')
+        self.revealer.add(calendar)
 
         GObject.timeout_add(1000, self.__update_data)
 

@@ -1,4 +1,4 @@
 #!/bin/bash
 
-#mutter &
+mutter &
 python /home/cristian/Documentos/Lestim/Lestim.py
