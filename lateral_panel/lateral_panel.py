@@ -74,17 +74,20 @@ class MonitorsItem(Gtk.HBox):
     def __init__(self):
         Gtk.HBox.__init__(self)
 
+        self.battery_state = None
+        self.battery_percentage = 0
+
         self.battery_deamon = G.BatteryDeamon()
-        self.battery_deamon.connect('percentage-changed', self.__porcentage_changed_cb)
+        self.battery_deamon.connect('percentage-changed', self.__percentage_changed_cb)
+        self.battery_deamon.connect('state-changed', self.__battery_changed_cb)
+        self.battery_deamon.start()
 
         self.battery_item = Gtk.VBox()
         self.pack_start(self.battery_item, True, True, 10)
-
-        icon = Gtk.Image.new_from_pixbuf(G.get_icon('battery-full-symbolic', 24))
-        self.battery_item.pack_start(icon, False, False, 2)
+        self.battery_item.pack_start(Gtk.Image(), False, False, 2)
 
         self.battery_label = Gtk.Label(str(self.battery_deamon.percentage) + '%')
-        self.battery_item.pack_start(self.battery_label, False, False, 0)
+        self.battery_item.pack_end(self.battery_label, False, False, 0)
 
         self.network_item = Gtk.VBox()
         self.pack_start(self.network_item, True, True, 10)
@@ -95,8 +98,39 @@ class MonitorsItem(Gtk.HBox):
         self.network_label = Gtk.Label()
         self.network_item.pack_start(self.network_label, False, False, 0)
 
-    def __porcentage_changed_cb(self, deamon, porcentage):
-        self.battery_label.set_label(str(porcentage))
+    def __percentage_changed_cb(self, deamon, percentage):
+        self.battery_percentage = percentage
+        self.battery_label.set_label(str(self.battery_percentage) + '%')
+        self.check_battery_state()
+
+    def __battery_changed_cb(self, deamon, state):
+        self.battery_state = state
+        self.check_battery_state()
+
+    def check_battery_state(self):
+        # Possible battery states: Charging, Discharging
+        if self.battery_percentage <= 2:
+            icon = 'battery-empty-charging-symbolic'
+
+        elif self.battery_percentage <= 15:
+            icon = 'battery-caution-charging-symbolic'
+
+        elif self.battery_percentage <= 30:
+            icon = 'battery-low-charging-symbolic'
+
+        elif self.battery_percentage <= 50:
+            icon = 'battery-good-charging-symbolic'
+
+        elif self.battery_percentage <= 100:
+            icon = 'battery-full-charging-symbolic'
+
+        if self.battery_state == 'Discharging':
+            icon = icon.replace('charging-', '')
+
+        self.battery_item.remove(self.battery_item.get_children()[0])
+        icon = Gtk.Image.new_from_pixbuf(G.get_icon(icon, 24))
+        self.battery_item.pack_start(icon, False, False, 2)
+        self.battery_item.show_all()
 
 
 class ShutdownButton(Gtk.Button):

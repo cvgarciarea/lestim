@@ -111,17 +111,19 @@ class BatteryDeamon(GObject.GObject):
         self.percentage = 0
         self.state = None
 
+    def start(self):
         GObject.timeout_add(1000, self.check)
 
     def check(self):
-        self.check_state()
+        GObject.idle_add(self.check_state)
+        GObject.idle_add(self.check_percentage)
         return True
 
     def check_state(self):
         with open('/sys/class/power_supply/BAT1/status') as _file:
             text = _file.read()
 
-        if text != self.state:
+        if text != self.state and text.strip():
             self.state = text
             self.emit('state-changed', text)
 
