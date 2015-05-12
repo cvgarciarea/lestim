@@ -76,7 +76,6 @@ class AppButton(Gtk.Button):
 
         self.label = Gtk.Label()
         self.label.set_name('AppButtonLabel')
-        vbox.pack_end(self.label, False, False, 0)
 
         if not label:
             self.set_tooltip_text(self.app['name'])
@@ -85,6 +84,7 @@ class AppButton(Gtk.Button):
             text = self.app['name']
             text = text[:20] + '...' if len(text) > 20 else text
             self.label.set_label(text)
+            vbox.pack_end(self.label, False, False, 0)
 
         self.connect('button-release-event', self.__button_release_event_cb)
 
