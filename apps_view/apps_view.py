@@ -47,21 +47,20 @@ class AppsView(Gtk.Window):
         'favorited-app': (GObject.SIGNAL_RUN_FIRST, None, []),
         }
 
-    def __init__(self):
+    def __init__(self, parent):
         Gtk.Window.__init__(self)
 
         self.visible = False
         self.timeout = None
         self.last_position = (0, 0)
+        self.parent = parent
 
+        #self.set_modal(True)
         self.set_can_focus(True)
-        self.set_border_width(50)
+        self.set_border_width(10)
         self.set_keep_above(True)
-        #self.set_type_hint(Gdk.WindowTypeHint.SPLASHSCREEN)
-        self.set_size_request(G.Sizes.DISPLAY_WIDTH, G.Sizes.DISPLAY_HEIGHT)
-        self.move(-G.Sizes.DISPLAY_WIDTH, 0)
+        self.set_transient_for(parent)
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
-        #print(self.get_position())
 
         self.vbox = Gtk.VBox()
         self.vbox.set_name('AppsBox')
@@ -79,10 +78,20 @@ class AppsView(Gtk.Window):
         self.fbox.set_max_children_per_line(4)
         scrolled.add(self.fbox)
 
-        self.connect('key-press-event', self.__key_press_event_cb)
+        self.connect('realize', self.__realize_cb)
+        self.connect('focus-out-event', self.__focus_out_event_cb)
+        #self.connect('key-press-event', self.__key_press_event_cb)
 
         GObject.idle_add(self.show_all_apps)
-        self.hide()
+        self.reveal(False)
+
+    def __realize_cb(self, window):
+        win_x11 = self.get_window()
+        win_x11.set_decorations(False)
+        win_x11.process_all_updates()
+
+    def __focus_out_event_cb(self, widget, event):
+        self.reveal(False)
 
     def __run_app_cb(self, button):
         self.emit('run-app', button.app)
@@ -93,57 +102,11 @@ class AppsView(Gtk.Window):
 
     def __key_press_event_cb(self, window, event):
         val = event.keyval
-        print(val)
         if val == Gdk.KEY_Escape:
             self.reveal(False)
+            return
 
-    def __reveal(self):
-        self.show_all()
-        def move():
-            x, y = self.get_position()
-            if x < 0:
-                avance = (G.Sizes.DISPLAY_WIDTH - x) / 10.0
-                x = x + avance
-                self.move(x if x <= 0 else 0, 0)
-                return True
-
-            else:
-                self.timeout = None
-                return False
-
-        if self.timeout:
-            GObject.source_remove(self.timeout)
-
-        self.timeout = GObject.timeout_add(20, move)
-
-    def __disreveal(self):
-        self.entry.set_text('')
-
-        def move():
-            x, y = self.get_position()
-            if x > -G.Sizes.DISPLAY_WIDTH:
-                avance = (x - G.Sizes.DISPLAY_WIDTH) / 10.0
-                x = x + avance
-                self.move(x if x >= -G.Sizes.DISPLAY_WIDTH else -G.Sizes.DISPLAY_WIDTH, 0)
-                if self.get_position() != self.last_position:
-                    self.last_position = self.get_position()
-
-                else:
-                    self.hide()
-                    self.timeout = None
-                    return False
-
-                return True
-
-            else:
-                self.hide()
-                self.timeout = None
-                return False
-
-        if self.timeout:
-            GObject.source_remove(self.timeout)
-
-        self.timeout = GObject.timeout_add(20, move)
+        self.entry.grab_focus()
 
     def show_all_apps(self, *args):
         for file in os.listdir(G.Paths.APPS_DIR):
@@ -174,7 +137,15 @@ class AppsView(Gtk.Window):
             self.visible = visible
 
             if visible:
-                self.__reveal()
+                x, y = self.parent.panel.get_position()
+                w, h = self.parent.panel.get_size()
+                self.move(x + w + 10, y)
+
+                self.set_size_request(G.Sizes.DISPLAY_WIDTH / 2, G.Sizes.DISPLAY_HEIGHT - y - 10)
+
+                self.show_all()
+                self.entry.grab_focus()
 
             else:
-                self.__disreveal()
+                self.hide()
+

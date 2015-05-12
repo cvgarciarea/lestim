@@ -1,4 +1,4 @@
-AppsView, LestimWindow {
+LestimWindow {
     background-image: url('./background');
     background-repeat: no-repeat;
 }
@@ -12,27 +12,21 @@ GtkIconView.view.cell:selected:focused {
     border-style: solid;
     border-radius: 10px;
     border-width: 3px;
-    border-color: #d3d7cf;
+    border-color: #D3D7CF;
 }
 
 WorkArea:backdrop:selected {
-    background-color: #d3d7cf;
-    color: #d3d7cf;
-    outline-color: #d3d7cf;
+    background-color: #D3D7CF;
+    color: #D3D7CF;
+    outline-color: #D3D7CF;
 }
 
-LateralPanel > GtkVBox, LestimPanel, IndicatorsArea {
+LateralPanel > GtkVBox, LestimPanel, IndicatorsArea, AppsView {
     background-color: #161616;
 }
 
-AppsView > .scale {
-    -GtkScale-slider-length: 15px;
-    -GtkRange-slider-width: 15px;
-    -GtkRange-trough-border: 5px;
-}
-
-AppsView > .scrollbar {
-    background-color: #0971B2;
+AppsView {
+    border-radius: 4px;
 }
 
 ShutdownButton, RebootButton, LockButton, SettingsButton {
@@ -67,6 +61,10 @@ AppButtonPopover {
     border-width: 2px;
 }
 
+GtkLabel#AppButtonLabel {
+    color: #BBBBBB;
+}
+
 AppsEntry {
     background-color: alpha(#202020, 0.30);
     background-image: none;
@@ -74,6 +72,7 @@ AppsEntry {
     border-width: 0px;
     border-style: none;
     font-size: 20px;
+    color: #BBBBBB;
 }
 
 GtkLabel#TimeLabel, GtkLabel#DayLabel {
