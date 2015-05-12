@@ -74,20 +74,9 @@ class MonitorsItem(Gtk.HBox):
     def __init__(self):
         Gtk.HBox.__init__(self)
 
-        self.battery_state = None
-        self.battery_percentage = 0
-
-        self.battery_deamon = G.BatteryDeamon()
-        self.battery_deamon.connect('percentage-changed', self.__percentage_changed_cb)
-        self.battery_deamon.connect('state-changed', self.__battery_changed_cb)
-        self.battery_deamon.start()
-
-        self.battery_item = Gtk.VBox()
-        self.pack_start(self.battery_item, True, True, 10)
-        self.battery_item.pack_start(Gtk.Image(), False, False, 2)
-
-        self.battery_label = Gtk.Label(str(self.battery_deamon.percentage) + '%')
-        self.battery_item.pack_end(self.battery_label, False, False, 0)
+        if os.path.exists('/sys/class/power_supply/'):
+            if len(os.listdir('/sys/class/power_supply/')):
+                self.make_battery_item()
 
         self.network_item = Gtk.VBox()
         self.pack_start(self.network_item, True, True, 10)
@@ -106,6 +95,22 @@ class MonitorsItem(Gtk.HBox):
     def __battery_changed_cb(self, deamon, state):
         self.battery_state = state
         self.check_battery_state()
+
+    def make_battery_item(self):
+        self.battery_state = None
+        self.battery_percentage = 0
+
+        self.battery_deamon = G.BatteryDeamon()
+        self.battery_deamon.connect('percentage-changed', self.__percentage_changed_cb)
+        self.battery_deamon.connect('state-changed', self.__battery_changed_cb)
+        self.battery_deamon.start()
+
+        self.battery_item = Gtk.VBox()
+        self.pack_start(self.battery_item, True, True, 10)
+        self.battery_item.pack_start(Gtk.Image(), False, False, 2)
+
+        self.battery_label = Gtk.Label(str(self.battery_deamon.percentage) + '%')
+        self.battery_item.pack_end(self.battery_label, False, False, 0)
 
     def check_battery_state(self):
         # Possible battery states: Charging, Discharging
