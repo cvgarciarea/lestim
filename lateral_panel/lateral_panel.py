@@ -138,6 +138,52 @@ class MonitorsItem(Gtk.HBox):
         self.battery_item.show_all()
 
 
+class PrevSongButton(Gtk.Button):
+
+    __gtype_name__ = 'PrevSongButton'
+
+    def __init__(self):
+        Gtk.Button.__init__(self)
+
+
+class PlayPauseButton(Gtk.Button):
+
+    __gtype_name__ = 'PlayPauseButton'
+
+    def __init__(self):
+        Gtk.Button.__init__(self)
+
+
+class NextSongButton(Gtk.Button):
+
+    __gtype_name__ = 'NextSongButton'
+
+    def __init__(self):
+        Gtk.Button.__init__(self)
+
+
+class PlayerControllerItem(Gtk.VBox):
+
+    def __init__(self):
+        Gtk.VBox.__init__(self)
+
+        self.song_name = Gtk.Label()
+        self.pack_start(self.song_name, False, False, 10)
+
+        self.button_box = Gtk.HButtonBox()
+        self.button_box.set_layout(Gtk.ButtonBoxStyle.CENTER)
+        self.pack_start(self.button_box, False, False, 0)
+
+        self.prev_button = PrevSongButton()
+        self.button_box.add(self.prev_button)
+
+        self.play_pause_button = PlayPauseButton()
+        self.button_box.add(self.play_pause_button)
+
+        self.next_button = NextSongButton()
+        self.button_box.add(self.next_button)
+
+
 class ShutdownButton(Gtk.Button):
 
     __gtype_name__ = 'ShutdownButton'
@@ -219,6 +265,9 @@ class LateralPanel(Gtk.Window):
 
         self.monitors = MonitorsItem()
         self.vbox.pack_start(self.monitors, False, False, 0)
+
+        #self.player = PlayerControllerItem()
+        #self.vbox.pack_start(self.player, False, False, 0)
 
         hscale = Gtk.HScale()
         adjust = Gtk.Adjustment(G.get_actual_volume(), 0, 100, 1, 10)
