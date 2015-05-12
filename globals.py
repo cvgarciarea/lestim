@@ -26,6 +26,13 @@ import subprocess
 import configparser
 from Xlib import display
 
+try:
+    import PIL
+    from PIL import Image as image
+
+except:
+    image = None
+
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Gio
@@ -33,11 +40,6 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import GdkPixbuf
 
-try:
-    import image
-
-except ImportError:
-    from PIL import Image
 
 
 _SCREEN = Gdk.Screen.get_default()
@@ -339,7 +341,17 @@ def set_background(background=Paths.LOCAL_BACKGROUND_PATH, load_theme=False):
     if os.path.exists(Paths.BACKGROUND_PATH):
         os.remove(Paths.BACKGROUND_PATH)
 
-    os.symlink(background, Paths.BACKGROUND_PATH)
+    if image and '.' in background.split('/')[-1]:
+        ext = background.split('.')[-1]
+        basewidth = Sizes.DISPLAY_WIDTH
+        img = image.open(background)
+        img = img.resize(Sizes.DISPLAY_SIZE, PIL.Image.ANTIALIAS)
+        img.save(Paths.BACKGROUND_PATH + '.' + ext)
+        os.system('mv %s %s' % (Paths.BACKGROUND_PATH + '.' + ext, Paths.BACKGROUND_PATH))
+
+    else:
+        os.symlink(background, Paths.BACKGROUND_PATH)
+
     if load_theme:
         set_theme()
 
