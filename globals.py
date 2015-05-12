@@ -123,9 +123,9 @@ class BatteryDeamon(GObject.GObject):
 
     def check_state(self):
         with open('/sys/class/power_supply/BAT1/status') as _file:
-            text = _file.read()
+            text = _file.read().replace(' ', '').replace('\n', '')
 
-        if text != self.state and text.strip():
+        if text != self.state:
             self.state = text
             self.emit('state-changed', text)
 
