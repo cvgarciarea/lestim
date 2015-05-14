@@ -54,6 +54,8 @@ class AppsView(Gtk.Window):
         self.timeout = None
         self.last_position = (0, 0)
         self.parent = parent
+        self.row = 0
+        self.column = 0
 
         #self.set_modal(True)
         self.set_can_focus(True)
@@ -73,10 +75,9 @@ class AppsView(Gtk.Window):
         scrolled = Gtk.ScrolledWindow()
         self.vbox.pack_start(scrolled, True, True, 0)
 
-        self.fbox = Gtk.FlowBox()
-        self.fbox.set_name('AppsGrid')
-        self.fbox.set_max_children_per_line(4)
-        scrolled.add(self.fbox)
+        self.grid = Gtk.Grid()
+        self.grid.set_name('AppsGrid')
+        scrolled.add(self.grid)
 
         self.connect('realize', self.__realize_cb)
         self.connect('focus-out-event', self.__focus_out_event_cb)
@@ -108,35 +109,57 @@ class AppsView(Gtk.Window):
 
         self.entry.grab_focus()
 
-    def show_all_apps(self, *args):
+    def show_all_apps(self, title=''):
+        self.row = 0
+        self.column = -1
+        apps = {}
+
+        while self.grid.get_children():
+            self.grid.remove(self.grid.get_children()[0])
+
         for file in os.listdir(G.Paths.APPS_DIR):
             if not G.get_app(file):
-                return
+                continue
+
+            app = G.get_app(file)
+            if not title.lower() in app['name'].lower():
+                continue
+
+
+            apps[app['name']] = file
+
+        names = list(apps.keys())
+        names.sort()
+
+        for name in names:
+            file = apps[name]
 
             button = AppButton(file, label=True, icon_size=64)
-            button.set_hexpand(False)
-            button.set_vexpand(False)
             button.connect('run-app', self.__run_app_cb)
             button.connect('favorited', self.__favorited_app_cb)
-            self.fbox.add(button)
+
+            self.column += 1
+
+            if self.column == 4:
+                self.column = 0
+                self.row += 1
+
+            self.grid.attach(button, self.column, self.row, 1, 1)
+
             button.show_all()
 
-        self.show_all()
+        self.grid.show_all()
 
-    def search_app(self, widget):
-        for x in self.fbox.get_children():
-            button = x.get_children()[0]
-            if widget.get_text().lower() in button.app['name'].lower():
-                x.show_all()
-
-            else:
-                x.hide()
+    def search_app(self, entry):
+        GObject.idle_add(self.show_all_apps, entry.get_text())
 
     def reveal(self, visible):
         if visible != self.visible:
             self.visible = visible
 
             if visible:
+                GObject.idle_add(self.entry.set_text, '')
+
                 x, y = self.parent.panel.get_position()
                 w, h = self.parent.panel.get_size()
                 self.move(x + w + 10, y)

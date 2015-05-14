@@ -103,8 +103,8 @@ class LestimWindow(Gtk.Window):
         self.panel.set_reveal_state(visible)
 
     def run_app(self, apps_view, app):
-        G.run_app(app)
         self.apps_view.reveal(False)
+        G.run_app(app)
 
     def update_favorited_buttons(self, *args):
         self.panel.update_favorite_buttons()
