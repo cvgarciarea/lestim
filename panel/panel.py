@@ -232,6 +232,8 @@ class LestimPanel(Gtk.Window):
         G.run_app(button.app)
 
     def __reveal(self):
+        self.entry.set_text('')
+
         def move():
             x, y = self.get_position()
             w, h = self.get_size()
