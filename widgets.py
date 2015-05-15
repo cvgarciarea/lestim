@@ -97,7 +97,7 @@ class LestimWindow(Gtk.Window):
             self.panel.reveal(True)
 
         elif ((x1 >= w) or (y1 <= y2) or (y1 >= y2 + h)) and self.panel.visible and not self.apps_view.visible:
-            self.panel.reveal(False)
+            self.panel.reveal(self.panel.detector.panel_visible)
 
     def __reveal_changed_cb(self, panel, visible):
         self.panel.set_reveal_state(visible)

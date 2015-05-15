@@ -192,6 +192,10 @@ class LestimPanel(Gtk.Window):
         self.screen.connect('application-closed', self.update_opened_buttons)
         self.screen.connect('application-opened', self.window_opened)
 
+        self.detector = G.WindowPositionDetector(self)
+        self.detector.connect('show-panel', self.__show_from_detector, True)
+        self.detector.connect('hide-panel', self.__show_from_detector, False)
+
         self.box = Gtk.VBox()
         self.box.connect('check-resize', self.reset_y)
         self.add(self.box)
@@ -218,6 +222,7 @@ class LestimPanel(Gtk.Window):
         self.show_all()
         self.screen.force_update()
         self.set_reveal_state(False)
+        self.detector.start()
 
     def __realize_cb(self, widget):
         self.reset_y()
@@ -230,6 +235,9 @@ class LestimPanel(Gtk.Window):
 
     def __run_app(self, button):
         G.run_app(button.app)
+
+    def __show_from_detector(self, detector, visible):
+        self.reveal(visible)
 
     def __reveal(self):
         def move():
@@ -320,6 +328,7 @@ class LestimPanel(Gtk.Window):
             self.opened_apps_area.remove(self.opened_apps_area.get_children()[-1])
 
         for window in self.screen.get_windows():
+            print(window.get_geometry())
             self.window_opened(None, window)
 
         self.show_all()

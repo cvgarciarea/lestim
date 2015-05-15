@@ -37,6 +37,7 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Gio
 from gi.repository import GLib
+from gi.repository import Wnck
 from gi.repository import GObject
 from gi.repository import GdkPixbuf
 
@@ -96,6 +97,43 @@ class MouseDetector(GObject.GObject):
         if (x, y) != self.position:
             self.position = (x, y)
             self.emit('mouse-motion', x, y)
+
+        return True
+
+
+class WindowPositionDetector(GObject.GObject):
+
+    __gsignals__ = {
+        'show-panel': (GObject.SIGNAL_RUN_FIRST, None, []),
+        'hide-panel': (GObject.SIGNAL_RUN_FIRST, None, [])
+    }
+
+    def __init__(self, panel):
+        GObject.GObject.__init__(self)
+
+        self.panel = panel
+        self.panel_visible = True
+        self.screen = Wnck.Screen.get_default()
+
+    def start(self):
+        GObject.timeout_add(200, self.__detect_position)
+
+    def __detect_position(self):
+        for window in self.screen.get_windows():
+            if not window.is_active() or window.get_name() == 'Lestim.py':
+                continue
+
+            x1, y1, w1, h1 = window.get_geometry()
+            x2, y2 = self.panel.get_position()
+            w2, h2 = self.panel.get_size()
+
+            if self.panel.visible and (x1 <= x2 + w2):# and ((y1 >= y2) or ((y1 + w1 >= y2) and (y1 + w1 <= y2 + h2))):
+                self.panel_visible = False
+                self.emit('hide-panel')
+
+            elif not self.panel.visible and (x1 > w2):
+                self.panel_visible = True
+                self.emit('show-panel')
 
         return True
 
