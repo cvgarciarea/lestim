@@ -69,6 +69,9 @@ class LestimWindow(Gtk.Window):
         self.panel.connect('show-apps', self.show_apps)
         self.panel.connect('show-lateral-panel', self.show_lateral_panel)
 
+        self.detector = G.WindowPositionDetector(self.panel)
+        self.detector.connect('show-panel', self.__show_panel_from_detector)
+
         self.apps_view = AppsView(self)
         self.apps_view.connect('run-app', self.run_app)
         self.apps_view.connect('favorited-app', self.update_favorited_buttons)
@@ -77,6 +80,7 @@ class LestimWindow(Gtk.Window):
         self.connect('destroy', self.__logout)
 
         self.show_all()
+        self.detector.start()
 
     def __realize_cb(self, widget):
         win_x11 = self.get_window()
@@ -89,6 +93,9 @@ class LestimWindow(Gtk.Window):
     def __show_settings_cb(self, panel):
         self.settings_window.show_all()
 
+    def __show_panel_from_detector(self, detector):
+        self.panel.reveal(True)
+
     def __mouse_motion_cb(self, detector, x1, y1):
         w, h = self.panel.get_size()
         x2, y2 = self.panel.get_position()
@@ -96,14 +103,15 @@ class LestimWindow(Gtk.Window):
         if ((x1 <= 10) and (y1 >= y2) and (y1 <= y2 + h)) and not self.panel.visible:
             self.panel.reveal(True)
 
-        elif ((x1 >= w) or (y1 <= y2) or (y1 >= y2 + h)) and self.panel.visible and not self.apps_view.visible:
-            self.panel.reveal(self.panel.detector.panel_visible)
+        elif ((x1 >= w) or (y1 <= y2) or (y1 >= y2 + h)) and self.panel.visible:
+            self.panel.reveal(self.detector.panel_visible or self.apps_view.visible)
 
     def __reveal_changed_cb(self, panel, visible):
         self.panel.set_reveal_state(visible)
 
     def run_app(self, apps_view, app):
         self.apps_view.reveal(False)
+        self.lateral_panel.reveal(False)
         G.run_app(app)
 
     def update_favorited_buttons(self, *args):
