@@ -180,6 +180,7 @@ class LestimPanel(Gtk.Window):
 
         self.visible = True
         self.timeout = None
+        self.y_reseted = False
 
         self.set_keep_above(True)
         #self.set_size_request(40, 400)
@@ -200,8 +201,6 @@ class LestimPanel(Gtk.Window):
         self.box.connect('check-resize', self.reset_y)
         self.add(self.box)
 
-        self.connect('realize', self.__realize_cb)
-
         self.button = PanelAppsButton()
         self.button.connect('clicked', self.__show_apps)
         self.box.pack_start(self.button, False, False, 2)
@@ -218,14 +217,13 @@ class LestimPanel(Gtk.Window):
         self.indicators.connect('show-lateral-panel', self.__show_lateral_panel)
         self.box.pack_end(self.indicators, False, False, 0)
 
-        self.update_favorite_buttons()
         self.show_all()
-        self.screen.force_update()
-        self.set_reveal_state(False)
-        self.detector.start()
+        GObject.idle_add(self.__start)
 
-    def __realize_cb(self, widget):
-        self.reset_y()
+    def __start(self):
+        GObject.idle_add(self.update_favorite_buttons)
+        self.screen.force_update()
+        self.detector.start()
 
     def __show_apps(self, *args):
         self.emit('show-apps')
@@ -328,10 +326,13 @@ class LestimPanel(Gtk.Window):
             self.opened_apps_area.remove(self.opened_apps_area.get_children()[-1])
 
         for window in self.screen.get_windows():
-            print(window.get_geometry())
             self.window_opened(None, window)
 
         self.show_all()
+
+        if not self.y_reseted:
+            self.y_reseted = True
+            self.reset_y()
 
     def set_reveal_state(self, visible):
         name = 'go-previous-symbolic' if not visible else 'go-next-symbolic'
