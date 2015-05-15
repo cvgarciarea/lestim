@@ -139,7 +139,7 @@ class PanelAppsButton(Gtk.Button):
     def __init__(self):
         Gtk.Button.__init__(self)
 
-        self.image = Gtk.Image.new_from_pixbuf(G.get_icon('distributor-logo'))
+        self.image = Gtk.Image.new_from_pixbuf(G.get_icon('view-grid-symbolic'))
         self.set_image(self.image)
 
 
