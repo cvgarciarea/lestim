@@ -251,6 +251,7 @@ class LateralPanel(Gtk.Window):
 
         self.visible = False
         self.timeout = None
+        self.volume = G.get_actual_volume()
 
         self.vbox = Gtk.VBox()
         self.add(self.vbox)
@@ -269,20 +270,29 @@ class LateralPanel(Gtk.Window):
         #self.player = PlayerControllerItem()
         #self.vbox.pack_start(self.player, False, False, 0)
 
-        hscale = Gtk.HScale()
-        adjust = Gtk.Adjustment(G.get_actual_volume(), 0, 100, 1, 10)
-        hscale.set_adjustment(adjust)
-        hscale.set_draw_value(False)
-        hscale.connect('value-changed', self.__volume_changed)
-        image = Gtk.Image.new_from_pixbuf(G.get_icon('audio-volume-muted', 24))
-        self.add_widgets(image, hscale)
+        scale = Gtk.HScale()
+        adjust = Gtk.Adjustment(self.volume, 0, 100, 1, 10)
+        scale.set_adjustment(adjust)
+        scale.set_draw_value(False)
+        scale.connect('value-changed', self.__volume_changed)
+
+        self.hbox_volume = Gtk.HBox()
+        self.hbox_volume.pack_end(scale, True, True, 0)
+        self.vbox.pack_start(self.hbox_volume, False, False, 1)
+        self.make_volume_icon()
 
         scale = Gtk.HScale()
-        #adjust = Gtk.Adjustment(G.get_actual_brightness(), 10, 100, 1, 10)
-        #scale.set_adjustment(adjust)
+        adjust = Gtk.Adjustment(G.get_actual_brightness(), 10, 100, 1, 10)
+        scale.set_adjustment(adjust)
         scale.set_draw_value(False)
-        image = Gtk.Image.new_from_pixbuf(G.get_icon('display-brightness-symbolic', 24))
-        self.add_widgets(image, scale)
+        scale.connect('value-changed', self.__brightness_changed)
+
+        icon = Gtk.Image.new_from_pixbuf(G.get_icon('display-brightness-symbolic', 24))
+
+        self.hbox_brightness = Gtk.HBox()
+        self.hbox_brightness.pack_start(icon, False, False, 1)
+        self.hbox_brightness.pack_end(scale, True, True, 0)
+        self.vbox.pack_start(self.hbox_brightness, False, False, 1)
 
         hbox = Gtk.HBox()
         self.vbox.pack_end(hbox, False, False, 10)
@@ -310,7 +320,9 @@ class LateralPanel(Gtk.Window):
         self.reveal()
 
     def __volume_changed(self, scale):
-        G.set_volume(scale.get_value())
+        self.volume = scale.get_value()
+        G.set_volume(self.volume)
+        self.make_volume_icon()
 
     def __brightness_changed(self, scale):
         G.set_brightness(scale.get_value())
@@ -359,11 +371,25 @@ class LateralPanel(Gtk.Window):
     def __disreveal_from_button(self, button):
         self.reveal(False)
 
-    def add_widgets(self, icon, widget):
-        hbox = Gtk.HBox()
-        hbox.pack_start(icon, False, False, 1)
-        hbox.pack_start(widget, True, True, 0)
-        self.vbox.pack_start(hbox, False, False, 1)
+    def make_volume_icon(self):
+        if self.volume == 0:
+            icon = 'audio-volume-muted-symbolic'
+
+        elif self.volume <= 33:
+            icon = 'audio-volume-low-symbolic'
+
+        elif self.volume <= 66:
+            icon = 'audio-volume-medium-symbolic'
+
+        else:
+            icon = 'audio-volume-high-symbolic'
+
+        if len(self.hbox_volume.get_children()) == 2:
+            self.hbox_volume.remove(self.hbox_volume.get_children()[0])
+
+        image = Gtk.Image.new_from_pixbuf(G.get_icon(icon, 24))
+        self.hbox_volume.pack_start(image, False, False, 1)
+        self.hbox_volume.show_all()
 
     def reveal(self, visible):
         if visible != self.visible:

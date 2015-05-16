@@ -42,7 +42,6 @@ from gi.repository import GObject
 from gi.repository import GdkPixbuf
 
 
-
 _SCREEN = Gdk.Screen.get_default()
 _CSS_PROVIDER = Gtk.CssProvider()
 _STYLE_CONTEXT = Gtk.StyleContext()
@@ -404,24 +403,29 @@ def set_volume(value):
 
 
 def get_actual_brightness():
-    valor = subprocess.check_output("xrandr --verbose | grep -i brightness | cut -f2 -d ' '", shell=True)
-    if(valor != ""):
-        valor = valor.split('\n')[0]
-        valor = int(float(valor) * 100)
+    value = subprocess.check_output("xrandr --verbose | grep -i brightness | cut -f2 -d ' '", shell=True)
+    value = str(value)
+
+    if(value != ''):
+        value = int(float(value[2:-3]) * 100)
+
     else:
-        valor = ""
-    return valor
+        value = 50
+
+    return value
 
 
-def set_brightness(valor):
+def set_brightness(value):
     monitor = subprocess.check_output("xrandr -q | grep ' connected' | cut -d ' ' -f1", shell=True)
-    if(monitor != ""):
-        monitor = monitor.split('\n')[0]
+    monitor = str(monitor)
 
-    if valor >= 2:
-        valor /= 100.0
+    if(monitor != ''):
+        monitor = monitor[2:-3]
 
-    cmdStatus = subprocess.check_output("xrandr --output %s --brightness %.2f" % (monitor, valor), shell=True)
+    if value >= 2:
+        value /= 100.0
+
+    cmdStatus = subprocess.check_output("xrandr --output %s --brightness %.2f" % (monitor, value), shell=True)
 
 
 def set_process_name():

@@ -24,6 +24,5 @@ from widgets import LestimWindow
 
 #import Globales as G
 
-
 win = LestimWindow()
 Gtk.main()
