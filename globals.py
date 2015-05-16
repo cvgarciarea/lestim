@@ -50,6 +50,7 @@ _DISPLAY = display.Display()
 _ICON_THEME = Gtk.IconTheme.get_for_screen(_SCREEN)
 _WEEK_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
+
 class Sizes:
     DISPLAY_WIDTH = _SCREEN.width()
     DISPLAY_HEIGHT = _SCREEN.height()
@@ -64,7 +65,7 @@ class Paths:
 
     BACKGROUNDS_DIR = os.path.join(WORK_DIR, 'backgrounds')
     BACKGROUND_PATH = os.path.join(WORK_DIR, 'background')
-    LOCAL_BACKGROUND_PATH = os.path.join(os.path.dirname(__file__), 'backgrounds/colorful.jpg')
+    LOCAL_BACKGROUND_PATH = os.path.join(os.path.dirname(__file__), 'backgrounds/robocopred.jpg')
     LOCAL_BACKGROUNDS_DIR = os.path.join(os.path.dirname(__file__), 'backgrounds')
     IMAGES_DIR = GLib.get_user_special_dir(GLib.USER_DIRECTORY_PICTURES)
 
