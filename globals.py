@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
+import re
 import time
 import json
 import datetime
@@ -49,7 +50,6 @@ _DISPLAY = display.Display()
 _ICON_THEME = Gtk.IconTheme.get_for_screen(_SCREEN)
 _WEEK_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
-
 class Sizes:
     DISPLAY_WIDTH = _SCREEN.width()
     DISPLAY_HEIGHT = _SCREEN.height()
@@ -75,6 +75,8 @@ class Paths:
     ICON_REBOOT = os.path.join(os.path.dirname(__file__), 'icons/reboot.svg')
     ICON_LOCK = os.path.join(os.path.dirname(__file__), 'icons/lock.svg')
     ICON_SETTINGS = os.path.join(os.path.dirname(__file__), 'icons/settings.svg')
+
+    DESKTOP_DIR = GLib.get_user_special_dir(GLib.USER_DIRECTORY_DESKTOP)
 
 
 class MouseDetector(GObject.GObject):
@@ -175,6 +177,87 @@ class BatteryDeamon(GObject.GObject):
             self.emit('percentage-changed', self.percentage)
 
 
+class ScanFolder(GObject.GObject):
+
+    __gsignals__ = {
+        'files-changed': (GObject.SIGNAL_RUN_FIRST, None, [object]),
+        'realized-searching': (GObject.SIGNAL_RUN_FIRST, None, []),
+        }
+
+    def __init__(self, folder=None, timeout=500):
+
+        GObject.GObject.__init__(self)
+
+        self.folder = folder if folder else Paths.DESKTOP_DIR
+        self.time_lapsus = timeout
+        self.files = []
+        self.show_hidden_files = False
+        self.can_scan = True
+        self.mounts = {}
+
+    def __natural_sort(self, _list):
+        convert = lambda text: int(text) if text.isdigit() else text.lower()
+        alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+        return sorted(_list, key=alphanum_key)
+
+    def start(self):
+        GObject.timeout_add(self.time_lapsus, self.scan)
+
+    def scan(self, force=False):
+        if not self.can_scan:
+            return True
+
+        files = []
+        directories = []
+
+        if (self.files != self.get_files()) or force:
+            self.files = self.get_files()
+
+            self.emit('files-changed', self.files)
+
+        self.emit('realized-searching')
+
+        return True
+
+    def set_folder(self, folder):
+        self.folder = folder
+        GObject.idle_add(self.scan)
+
+    def get_files(self):
+        directories = []
+        files = []
+        if os.path.isdir(self.folder):
+            _files = os.listdir(self.folder)
+
+        else:
+            self.folder = get_parent_directory(self.folder)
+            return
+
+        for name in _files:
+            filename = os.path.join(self.folder, name)
+
+            if (not name.startswith('.') and not name.endswith('~')) or \
+                    self.show_hidden_files:
+
+                if os.path.isdir(filename):
+                    directories.append(filename)
+
+                elif os.path.isfile(filename):
+                    files.append(filename)
+
+        directories = self.__natural_sort(directories)
+        files = self.__natural_sort(files)
+
+        return directories + files
+
+    def set_show_hidden_files(self, if_show):
+        if type(if_show) != bool:
+            raise TypeError(_('The parameter must to be a bool'))
+
+        self.show_hidden_files = if_show
+        GObject.idle_add(self.scan)
+
+
 def check_paths():
     if not os.path.isdir(Paths.WORK_DIR):
         os.makedirs(Paths.WORK_DIR)
@@ -260,6 +343,31 @@ def get_icon(path, size=48):
         pixbuf = _ICON_THEME.load_icon(path if _ICON_THEME.has_icon(path) else 'gtk-file', size, 0)
 
     return pixbuf
+
+
+def get_name(path):
+    # In cases where directories ending in '/', when directory.split('/')[-1]
+    # will return '', but this function returns the correct name.
+
+    name = '/'
+    for x in path.split('/'):
+        if not x:
+            continue
+
+        name = x
+
+    return name
+
+
+def get_file_name(path):
+    if path.endswith('.desktop'):
+        cfg = configparser.ConfigParser()
+        cfg.read([path])
+
+        if cfg.has_option('Desktop Entry', 'Name'):
+            return cfg.get('Desktop Entry', 'Name')
+
+    return get_name(path)
 
 
 def run_app(app):

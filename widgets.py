@@ -143,8 +143,20 @@ class WorkArea(Gtk.VBox):
                              Gdk.EventMask.KEY_RELEASE_MASK |
                              Gdk.EventMask.BUTTON_PRESS_MASK)
 
+        self.scanner = G.ScanFolder()
+        self.scanner.connect('files-changed', self.__files_changed)
+        self.scanner.start()
+
         self.add(self.view)
 
         #self.view.connect('button-press-event', self.__button_press_event_cb)
         #self.view.connect('key-press-event', self.__key_press_event_cb)
         #self.scan_foolder.connect('files-changed', self.agregar_iconos)
+
+    def __files_changed(self, scanner, files):
+        GObject.idle_add(self.model.clear)
+        for path in files:
+            name = G.get_file_name(path)
+            pixbuf = G.get_icon(path)
+            self.model.append([name, pixbuf])
+
