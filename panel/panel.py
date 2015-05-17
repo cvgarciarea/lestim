@@ -19,6 +19,7 @@
 
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import Gio
 from gi.repository import Wnck
 from gi.repository import GObject
 
@@ -62,11 +63,13 @@ class AppButton(Gtk.Button):
     def __init__(self, file, label=None, icon_size=48):
         Gtk.Button.__init__(self)
 
+        self.gapp = Gtk.Application.get_default()
         self.app = G.get_app(file)
         self.file = file
+        self.in_favorites = self.file in G.get_settings()['favorites-apps']
 
-        self.popover = AppButtonPopover(self, self.file)
-        self.popover.connect('favorited', self.favorited_cb)
+        self.popover = self.make_popover() #AppButtonPopover(self, self.file)
+        #self.popover.connect('favorited', self.favorited_cb)
 
         vbox = Gtk.VBox()
         self.add(vbox)
@@ -95,7 +98,30 @@ class AppButton(Gtk.Button):
         elif event.button == 3:
             self.popover.show_all()
 
-    def favorited_cb(self, widget, favorite):
+    def make_popover(self):
+        self.gmenu = Gio.Menu()
+        self.gmenu.append('Open new window', 'app.open')
+        self.gmenu.append('Add to favorites' if not self.in_favorites else 'Remove from favorites', 'app.favorited')
+        self.gmenu.append('Send to desktop', 'app.desktop')
+
+        open_app_action = Gio.SimpleAction.new('open', None)
+        self.gapp.add_action(open_app_action)
+
+        favorited_action = Gio.SimpleAction.new('favorited', None)
+        #favorited_action.connect('activate', self.favorited_cb)
+        self.gapp.add_action(favorited_action)
+
+        send_to_desktop_action = Gio.SimpleAction.new('desktop', None)
+        #favorited_action.connect('activate', self.favorited_cb)
+        self.gapp.add_action(send_to_desktop_action)
+
+        popover = Gtk.Popover.new_from_model(self, self.gmenu)
+        popover.set_name('AppButtonPopover')
+
+        return popover
+
+    def favorited_cb(self, widget):
+        self.in_favorites = not self.in_favorites
         settings = G.get_settings()
 
         if favorite:
@@ -213,6 +239,7 @@ class LestimPanel(Gtk.Window):
         self.indicators.connect('show-lateral-panel', self.__show_lateral_panel)
         self.box.pack_end(self.indicators, False, False, 0)
 
+        self.set_reveal_state(False)
         self.show_all()
         GObject.idle_add(self.__start)
 
@@ -287,7 +314,7 @@ class LestimPanel(Gtk.Window):
         self.move(x, G.Sizes.DISPLAY_HEIGHT / 2.0 - height / 2.0)
 
     def window_opened(self, screen, window):
-        if window.get_name() == 'Lestim.py':
+        if window.get_name() == 'lestim':
             return
 
         if type(window) == Wnck.Application:

@@ -35,12 +35,12 @@ import globals as G
 G.set_theme()
 
 
-class LestimWindow(Gtk.Window):
+class LestimWindow(Gtk.ApplicationWindow):
 
     __gtype_name__ = 'LestimWindow'
 
-    def __init__(self):
-        Gtk.Window.__init__(self)
+    def __init__(self, app):
+        Gtk.ApplicationWindow.__init__(self, title='lestim', application=app)
 
         self.settings_window = SettingsWindow()
 
@@ -76,16 +76,10 @@ class LestimWindow(Gtk.Window):
         self.apps_view.connect('run-app', self.run_app)
         self.apps_view.connect('favorited-app', self.update_favorited_buttons)
 
-        self.connect('realize', self.__realize_cb)
         self.connect('destroy', self.__logout)
 
-        self.show_all()
         self.detector.start()
-
-    def __realize_cb(self, widget):
-        win_x11 = self.get_window()
-        win_x11.set_decorations(False)
-        win_x11.process_all_updates()
+        self.show_all()
 
     def __logout(self, widget):
         Gtk.main_quit()

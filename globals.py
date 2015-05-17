@@ -27,6 +27,10 @@ import subprocess
 import configparser
 from Xlib import display
 
+from ctypes import cdll
+from ctypes import byref
+from ctypes import create_string_buffer
+
 try:
     import PIL
     from PIL import Image as image
@@ -90,7 +94,6 @@ class MouseDetector(GObject.GObject):
         GObject.GObject.__init__(self)
 
         self.position = (0, 0)
-
         GObject.timeout_add(200, self.__detect_position)
 
     def __detect_position(self):
@@ -122,7 +125,7 @@ class WindowPositionDetector(GObject.GObject):
 
     def __detect_position(self):
         for window in self.screen.get_windows():
-            if not window.is_active() or window.get_name() == 'Lestim.py':
+            if not window.is_active() or window.get_name() == 'lestim':
                 continue
 
             x1, y1, w1, h1 = window.get_geometry()
@@ -538,7 +541,6 @@ def set_brightness(value):
 
 
 def set_process_name():
-    from ctypes import cdll, byref, create_string_buffer
     libc = cdll.LoadLibrary('libc.so.6')
     buff = create_string_buffer(7)  # len('lestim') + 1
     buff.value = b'lestim'

@@ -18,11 +18,32 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from gi.repository import Gtk
+from gi.repository import Gio
+from gi.repository import GLib
 from gi.repository import GObject
 
 from widgets import LestimWindow
 
-#import Globales as G
 
-win = LestimWindow()
-Gtk.main()
+class LestimApp(Gtk.Application):
+
+    def __init__(self):
+        Gtk.Application.__init__(self, application_id='org.lestim.lestim-session', flags=Gio.ApplicationFlags.FLAGS_NONE)
+
+        GLib.set_application_name('lestim')
+        GLib.set_prgname('lestim')
+
+        self.set_flags(Gio.ApplicationFlags.HANDLES_OPEN)
+        self.add_main_option('debug', b'd', GLib.OptionFlags.NONE, GLib.OptionArg.NONE, 'Debug lestim', None)
+
+        self.connect('activate', self.__activate_cb)
+
+    def __activate_cb(self, app):
+        self._win = LestimWindow(self)
+        self._win.show_all()
+
+
+if __name__ == '__main__':
+    lestim = LestimApp()
+    lestim.run()
+
