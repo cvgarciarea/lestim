@@ -21,10 +21,53 @@ import os
 
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import Gio
 from gi.repository import Pango
 from gi.repository import GObject
 
 import globals as G
+
+
+class Calendar(Gtk.Calendar):
+
+    __gtype_name__ = 'LateralCalendar'
+
+    def __init__(self):
+        Gtk.Calendar.__init__(self)
+
+        self.toplevel = None
+        self.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK)
+        self.connect('button-release-event', self.__button_release_event_cb)
+
+    def __button_release_event_cb(self, button, event):
+        if event.button != 3:
+            return
+
+        x, y = self.toplevel.get_transient_for().mouse.get_position()  # MouseDetector
+
+        rectangle = Gdk.Rectangle()
+        rectangle.x = event.x
+        rectangle.y = event.y + 50
+        rectangle.width = 10
+        rectangle.height = 10
+
+        year, month, day = self.get_date()
+        time = str(day) + '/' + str(month) + '/' + str(year)
+        #events = G.get_saved_events(time)
+
+        gmenu = Gio.Menu()
+        gmenu.append('View events on %s' % time, 'app.view_events')
+
+        app = Gtk.Application.get_default()
+        view_events = Gio.SimpleAction.new('view_events', None)
+        app.add_action(view_events)
+
+        popover = Gtk.Popover.new_from_model(self, gmenu)
+        popover.set_modal(True)
+        popover.set_can_focus(True)
+        popover.set_position(Gtk.PositionType.BOTTOM)
+        popover.set_pointing_to(rectangle)
+        popover.show_all()
 
 
 class CalendarItem(Gtk.VBox):
@@ -35,7 +78,8 @@ class CalendarItem(Gtk.VBox):
         Gtk.VBox.__init__(self)
 
         box = Gtk.EventBox()
-        box.connect('button-press-event', self.__revealer_calendar)
+        box.connect('button-release-event', self.__revealer_calendar)
+        box.connect('scroll-event', self.__revealer_calendar_from_scroll)
         self.pack_start(box, False, False, 0)
 
         self.time_label = Gtk.Label()
@@ -43,7 +87,8 @@ class CalendarItem(Gtk.VBox):
         box.add(self.time_label)
 
         box = Gtk.EventBox()
-        box.connect('button-press-event', self.__revealer_calendar)
+        box.connect('button-release-event', self.__revealer_calendar)
+        box.connect('scroll-event', self.__revealer_calendar_from_scroll)
         self.pack_start(box, False, False, 0)
 
         self.day_label = Gtk.Label()
@@ -54,9 +99,8 @@ class CalendarItem(Gtk.VBox):
         self.revealer.set_reveal_child(False)
         self.pack_start(self.revealer, False, False, 0)
 
-        calendar = Gtk.Calendar()
-        calendar.set_name('LateralCalendar')
-        self.revealer.add(calendar)
+        self.calendar = Calendar()
+        self.revealer.add(self.calendar)
 
         GObject.timeout_add(1000, self.__update_data)
 
@@ -66,7 +110,15 @@ class CalendarItem(Gtk.VBox):
         return True
 
     def __revealer_calendar(self, box, event):
-        self.revealer.set_reveal_child(not self.revealer.get_reveal_child())
+        if event.button == 1:
+            self.revealer.set_reveal_child(not self.revealer.get_reveal_child())
+
+    def __revealer_calendar_from_scroll(self, box, event):
+        if event.get_scroll_direction() == Gdk.ScrollDirection.UP:
+            self.revealer.set_reveal_child(True)
+
+        else:
+            self.revealer.set_reveal_child(False)
 
 
 class MonitorsItem(Gtk.HBox):
@@ -251,6 +303,7 @@ class LateralPanel(Gtk.Window):
 
         self.visible = False
         self.timeout = None
+        self.last_position = G.Sizes.DISPLAY_WIDTH
         self.volume = G.get_actual_volume()
 
         self.vbox = Gtk.VBox()
@@ -259,9 +312,10 @@ class LateralPanel(Gtk.Window):
         self.move(G.Sizes.DISPLAY_WIDTH, 0)
         self.set_keep_above(True)
         self.set_size_request(300, G.Sizes.DISPLAY_HEIGHT)
-        self.set_type_hint(Gdk.WindowTypeHint.DOCK)
+        self.set_type_hint(Gdk.WindowTypeHint.DND)
 
         calendar = CalendarItem()
+        calendar.calendar.toplevel = self
         self.vbox.pack_start(calendar, False, False, 10)
 
         self.monitors = MonitorsItem()
@@ -312,12 +366,18 @@ class LateralPanel(Gtk.Window):
         settings_button.connect('clicked', self.__disreveal_from_button)
         hbox.pack_start(settings_button, True, True, 10)
 
+        #self.connect('realize', self.__realize_cb)
         self.connect('focus-out-event', self.__focus_out_event_cb)
 
-        self.show_all()
+        self.hide()
+
+    def __realize_cb(self, window):
+        winx11 = self.get_window()
+        winx11.set_decorations(False)
+        winx11.process_all_updates()
 
     def __focus_out_event_cb(self, window, event):
-        self.reveal()
+        self.reveal(False)
 
     def __volume_changed(self, scale):
         self.volume = scale.get_value()
@@ -328,6 +388,7 @@ class LateralPanel(Gtk.Window):
         G.set_brightness(scale.get_value())
 
     def __reveal(self):
+        self.show_all()
         self.emit('reveal-changed', True)
 
         def move():
@@ -345,6 +406,7 @@ class LateralPanel(Gtk.Window):
             GObject.source_remove(self.timeout)
 
         self.timeout = GObject.timeout_add(20, move)
+        self.last_position = G.Sizes.DISPLAY_WIDTH - 300
 
     def __disreveal(self):
         self.emit('reveal-changed', False)
@@ -354,6 +416,15 @@ class LateralPanel(Gtk.Window):
             if x < G.Sizes.DISPLAY_WIDTH:
                 avance = (x - G.Sizes.DISPLAY_WIDTH) / 2
                 self.move(x - avance, 0)
+
+                if self.get_position()[0] == self.last_position:
+                    self.move(G.Sizes.DISPLAY_WIDTH, 0)
+                    self.hide()
+                    return True
+
+                else:
+                    self.last_position = x - avance
+
                 return True
 
             else:
@@ -363,6 +434,7 @@ class LateralPanel(Gtk.Window):
         if self.timeout:
             GObject.source_remove(self.timeout)
 
+        self.last_position = 0
         self.timeout = GObject.timeout_add(20, move)
 
     def __show_settings(self, button):

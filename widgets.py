@@ -51,9 +51,6 @@ class LestimWindow(Gtk.ApplicationWindow):
         #self.move(0, 0)
         #self.fullscreen()
 
-        self.mouse = G.MouseDetector()
-        self.mouse.connect('mouse-motion', self.__mouse_motion_cb)
-
         self.box = Gtk.VBox()
         self.box.set_name('Canvas')
         self.add(self.box)
@@ -62,6 +59,7 @@ class LestimWindow(Gtk.ApplicationWindow):
         self.box.pack_start(self.work_area, True, True, 0)
 
         self.lateral_panel = LateralPanel()
+        self.lateral_panel.set_transient_for(self)
         self.lateral_panel.connect('show-settings', self.__show_settings_cb)
         self.lateral_panel.connect('reveal-changed', self.__reveal_changed_cb)
 
@@ -75,6 +73,9 @@ class LestimWindow(Gtk.ApplicationWindow):
         self.apps_view = AppsView(self)
         self.apps_view.connect('run-app', self.run_app)
         self.apps_view.connect('favorited-app', self.update_favorited_buttons)
+
+        self.mouse = G.MouseDetector()
+        self.mouse.connect('mouse-motion', self.__mouse_motion_cb)
 
         self.connect('destroy', self.__logout)
 

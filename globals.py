@@ -83,6 +83,8 @@ class Paths:
 
     DESKTOP_DIR = GLib.get_user_special_dir(GLib.USER_DIRECTORY_DESKTOP)
 
+    CALENDAR_PATH = os.path.join(WORK_DIR, 'calendar_data.json')
+
 
 class MouseDetector(GObject.GObject):
 
@@ -97,13 +99,17 @@ class MouseDetector(GObject.GObject):
         GObject.timeout_add(200, self.__detect_position)
 
     def __detect_position(self):
-        coord = _DISPLAY.screen().root.query_pointer()._data
-        x, y = coord['root_x'], coord['root_y']
+        x, y = self.get_position()
         if (x, y) != self.position:
             self.position = (x, y)
             self.emit('mouse-motion', x, y)
 
         return True
+
+    def get_position(self):
+        coord = _DISPLAY.screen().root.query_pointer()._data
+        x, y = coord['root_x'], coord['root_y']
+        return(x, y)
 
 
 class WindowPositionDetector(GObject.GObject):
@@ -538,6 +544,53 @@ def set_brightness(value):
         value /= 100.0
 
     cmdStatus = subprocess.check_output("xrandr --output %s --brightness %.2f" % (monitor, value), shell=True)
+
+
+def get_saved_events(date):
+    check_paths()
+
+    if not os.path.exists(Paths.CALENDAR_PATH) or not open(Paths.CALENDAR_PATH).read():
+        return {}
+
+    with open(Paths.CALENDAR_PATH) as file:
+        data = json.load(file)
+        return data[date] if date in data else {}
+
+
+def save_event(date, name, description):
+    """
+    Event structur:
+        {
+            date1: {
+                name1.1: description1.1,
+                name1.2: description1.2,
+                name1.3: description1.3
+            },
+
+            date2: {
+                name2.1: description2.1,
+                name2.2: description2.2,
+                name2.3: description2.3
+            },
+        }
+    """
+
+    check_paths()
+
+    if not os.path.exists(Paths.CALENDAR_PATH) or not open(Paths.CALENDAR_PATH).read():
+        data = {}
+
+    else:
+        with open(Paths.CALENDAR_PATH) as file:
+            data = json.load(file)
+
+    if not date in data:
+        date[data] = []
+
+    data[date].append({name: description})
+
+    with open(Paths.CALENDAR_PATH, 'w') as file:
+        file.write(json.dumps(data))
 
 
 def set_process_name():
