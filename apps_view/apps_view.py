@@ -164,7 +164,9 @@ class AppsView(Gtk.Window):
                 w, h = self.parent.panel.get_size()
                 self.move(x + w + 10, y)
 
-                self.set_size_request(G.Sizes.DISPLAY_WIDTH / 2, G.Sizes.DISPLAY_HEIGHT - y - 10)
+                w, h = G.Sizes.DISPLAY_WIDTH / 2, G.Sizes.DISPLAY_HEIGHT - y - 10
+                self.set_size_request(w, h)
+                self.resize(w, h)
 
                 self.show_all()
                 self.entry.grab_focus()
