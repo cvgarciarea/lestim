@@ -77,10 +77,17 @@ class LestimWindow(Gtk.ApplicationWindow):
         self.mouse = G.MouseDetector()
         self.mouse.connect('mouse-motion', self.__mouse_motion_cb)
 
+        self.connect('realize', self.__start)
         self.connect('destroy', self.__logout)
 
-        self.detector.start()
         self.show_all()
+
+    def __start(self, window):
+        GObject.idle_add(self.panel.set_reveal_state, False)
+        #GObject.idle_add(self.panel.start)
+        GObject.idle_add(self.panel.reset_y)
+        GObject.idle_add(self.mouse.start)
+        GObject.idle_add(self.detector.start)
 
     def __logout(self, widget):
         Gtk.main_quit()

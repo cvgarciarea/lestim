@@ -26,31 +26,6 @@ from gi.repository import GObject
 import globals as G
 
 
-class AppButtonPopover(Gtk.Popover):
-
-    __gtype_name__ = 'AppButtonPopover'
-
-    __gsignals__ = {
-        'favorited': (GObject.SIGNAL_RUN_FIRST, None, [bool]),
-        }
-
-    def __init__(self, button, file):
-        Gtk.Popover.__init__(self)
-
-        self.set_relative_to(button)
-
-        self.vbox = Gtk.VBox()
-        self.favorite_check = Gtk.CheckButton('In favorites')
-        self.favorite_check.set_active(file in G.get_settings()['favorites-apps'])
-        self.favorite_check.connect('toggled', self.__favorited)
-        self.vbox.pack_start(self.favorite_check, True, True, 1)
-
-        self.add(self.vbox)
-
-    def __favorited(self, *args):
-        self.emit('favorited', self.favorite_check.get_active())
-
-
 class AppButton(Gtk.Button):
 
     __gtype_name__ = 'AppButton'
@@ -68,8 +43,7 @@ class AppButton(Gtk.Button):
         self.file = file
         self.in_favorites = self.file in G.get_settings()['favorites-apps']
 
-        self.popover = self.make_popover() #AppButtonPopover(self, self.file)
-        #self.popover.connect('favorited', self.favorited_cb)
+        self.popover = self.make_popover()
 
         vbox = Gtk.VBox()
         self.add(vbox)
@@ -206,11 +180,8 @@ class LestimPanel(Gtk.Window):
 
         self.visible = True
         self.timeout = None
-        self.y_reseted = False
 
         self.set_keep_above(True)
-        #self.set_size_request(40, 400)
-        self.set_resizable(False)
         self.set_type_hint(Gdk.WindowTypeHint.DOCK)
         self.set_opacity(0.5)
         self.move(0, G.Sizes.DISPLAY_HEIGHT / 2 - 200)
@@ -239,13 +210,7 @@ class LestimPanel(Gtk.Window):
         self.indicators.connect('show-lateral-panel', self.__show_lateral_panel)
         self.box.pack_end(self.indicators, False, False, 0)
 
-        self.set_reveal_state(False)
         self.show_all()
-        GObject.idle_add(self.__start)
-
-    def __start(self):
-        GObject.idle_add(self.update_favorite_buttons)
-        self.screen.force_update()
 
     def __show_apps(self, *args):
         self.emit('show-apps')
@@ -296,6 +261,10 @@ class LestimPanel(Gtk.Window):
             GObject.source_remove(self.timeout)
 
         self.timeout = GObject.timeout_add(20, move)
+
+    def start(self):
+        GObject.idle_add(self.update_favorite_buttons)
+        self.screen.force_update()
 
     def reveal(self, visible):
         if visible == self.visible:
@@ -349,9 +318,7 @@ class LestimPanel(Gtk.Window):
 
         self.show_all()
 
-        if not self.y_reseted:
-            self.y_reseted = True
-            self.reset_y()
+        self.reset_y()
 
     def set_reveal_state(self, visible):
         name = 'go-previous-symbolic' if not visible else 'go-next-symbolic'

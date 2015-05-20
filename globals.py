@@ -96,6 +96,8 @@ class MouseDetector(GObject.GObject):
         GObject.GObject.__init__(self)
 
         self.position = (0, 0)
+
+    def start(self):
         GObject.timeout_add(200, self.__detect_position)
 
     def __detect_position(self):
