@@ -292,7 +292,10 @@ def check_paths():
 
     if not os.path.isfile(Paths.SETTINGS_PATH):
         data = {'icon-size': 48,
-                'ever-panel-visible': True,
+                'panel-orientation': 'Left',
+                'panel-autohide': True,
+                'panel-expand': False,
+                'panel-space-reserved': False,
                 'favorites-apps': []}
 
         with open(Paths.SETTINGS_PATH, 'w') as file:
@@ -453,6 +456,12 @@ def set_settings(settings):
     with open(Paths.SETTINGS_PATH, 'w') as file:
         file.write(json.dumps(settings))
         file.close()
+
+
+def set_a_setting(setting, value):
+    settings = get_settings()
+    settings[setting] = value
+    set_settings(settings)
 
 
 def get_backgrounds():
