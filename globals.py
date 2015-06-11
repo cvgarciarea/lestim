@@ -19,8 +19,10 @@
 
 import os
 import re
+import sys
 import time
 import json
+import signal
 import datetime
 import threading
 import subprocess
@@ -53,6 +55,10 @@ _STYLE_CONTEXT = Gtk.StyleContext()
 _DISPLAY = display.Display()
 _ICON_THEME = Gtk.IconTheme.get_for_screen(_SCREEN)
 _WEEK_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+_ORIGIN_STDOUT = sys.stdout
+_OUT_FILE = open('/tmp/lestim.log', 'w')
+
+sys.stdout = _OUT_FILE
 
 
 class Sizes:
@@ -604,6 +610,12 @@ def save_event(date, name, description):
         file.write(json.dumps(data))
 
 
+def kill_proccess(signal, frame):
+    sys.stdout = _ORIGIN_STDOUT
+    _OUT_FILE.close()
+    sys.exit(0)
+
+
 def set_process_name():
     libc = cdll.LoadLibrary('libc.so.6')
     buff = create_string_buffer(7)  # len('lestim') + 1
@@ -613,3 +625,4 @@ def set_process_name():
 
 set_process_name()
 check_paths()
+signal.signal(signal.SIGTERM, kill_proccess)

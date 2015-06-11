@@ -30,15 +30,21 @@ class SettingsWindow(Gtk.Window):
 
     __gtype_name__ = 'SettingsWindow'
 
+    __gsignals__ = {
+        'settings-changed': (GObject.SIGNAL_RUN_FIRST, None, []),
+    }
+
     def __init__(self):
         Gtk.Window.__init__(self)
 
         self.headerbar = Gtk.HeaderBar()
+        self.headerbar.set_title('Settings')
         self.headerbar.set_show_close_button(True)
 
         self.vbox = Gtk.VBox()
         self.add(self.vbox)
 
+        self.set_title('Settings')
         self.set_titlebar(self.headerbar)
         self.resize(840, 580)
 
@@ -166,13 +172,17 @@ class SettingsWindow(Gtk.Window):
         values = {0: 'Top', 1: 'Bottom', 2: 'Left'}
         value = values[combo.get_active()]
         G.set_a_setting('panel-orientation', value)
+        self.emit('settings-changed')
 
     def panel_autohide_changed(self, switch, gparam):
         G.set_a_setting('panel-autohide', switch.get_active())
+        self.emit('settings-changed')
 
     def panel_expand_changed(self, switch, gparam):
         G.set_a_setting('panel-expand', switch.get_active())
+        self.emit('settings-changed')
 
     def panel_reserve_space_changed(self, switch, gparam):
         G.set_a_setting('panel-space-reserved', switch.get_active())
+        self.emit('settings-changed')
 

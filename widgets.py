@@ -42,7 +42,10 @@ class LestimWindow(Gtk.ApplicationWindow):
     def __init__(self, app):
         Gtk.ApplicationWindow.__init__(self, title='lestim', application=app)
 
-        self.settings_window = SettingsWindow()
+        self.panel_orientation = None
+        self.panel_autohide = None
+        self.panel_expand = None
+        self.panel_space_reserved = None
 
         #self.set_keep_below(True)
         self.set_type_hint(Gdk.WindowTypeHint.DESKTOP)
@@ -77,15 +80,17 @@ class LestimWindow(Gtk.ApplicationWindow):
         self.mouse = G.MouseDetector()
         self.mouse.connect('mouse-motion', self.__mouse_motion_cb)
 
+        self.settings_window = SettingsWindow()
+        self.settings_window.connect('settings-changed', self.__settings_changed_cb)
+
         self.connect('realize', self.__start)
         self.connect('destroy', self.__logout)
 
         self.show_all()
+        self.load_settings()
 
     def __start(self, window):
-        GObject.idle_add(self.panel.set_reveal_state, False)
-        #GObject.idle_add(self.panel.start)
-        GObject.idle_add(self.panel.reset_y)
+        GObject.idle_add(self.panel.start)
         GObject.idle_add(self.mouse.start)
         GObject.idle_add(self.detector.start)
 
@@ -102,14 +107,51 @@ class LestimWindow(Gtk.ApplicationWindow):
         w, h = self.panel.get_size()
         x2, y2 = self.panel.get_position()
 
-        if ((x1 <= 10) and (y1 >= y2) and (y1 <= y2 + h)) and not self.panel.visible:
-            self.panel.reveal(True)
+        if self.panel_autohide:
+            if self.panel_orientation == 'Left':
+                if ((x1 <= 10) and (y1 >= y2) and (y1 <= y2 + h)) and not self.panel.visible:
+                    self.panel.reveal(True)
 
-        elif ((x1 >= w) or (y1 <= y2) or (y1 >= y2 + h)) and self.panel.visible:
-            self.panel.reveal(self.detector.panel_visible or self.apps_view.visible)
+                elif ((x1 >= w) or (y1 <= y2) or (y1 >= y2 + h)) and self.panel.visible:
+                    self.panel.reveal(self.detector.panel_visible or self.apps_view.visible)
+
+            elif self.panel_orientation == 'Top':
+                if ((y1 <= 10) and (x1 >= x2) and (x1 <= x2 + w)) and not self.panel.visible:
+                    self.panel.reveal(True)
+
+                elif ((y1 >= h) or (x1 <= x2) or (x1 >= x2 + w)) and self.panel.visible:
+                    self.panel.reveal(self.detector.panel_visible or self.apps_view.visible)
+
+            elif self.panel_orientation == 'Bottom':
+                if ((y1 >= G.Sizes.DISPLAY_HEIGHT - 10) and (x1 >= x2) and (x1 <= x2 + w) and not self.panel.visible):
+                    self.panel.reveal(True)
+
+                elif ((y1 >= h) or (x1 <= x2) or (x1 >= x2 + w)) and self.panel.visible:
+                    self.panel.reveal(self.detector.panel_visible or self.apps_view.visible)
+
+        else:
+            self.panel.reveal(True)
 
     def __reveal_changed_cb(self, panel, visible):
         self.panel.set_reveal_state(visible)
+
+    def __settings_changed_cb(self, window):
+        self.load_settings()
+
+    def load_settings(self):
+        data = G.get_settings()
+        self.panel_orientation = data['panel-orientation']
+        self.panel_autohide = data['panel-autohide']
+        self.panel_expand = data['panel-expand']
+        self.panel_space_reserved = data['panel-space-reserved']
+
+        if self.panel_orientation != self.panel.orientation:
+            self.panel.set_orientation(self.panel_orientation)
+
+        if self.panel_autohide != self.panel.get_visible():
+            self.panel.reveal(not self.panel_autohide)
+
+        self.panel.set_expand(self.panel_expand)
 
     def run_app(self, apps_view, app):
         self.apps_view.reveal(False)

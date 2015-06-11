@@ -143,7 +143,7 @@ class PanelAppsButton(Gtk.Button):
         self.set_image(self.image)
 
 
-class IndicatorsArea(Gtk.VBox):
+class IndicatorsArea(Gtk.Box):
 
     __gtype_name__ = 'IndicatorsArea'
 
@@ -152,7 +152,7 @@ class IndicatorsArea(Gtk.VBox):
         }
 
     def __init__(self):
-        Gtk.VBox.__init__(self)
+        Gtk.Box.__init__(self)
 
         self.__panel_visible = False
 
@@ -180,6 +180,13 @@ class LestimPanel(Gtk.Window):
 
         self.visible = True
         self.timeout = None
+        self.expand = None
+        self.orientation = None
+        self.box = None
+        self.button = None
+        self.favorite_area = None
+        self.opened_apps_area = None
+        self.indicators = None
 
         self.set_keep_above(True)
         self.set_type_hint(Gdk.WindowTypeHint.DOCK)
@@ -187,30 +194,51 @@ class LestimPanel(Gtk.Window):
         self.move(0, G.Sizes.DISPLAY_HEIGHT / 2 - 200)
 
         self.screen = Wnck.Screen.get_default()
-        self.screen.connect('application-closed', self.update_opened_buttons)
-        self.screen.connect('application-opened', self.window_opened)
+        #self.screen.connect('application-closed', self.update_opened_buttons)
+        #self.screen.connect('application-opened', self.window_opened)
 
-        self.box = Gtk.VBox()
-        self.box.connect('check-resize', self.reset_y)
+        self.box = Gtk.Box()
+        self.box.connect('check-resize', self.reset_pos)
         self.add(self.box)
 
         self.button = PanelAppsButton()
         self.button.connect('clicked', self.__show_apps)
         self.box.pack_start(self.button, False, False, 2)
 
-        self.favorite_area = Gtk.VBox()
-        self.favorite_area.connect('check-resize', self.reset_y)
-        self.box.pack_start(self.favorite_area, True, True, 2)
+        self.favorite_area = Gtk.Box()
+        self.favorite_area.connect('check-resize', self.reset_pos)
+        self.box.pack_start(self.favorite_area, False, False, 2)
 
-        self.opened_apps_area = Gtk.VBox()
-        self.opened_apps_area.connect('check-resize', self.reset_y)
-        self.box.pack_start(self.opened_apps_area, True, True, 0)
+        self.opened_apps_area = Gtk.Box()
+        self.opened_apps_area.connect('check-resize', self.reset_pos)
+        self.box.pack_start(self.opened_apps_area, False, False, 0)
 
         self.indicators = IndicatorsArea()
         self.indicators.connect('show-lateral-panel', self.__show_lateral_panel)
         self.box.pack_end(self.indicators, False, False, 0)
 
+        self.connect('configure-event', self.__configure_cb)
+
         self.show_all()
+
+    def __configure_cb(self, window, event):
+        x, y = event.x, event.y
+        print(self.orientation, x, y)
+
+        if self.orientation in ['Left', 'Top']:
+            if (x, y) == (0, 0) and not self.expand:
+                self.reset_pos()
+
+            if (x, y) != (0, 0) and self.expand:
+                self.move(0, 0)
+
+        elif self.orientation == 'Bottom':
+            w, h = self.get_size()
+            if (x, y) == (0, G.Sizes.DISPLAY_HEIGHT - h) and not self.expand:
+                self.reset_pos()
+
+            elif (x, y) != (0, G.Sizes.DISPLAY_HEIGHT - h) and self.expand:
+                self.move(0, G.Sizes.DISPLAY_HEIGHT - h)
 
     def __show_apps(self, *args):
         self.emit('show-apps')
@@ -222,10 +250,12 @@ class LestimPanel(Gtk.Window):
         G.run_app(button.app)
 
     def __reveal(self):
-        def move():
+        w, h = self.get_size()
+        _x = G.Sizes.DISPLAY_WIDTH / 2.0 - w / 2.0
+        _y = G.Sizes.DISPLAY_HEIGHT / 2.0 - h / 2.0
+
+        def move_left():
             x, y = self.get_position()
-            w, h = self.get_size()
-            _y = G.Sizes.DISPLAY_HEIGHT / 2.0 - h / 2.0
 
             if x < 0:
                 avance = (w - x) / 2
@@ -237,16 +267,53 @@ class LestimPanel(Gtk.Window):
                 self.timeout = None
                 return False
 
+        def move_top():
+            x, y = self.get_position()
+
+            if y < 0:
+                avance = (h - y) / 2
+                y = (y + avance)
+                self.move(_x, y if y <= 0 else 0)
+                return True
+
+            else:
+                self.timeout = None
+                return False
+
+        def move_bottom():
+            x, y = self.get_position()
+
+            if y < G.Sizes.DISPLAY_HEIGHT + h:
+                avance = (G.Sizes.DISPLAY_HEIGHT - (y)) / 2
+                y = (y + avance)
+                self.move(_x, y if y <= G.Sizes.DISPLAY_WIDTH - h else G.Sizes.DISPLAY_HEIGHT - h)
+                return True
+
+            else:
+                self.timeout = None
+                return False
+
         if self.timeout:
             GObject.source_remove(self.timeout)
+
+        if self.orientation == 'Left':
+            move = move_left
+
+        elif self.orientation == 'Top':
+            move = move_top
+
+        elif self.orientation == 'Bottom':
+            move = move_bottom
 
         self.timeout = GObject.timeout_add(20, move)
 
     def __disreveal(self):
-        def move():
+        w, h = self.get_size()
+        _x = G.Sizes.DISPLAY_WIDTH / 2.0 - w / 2.0
+        _y = G.Sizes.DISPLAY_HEIGHT / 2.0 - h / 2.0
+
+        def move_left():
             x, y = self.get_position()
-            w, h = self.get_size()
-            _y = G.Sizes.DISPLAY_HEIGHT / 2.0 - h / 2.0
 
             if x + w > 0:
                 avance = (x - w) / 2
@@ -257,14 +324,79 @@ class LestimPanel(Gtk.Window):
                 self.timeout = None
                 return False
 
+        def move_top():
+            x, y = self.get_position()
+
+            if y + h > 0:
+                avance = (y - h) / 2
+                self.move(_x, y + avance)
+                return True
+
+            else:
+                self.timeout = None
+                return False
+
+        def move_bottom():
+            x, y = self.get_position()
+
+            if y + h < G.Sizes.DISPLAY_HEIGHT:
+                avance = (G.Sizes.DISPLAY_HEIGHT - y) / 2
+                self.move(_x, y + avance)
+                return True
+
+            else:
+                self.timeout = None
+                return False
+
         if self.timeout:
             GObject.source_remove(self.timeout)
+
+        if self.orientation == 'Left':
+            move = move_left
+
+        elif self.orientation == 'Top':
+            move = move_top
+
+        elif self.orientation == 'Bottom':
+            move = move_bottom
 
         self.timeout = GObject.timeout_add(20, move)
 
     def start(self):
+        orientation = G.get_settings()['panel-orientation']
+        self.set_orientation(orientation)
+
         GObject.idle_add(self.update_favorite_buttons)
         self.screen.force_update()
+
+        self.show_all()
+
+    def set_orientation(self, orientation):
+        if self.orientation == orientation:
+            return
+
+        self.orientation = orientation
+
+        if self.get_children():
+            self.remove(self.box)
+            favorite_childs = self.favorite_area.get_children()
+            opened_childs = self.opened_apps_area.get_children()
+
+        else:
+            favorite_childs = []
+            opened_childs = []
+
+        if self.orientation == 'Left':
+            orientation = Gtk.Orientation.VERTICAL
+
+        elif self.orientation in ['Top', 'Bottom']:
+            orientation = Gtk.Orientation.HORIZONTAL
+
+        self.favorite_area.set_orientation(orientation)
+        self.opened_apps_area.set_orientation(orientation)
+        self.indicators.set_orientation(orientation)
+
+        GObject.idle_add(self.set_reveal_state, False)
 
     def reveal(self, visible):
         if visible == self.visible:
@@ -277,10 +409,24 @@ class LestimPanel(Gtk.Window):
         else:
             self.__reveal()
 
-    def reset_y(self, vbox=None):
+    def reset_pos(self, vbox=None):
         width, height = self.get_size()
         x, y = self.get_position()
-        self.move(x, G.Sizes.DISPLAY_HEIGHT / 2.0 - height / 2.0)
+
+        if self.orientation == 'Left':
+            x = width if visible else 0
+            y = G.Sizes.DISPLAY_HEIGHT / 2.0 - height / 2.0
+
+        elif self.orientation in ['Top', 'Bottom']:
+            x = G.Sizes.DISPLAY_WIDTH / 2.0 - width / 2.0
+            if visible:
+                y = 0 if self.orientation == 'Top' else G.Sizes.DISPLAY_HEIGHT - height
+
+            else:
+                y = -height if self.orientation == 'Top' else G.Sizes.DISPLAY_HEIGHT
+
+        print(x, y, self.orientation)
+        self.move(x, y)
 
     def window_opened(self, screen, window):
         if window.get_name() == 'lestim':
@@ -317,8 +463,7 @@ class LestimPanel(Gtk.Window):
             self.window_opened(None, window)
 
         self.show_all()
-
-        self.reset_y()
+        self.reset_pos()
 
     def set_reveal_state(self, visible):
         name = 'go-previous-symbolic' if not visible else 'go-next-symbolic'
@@ -329,3 +474,15 @@ class LestimPanel(Gtk.Window):
 
         button.add(image)
         button.show_all()
+
+    def set_expand(self, expand):
+        self.expand = expand
+        if self.expand:
+            self.set_size_request(-1, G.Sizes.DISPLAY_HEIGHT)
+            x, y = self.get_position()
+            self.move(x, 0)
+
+        else:
+            self.set_size_request(-1, -1)
+            self.resize(1, 1)
+
