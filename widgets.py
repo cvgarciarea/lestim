@@ -96,6 +96,7 @@ class LestimWindow(Gtk.ApplicationWindow):
 
     def __logout(self, widget):
         Gtk.main_quit()
+        G.kill_proccess(None, None)
 
     def __show_settings_cb(self, panel):
         self.settings_window.show_all()
