@@ -24,10 +24,22 @@ public class LestimWindow: Gtk.ApplicationWindow {
     //bool panel_expand;
     //bool panel_space_reserved;
 
+    public LestimPanel panel;
+
     public LestimWindow() {
         set_title("Lestim");
         set_type_hint(Gdk.WindowTypeHint.DESKTOP);
         set_size_request(DISPLAY_WIDTH, DISPLAY_HEIGHT);
         move(0, 0);
+
+        panel = new LestimPanel();
+        panel.show_apps.connect(show_apps);
+        panel.show_lateral_panel.connect(show_lateral_panel);
+    }
+
+    public void show_apps(LestimPanel panel) {
+    }
+
+    public void show_lateral_panel(LestimPanel panel, bool visible) {
     }
 }

@@ -1,6 +1,6 @@
 /*
 Compile with:
-    valac --pkg gtk+-3.0 --pkg gdk-3.0 -X -lm widgets.vala Lestim.vala -o Lestim
+    valac --pkg gtk+-3.0 --pkg gdk-3.0 --pkg libwnck-3.0 -X -lm Lestim.vala globals.vala panel.vala widgets.vala -o Lestim
 
 Copyright (C) 2015, Cristian García <cristian99garcia@gmail.com>
 
