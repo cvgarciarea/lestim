@@ -24,22 +24,49 @@ public class LestimWindow: Gtk.ApplicationWindow {
     //bool panel_expand;
     //bool panel_space_reserved;
 
+    public Gtk.Box box;
     public LestimPanel panel;
+    public LateralPanel lateral_panel;
 
     public LestimWindow() {
         set_title("Lestim");
+        set_name("LestimWindow");
         set_type_hint(Gdk.WindowTypeHint.DESKTOP);
         set_size_request(DISPLAY_WIDTH, DISPLAY_HEIGHT);
         move(0, 0);
 
+        box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+        box.set_name("Canvas");
+        add(box);
+
         panel = new LestimPanel();
         panel.show_apps.connect(show_apps);
         panel.show_lateral_panel.connect(show_lateral_panel);
+
+        lateral_panel = new LateralPanel();
+        lateral_panel.show_settings.connect(show_settings);
+        lateral_panel.reveal_changed.connect(reveal_changed);
+
+        load_settings();
     }
 
     public void show_apps(LestimPanel panel) {
     }
 
-    public void show_lateral_panel(LestimPanel panel, bool visible) {
+    public void show_lateral_panel(LestimPanel _panel, bool visible) {
+        lateral_panel.reveal(visible);
+    }
+
+    public void show_settings(LateralPanel _panel) {
+    }
+
+    public void reveal_changed(LateralPanel _panel, bool visible) {
+        panel.set_reveal_state(visible);
+    }
+
+    public void load_settings() {
+        var object = get_config();
+        panel.set_orientation(object.get_string_member("panel-orientation"));
+        panel.set_icon_size((int)object.get_int_member("icon-size"));
     }
 }

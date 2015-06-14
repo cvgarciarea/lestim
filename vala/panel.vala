@@ -135,37 +135,7 @@ class OpenedAppButton: Gtk.Button {
     //}
 }
 
-class PanelAppsButton: Gtk.Button {
 
-    public Gtk.Image image;
-
-    public PanelAppsButton() {
-        //self.image = Gtk.Image.new_from_pixbuf(G.get_icon('view-grid-symbolic'))
-        //self.set_image(self.image)
-    }
-}
-
-class IndicatorsArea: Gtk.Box {
-
-    public signal void show_lateral_panel(bool visible);
-
-    private bool panel_visible = false;
-    public Gtk.Button lateral_panel_button;
-
-    public IndicatorsArea() {
-        set_orientation(Gtk.Orientation.VERTICAL);
-
-        lateral_panel_button = new Gtk.Button();
-        lateral_panel_button.set_name("ShowPanelButton");
-        lateral_panel_button.clicked.connect(show_lateral_panel_c);
-        pack_end(lateral_panel_button, false, false, 1);
-    }
-
-    private void show_lateral_panel_c(Gtk.Button button) {
-        panel_visible = !(panel_visible);
-        show_lateral_panel(panel_visible);
-    }
-}
 
 public class LestimPanel: Gtk.Window {
 
@@ -176,19 +146,23 @@ public class LestimPanel: Gtk.Window {
     //public timeout = null;
     public bool expanded = false;
     public string orientation = "Left";
+    public int icon_size = 48;
     public bool pos_reseted = false;
+    public bool panel_visible = false;
 
     public Gtk.Box box;
     public Gtk.Button button;
     public Gtk.Box favorite_area;
     //public Wnck.Tasklist opened_apps_area;
-    private IndicatorsArea indicators;
+    private Gtk.Button lateral_panel_button;
 
     public LestimPanel() {
         set_keep_above(true);
+        set_decorated(false);
         set_type_hint(Gdk.WindowTypeHint.DOCK);
         resize(48, 400);
         move(0, DISPLAY_HEIGHT / 2 - 200);
+        set_name("LestimPanel");
 
         box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         add(box);
@@ -200,14 +174,28 @@ public class LestimPanel: Gtk.Window {
         //opened_apps_area = new Wnck.Tasklist();
         //box.pack_start(opened_apps_area, false, false, 0);
 
-        indicators = new IndicatorsArea();
-        indicators.show_lateral_panel.connect(show_lateral_panel_c);
-        box.pack_start(indicators, false, false, 0);
+        lateral_panel_button = new Gtk.Button();
+        lateral_panel_button.set_name("ShowPanelButton");
+        lateral_panel_button.clicked.connect(show_lateral_panel_c);
+        box.pack_end(lateral_panel_button, false, false, 1);
 
         show_all();
     }
 
-    private void show_lateral_panel_c(IndicatorsArea indicators, bool visible) {
-        show_lateral_panel(visible);
+    private void show_lateral_panel_c(Gtk.Button button) {
+        panel_visible = !(panel_visible);
+        show_lateral_panel(panel_visible);
+    }
+
+    public void set_reveal_state(bool visible) {
+        panel_visible = visible;
+    }
+
+    public void set_orientation(string orie) {
+        orientation = orie;
+    }
+
+    public void set_icon_size(int size) {
+        icon_size = size;
     }
 }

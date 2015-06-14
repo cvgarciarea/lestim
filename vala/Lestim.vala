@@ -1,6 +1,6 @@
 /*
 Compile with:
-    valac --pkg gtk+-3.0 --pkg gdk-3.0 --pkg libwnck-3.0 -X -lm Lestim.vala globals.vala panel.vala widgets.vala -o Lestim
+    valac --pkg gtk+-3.0 --pkg gdk-3.0 --pkg libwnck-3.0 --pkg json-glib-1.0 -X -lm Lestim.vala globals.vala panel.vala widgets.vala lateral_panel.vala -o Lestim
 
 Copyright (C) 2015, Cristian García <cristian99garcia@gmail.com>
 
@@ -26,6 +26,8 @@ class LestimApp: Gtk.Application {
     public LestimWindow window;
 
     protected override void activate() {
+        check_paths();
+
         window = new LestimWindow();
         window.set_application(this);
         window.show();
@@ -37,5 +39,5 @@ class LestimApp: Gtk.Application {
 }
 
 int main (string[] args) {
-  return new LestimApp().run(args);
+    return new LestimApp().run(args);
 }

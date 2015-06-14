@@ -19,3 +19,80 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 public int DISPLAY_WIDTH = 1366;
 public int DISPLAY_HEIGHT = 768;
 
+public string get_home_dir() {
+    return GLib.Environment.get_home_dir();
+}
+
+public string get_desktop_dir() {
+    return GLib.Environment.get_variable("XDG_DESKTOP_DIR");
+}
+
+public string get_work_dir() {
+    return join(GLib.Environment.get_user_config_dir(), "lestim");
+}
+
+public string get_settings_path() {
+    return join(get_work_dir(), "settings.json");
+}
+
+public string get_theme_path() {
+    return join(get_work_dir(), "theme.css");
+}
+
+public string get_background_path() {
+    return join(get_work_dir(), "background");
+}
+
+public string get_system_backgrounds_dir() {
+    return "/usr/share/backgrounds";
+}
+
+public string get_system_apps_dir() {
+    return "/usr/share/applications";
+}
+
+public void check_paths () {
+    GLib.File work_dir = GLib.File.new_for_path(get_work_dir());
+    GLib.File settings_path = GLib.File.new_for_path(get_settings_path());
+
+    if (!work_dir.query_exists()) {
+        work_dir.make_directory_with_parents();
+    }
+
+    if (!settings_path.query_exists()) {
+        string text = "{'icon-size': 48, 'panel-orientation': 'Left', 'panel-autohide': true, 'panel-expand': false, 'panel-space-reserved': false, 'favorites-apps': []}";
+        FileUtils.set_contents(get_settings_path(), text);
+    }
+}
+
+public string join(string s1, string s2) {
+    string r = s1;
+    char c = (char)"/";
+    if (r[-1] != c && s2[0] != c) {
+        r += "/";
+    }
+
+    r += s2;
+    return r;
+}
+
+public Json.Object get_config() {
+    check_paths();
+    Json.Parser parser = new Json.Parser ();
+	parser.load_from_file(get_settings_path());
+	return parser.get_root().get_object();
+}
+
+public Gtk.Image get_image(string icon, int size=24) {
+    try {
+        var screen = Gdk.Screen.get_default();
+        var theme = Gtk.IconTheme.get_for_screen(screen);
+        var pixbuf = theme.load_icon(icon, size, Gtk.IconLookupFlags.FORCE_SYMBOLIC);
+        var image = new Gtk.Image.from_pixbuf(pixbuf);
+        return image;
+    }
+    catch (GLib.Error e) {
+        return new Gtk.Image();
+    }
+}
+
