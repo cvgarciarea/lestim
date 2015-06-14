@@ -1,0 +1,165 @@
+/*
+Created by Cristian García <cristian99garcia@gmail.com>
+Based on: Numix Frost Dark
+*/
+
+LestimWindow {
+    background-image: url('./background');
+    background-repeat: no-repeat;
+}
+
+Canvas, GtkIconView, AppsBox, AppsGrid {
+    background-color: transparent;
+}
+
+GtkIconView.view.cell:selected,
+GtkIconView.view.cell:selected:focused {
+    border-style: solid;
+    border-radius: 10px;
+    border-width: 3px;
+    border-color: #D3D7CF;
+}
+
+GtkPopover {
+    margin: 10px;
+    padding: 2px;
+    border-radius: 2px;
+    border-color: #161616;
+    border-width: 1px;
+    border-style: solid;
+    background-clip: border-box;
+    background-image: none;
+    background-color: #161616;
+    color: #212121;
+    box-shadow: 0 2px 3px alpha(black, 0.5);
+}
+
+GtkPopover.background {
+    background-image: none;
+    background-color: #262626;
+}
+
+GtkPopover .list-row {
+    color: #2d2d2d;
+}
+
+GtkPopover .list-row:hover {
+    background-image: none;
+    background-color: #1A80B6;
+    color: #F9F9F9;
+}
+
+GtkPopover .frame {
+    border: 1px solid mix(#2d2d2d, #dcdcdc, 0.12);
+    border-radius: 2px;
+}
+
+GtkPopover .separator {
+    border: 0;
+    background-color: transparent;
+    color: alpha(currentColor, 0.1);
+    font-size: 80%;
+    font-weight: bold;
+}
+
+WorkArea:backdrop:selected {
+    background-color: #D3D7CF;
+    color: #D3D7CF;
+    outline-color: #D3D7CF;
+}
+
+LateralPanel > GtkVBox, LestimPanel, IndicatorsArea, AppsView {
+    background-color: #161616;
+}
+
+AppsView {
+    border-radius: 4px;
+}
+
+ShutdownButton, RebootButton, LockButton, SettingsButton {
+    background-color: #101010;
+    border-radius: 10px;
+    border-color: #080808;
+}
+
+ShutdownButton:hover, RebootButton:hover, LockButton:hover, SettingsButton:hover {
+    background-color: #080808;
+}
+
+AppButton, PanelAppsButton, OpenedAppButton, GtkButton#ShowPanelButton {
+    background-color: alpha(#000000, 0.25);
+    border-radius: 2px;
+    border-color: #212121;
+}
+
+AppButton, PanelAppsButton, OpenedAppButton, ShutdownButton, RebootButton,
+LockButton, SettingsButton, GtkButton#ShowPanelButton {
+    border-image: none;
+    background-image: none;
+}
+
+AppButton:hover, PanelAppsButton:hover, OpenedAppButton:hover, GtkButton#ShowPanelButton:hover {
+    background-color: alpha(#000000, 0.40);
+}
+
+GtkLabel#AppButtonLabel {
+    color: #BBBBBB;
+}
+
+AppsEntry {
+    background-color: alpha(#202020, 0.30);
+    background-image: none;
+    border-radius: 4px;
+    border-width: 0px;
+    border-style: none;
+    font-size: 20px;
+    color: #BBBBBB;
+}
+
+CalendarItem, CalendarItem > GtkEventBox {
+    background-color: #161616;
+}
+
+GtkLabel#TimeLabel, GtkLabel#DayLabel {
+    color: #BBBBBB;
+}
+
+GtkLabel#TimeLabel {
+    font: Bold 40;
+}
+
+GtkLabel#DayLabel {
+    font-size: 15px;
+}
+
+GtkCalendar {
+    padding: 4px;
+    outline-offset: -1px;
+}
+
+GtkCalendar:inconsistent {
+    color: mix(#DCDCDC, #2D2D2D, 0.5);
+}
+
+GtkCalendar.view,
+GtkCalendar.header,
+GtkCalendar.button,
+GtkCalendar.button:hover,
+GtkCalendar.button:insensitive {
+    border-width: 0;
+    background-color: transparent;
+    background-image: none;
+}
+
+.highlight,
+GtkCalendar.highlight {
+    border-width: 0;
+    background-color: transparent;
+    color: #1A80B6;
+}
+
+GtkCalendar.button {
+    border-style: none;
+    background-color: transparent;
+    background-image: none;
+}

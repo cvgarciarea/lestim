@@ -27,6 +27,7 @@ class LestimApp: Gtk.Application {
 
     protected override void activate() {
         check_paths();
+        set_theme();
 
         window = new LestimWindow();
         window.set_application(this);

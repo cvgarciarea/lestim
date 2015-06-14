@@ -17,7 +17,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 private class Calendar: Gtk.Calendar {
-    public Calendar() {}
+    public Calendar() {
+        set_name("LateralCalendar");
+    }
 }
 
 private class CalendarItem: Gtk.Box {
@@ -33,12 +35,14 @@ private class CalendarItem: Gtk.Box {
 
     public CalendarItem() {
         set_orientation(Gtk.Orientation.VERTICAL);
+        set_name("CalendarItem");
 
         Gtk.EventBox box1 = new Gtk.EventBox();
         box1.button_release_event.connect(show_calendar);
         pack_start(box1, false, false, 0);
 
         time_label = new Gtk.Label("");
+        time_label.set_name("TimeLabel");
         box1.add(time_label);
 
         Gtk.EventBox box2 = new Gtk.EventBox();
@@ -46,6 +50,7 @@ private class CalendarItem: Gtk.Box {
         pack_start(box2, false, false, 0);
 
         day_label = new Gtk.Label("");
+        day_label.set_name("DayLabel");
         box2.add(day_label);
 
         revealer = new Gtk.Revealer();
