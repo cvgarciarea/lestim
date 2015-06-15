@@ -29,7 +29,7 @@ private class CalendarItem: Gtk.Box {
     public Calendar calendar;
 
     private DateTime time;
-    private int day;
+    //private int day;
 
     public bool show_seconds = false;
 
@@ -134,12 +134,14 @@ private class MonitorsItem: Gtk.Box {
 
     private void check_battery_state() {
         string status;
-        FileUtils.get_contents(battery_path, out status);
-        status = status.replace("\n", "");
-        if (status != battery_state && status != "Unknown") {
-            //battery_state = status;
-            //battery_label.set_label(battery_state);
-        }
+        try {
+            GLib.FileUtils.get_contents(battery_path, out status);
+            status = status.replace("\n", "");
+            if (status != battery_state && status != "Unknown") {
+                //battery_state = status;
+                //battery_label.set_label(battery_state);
+            }
+        } catch {}
     }
 
     private void check_battery_percentage() {

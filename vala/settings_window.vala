@@ -25,7 +25,7 @@ public class SettingsWindow: Gtk.Window {
     public Gtk.Stack stack;
     public Gtk.StackSwitcher stack_switcher;
 
-    private bool first_background_time = true;
+    //private bool first_background_time = true;
 
     public SettingsWindow() {
         set_name("SettingsWindow");
@@ -77,9 +77,7 @@ public class SettingsWindow: Gtk.Window {
                     Gdk.Pixbuf pixbuf = new Gdk.Pixbuf.from_file_at_size(x, 200, 100);
                     Gtk.Image image = new Gtk.Image.from_pixbuf(pixbuf);
                     fbox.add(image);
-                }
-
-                catch {}
+                } catch {}
             }
         }
 

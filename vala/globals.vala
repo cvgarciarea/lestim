@@ -58,29 +58,42 @@ public void check_paths () {
     GLib.File theme_path = GLib.File.new_for_path(get_theme_path());
 
     if (!work_dir.query_exists()) {
-        work_dir.make_directory_with_parents();
+        try {
+            work_dir.make_directory_with_parents();
+        } catch {return;}
     }
 
     if (!settings_path.query_exists()) {
         string text = "{'icon-size': 48, 'panel-orientation': 'Left', 'panel-autohide': true, 'panel-expand': false, 'panel-space-reserved': false, 'favorites-apps': []}";
-        FileUtils.set_contents(get_settings_path(), text);
+        try {
+            GLib.FileUtils.set_contents(get_settings_path(), text);
+        } catch {return;}
     }
 
     if (!background_path.query_exists()) {
-        var file = File.new_for_path("background");
-        file.copy(background_path, FileCopyFlags.NONE);
+        var file = GLib.File.new_for_path("background");
+        try {
+            file.copy(background_path, FileCopyFlags.NONE);
+        } catch {return;}
     }
 
     if (!theme_path.query_exists()) {
         var file = File.new_for_path("theme.css");
-        file.copy(theme_path, FileCopyFlags.NONE);
+        try {
+            file.copy(theme_path, FileCopyFlags.NONE);
+        } catch (GLib.Error e) {}
     }
 }
 
 public Json.Object get_config() {
     check_paths();
     Json.Parser parser = new Json.Parser ();
-	parser.load_from_file(get_settings_path());
+    try {
+    	parser.load_from_file(get_settings_path());
+    } catch {
+        return new Json.Object();
+    }
+
 	return parser.get_root().get_object();
 }
 
@@ -103,7 +116,10 @@ public void set_theme() {
     Gtk.StyleContext style_context = new Gtk.StyleContext();
 
     style_context.remove_provider_for_screen(screen, css_provider);
-    css_provider.load_from_path(get_theme_path());
+    try {
+        css_provider.load_from_path(get_theme_path());
+    } catch (GLib.Error e) {return;}
+
     style_context.add_provider_for_screen(screen, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 }
 
@@ -115,7 +131,6 @@ public Gee.ArrayList get_backgrounds() {
         GLib.Dir dir = GLib.Dir.open(get_system_backgrounds_dir(), 0);
         while ((name = dir.read_name()) != null) {
             string path = Path.build_filename(get_system_backgrounds_dir(), name);
-            stdout.printf(path);
             list.add(Path.build_filename(path, name));
         }
     }

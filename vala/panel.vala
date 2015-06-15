@@ -26,7 +26,7 @@ public class AppButton: Gtk.Button {
     public string file;
     public bool in_favorites;
     public Gtk.Popover popover;
-    public Gtk.Label label;
+    //public Gtk.Label label;
 
     public AppButton(string label="", int icon_size=48) {
         /*
@@ -105,7 +105,7 @@ public class AppButton: Gtk.Button {
 class OpenedAppButton: Gtk.Button {
 
     //public Wnck.Window window;
-    public Gtk.Image image;
+    //public Gtk.Image image;
 
     public OpenedAppButton() {
     }
