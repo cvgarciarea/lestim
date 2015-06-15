@@ -28,19 +28,19 @@ public string get_desktop_dir() {
 }
 
 public string get_work_dir() {
-    return join(GLib.Environment.get_user_config_dir(), "lestim");
+    return Path.build_filename(GLib.Environment.get_user_config_dir(), "lestim");
 }
 
 public string get_settings_path() {
-    return join(get_work_dir(), "settings.json");
+    return Path.build_filename(get_work_dir(), "settings.json");
 }
 
 public string get_theme_path() {
-    return join(get_work_dir(), "theme.css");
+    return Path.build_filename(get_work_dir(), "theme.css");
 }
 
 public string get_background_path() {
-    return join(get_work_dir(), "background");
+    return Path.build_filename(get_work_dir(), "background");
 }
 
 public string get_system_backgrounds_dir() {
@@ -77,17 +77,6 @@ public void check_paths () {
     }
 }
 
-public string join(string s1, string s2) {
-    string r = s1;
-    char c = (char)"/";
-    if (r[-1] != c && s2[0] != c) {
-        r += "/";
-    }
-
-    r += s2;
-    return r;
-}
-
 public Json.Object get_config() {
     check_paths();
     Json.Parser parser = new Json.Parser ();
@@ -116,5 +105,25 @@ public void set_theme() {
     style_context.remove_provider_for_screen(screen, css_provider);
     css_provider.load_from_path(get_theme_path());
     style_context.add_provider_for_screen(screen, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+}
+
+public Gee.ArrayList get_backgrounds() {
+    Gee.ArrayList<string> list = new Gee.ArrayList<string>();
+    string? name = null;
+
+    try {
+        GLib.Dir dir = GLib.Dir.open(get_system_backgrounds_dir(), 0);
+        while ((name = dir.read_name()) != null) {
+            string path = Path.build_filename(get_system_backgrounds_dir(), name);
+            stdout.printf(path);
+            list.add(Path.build_filename(path, name));
+        }
+    }
+
+    catch {
+        return list;
+    }
+
+    return list;
 }
 

@@ -27,6 +27,7 @@ public class LestimWindow: Gtk.ApplicationWindow {
     public Gtk.Box box;
     public LestimPanel panel;
     public LateralPanel lateral_panel;
+    public SettingsWindow settings_window;
 
     public LestimWindow() {
         set_title("Lestim");
@@ -47,6 +48,8 @@ public class LestimWindow: Gtk.ApplicationWindow {
         lateral_panel.show_settings.connect(show_settings);
         lateral_panel.reveal_changed.connect(reveal_changed);
 
+        settings_window = new SettingsWindow();
+
         load_settings();
     }
 
@@ -58,6 +61,7 @@ public class LestimWindow: Gtk.ApplicationWindow {
     }
 
     public void show_settings(LateralPanel _panel) {
+        settings_window.show_all();
     }
 
     public void reveal_changed(LateralPanel _panel, bool visible) {

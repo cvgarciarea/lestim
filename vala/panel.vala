@@ -21,11 +21,6 @@ using Wnck;
 
 public class AppButton: Gtk.Button {
 
-    //__gsignals__ = {
-    //    'run-app': (GObject.SIGNAL_RUN_FIRST, None, []),
-    //    'favorited': (GObject.SIGNAL_RUN_FIRST, None, []),
-    //    }
-
     public Gtk.Application gapp;
     //public gapp data, fixme;
     public string file;

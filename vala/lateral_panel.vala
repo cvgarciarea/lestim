@@ -85,7 +85,6 @@ private class CalendarItem: Gtk.Box {
     }
 }
 
-
 private class MonitorsItem: Gtk.Box {
     public Gtk.Box network_item;
     public Gtk.Box battery_item;
@@ -152,7 +151,6 @@ private class MonitorsItem: Gtk.Box {
         }
     }
 }
-
 
 public class LateralPanel: Gtk.Window {
 
