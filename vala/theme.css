@@ -3,6 +3,18 @@ Created by Cristian García <cristian99garcia@gmail.com>
 Based on: Numix Frost Dark
 */
 
+@define-color bg_color #161616;
+@define-color focus_color #242424;
+
+* {
+    background-color: @bg_color;
+    border-color: @bg_color;
+}
+
+*:focused, *:hover, *:prelight {
+    background-color: @bg_color;
+}
+
 LestimWindow {
     background-image: url('./background');
     background-repeat: no-repeat;
@@ -24,12 +36,10 @@ GtkPopover {
     margin: 10px;
     padding: 2px;
     border-radius: 2px;
-    border-color: #161616;
     border-width: 1px;
     border-style: solid;
     background-clip: border-box;
     background-image: none;
-    background-color: #161616;
     color: #212121;
     box-shadow: 0 2px 3px alpha(black, 0.5);
 }
@@ -68,10 +78,6 @@ WorkArea:backdrop:selected {
     outline-color: #D3D7CF;
 }
 
-LateralPanel > GtkVBox, LestimPanel, IndicatorsArea, AppsView {
-    background-color: #161616;
-}
-
 AppsView {
     border-radius: 4px;
 }
@@ -86,7 +92,7 @@ ShutdownButton:hover, RebootButton:hover, LockButton:hover, SettingsButton:hover
     background-color: #080808;
 }
 
-AppButton, PanelAppsButton, OpenedAppButton, GtkButton#ShowPanelButton {
+AppButton, PanelAppsButton, OpenedAppButton, #ShowPanelButton {
     background-color: alpha(#000000, 0.25);
     border-radius: 2px;
     border-color: #212121;
@@ -116,28 +122,24 @@ AppsEntry {
     color: #BBBBBB;
 }
 
-CalendarItem, CalendarItem > GtkEventBox {
-    background-color: #161616;
-}
-
-GtkLabel#TimeLabel, GtkLabel#DayLabel {
+#TimeLabel, #DayLabel {
     color: #BBBBBB;
 }
 
-GtkLabel#TimeLabel {
+#TimeLabel {
     font: Bold 40;
 }
 
-GtkLabel#DayLabel {
+#DayLabel {
     font-size: 15px;
 }
 
-GtkCalendar {
+LateralCalendar {
     padding: 4px;
     outline-offset: -1px;
 }
-
-GtkCalendar:inconsistent {
+/*
+LateralCalendar:inconsistent {
     color: mix(#DCDCDC, #2D2D2D, 0.5);
 }
 
@@ -163,3 +165,4 @@ GtkCalendar.button {
     background-color: transparent;
     background-image: none;
 }
+*/

@@ -97,7 +97,7 @@ public Json.Object get_config() {
 	return parser.get_root().get_object();
 }
 
-public Gtk.Image get_image(string icon, int size=24) {
+public Gtk.Image get_image_from_name(string icon, int size=24) {
     try {
         var screen = Gdk.Screen.get_default();
         var theme = Gtk.IconTheme.get_for_screen(screen);

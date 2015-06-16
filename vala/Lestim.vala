@@ -1,6 +1,6 @@
 /*
 Compile with:
-    valac --pkg gtk+-3.0 --pkg gdk-3.0 --pkg libwnck-3.0 --pkg json-glib-1.0 --pkg gee-1.0 --pkg gdk-pixbuf-2.0 -X -lm Lestim.vala globals.vala panel.vala widgets.vala lateral_panel.vala settings_window.vala -o Lestim
+    valac --pkg gtk+-3.0 --pkg gdk-3.0 --pkg libwnck-3.0 --pkg json-glib-1.0 --pkg gee-1.0 --pkg gdk-pixbuf-2.0 --pkg libgnome-menu --pkg gio-unix-2.0 -X -lm Lestim.vala globals.vala panel.vala widgets.vala lateral_panel.vala settings_window.vala apps_view.vala -X "-DGMENU_I_KNOW_THIS_IS_UNSTABLE"
 
 Copyright (C) 2015, Cristian García <cristian99garcia@gmail.com>
 
@@ -27,11 +27,11 @@ class LestimApp: Gtk.Application {
 
     protected override void activate() {
         check_paths();
-        set_theme();
 
         window = new LestimWindow();
         window.set_application(this);
         window.show();
+        set_theme();
   }
 
     public LestimApp () {

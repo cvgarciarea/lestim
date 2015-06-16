@@ -105,7 +105,7 @@ private class MonitorsItem: Gtk.Box {
         }
 
         network_item = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        network_item.pack_start(get_image("network-wireless-signal-excellent-symbolic"), true, true, 10);
+        network_item.pack_start(get_image_from_name("network-wireless-signal-excellent-symbolic"), true, true, 10);
         pack_start(network_item);
 
         network_label = new Gtk.Label("");
@@ -114,7 +114,7 @@ private class MonitorsItem: Gtk.Box {
 
     private void make_battery_item() {
         battery_item = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        battery_item.pack_start(get_image("battery-symbolic"), true, true, 10);
+        battery_item.pack_start(get_image_from_name("battery-symbolic"), true, true, 10);
         pack_start(battery_item, true, true, 0);
 
         battery_label = new Gtk.Label("0%");
@@ -194,7 +194,7 @@ public class LateralPanel: Gtk.Window {
         //scale.connect('value-changed', self.__volume_changed)
 
         hbox_volume = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
-        hbox_volume.pack_start(get_image("audio-volume-high-symbolic", 24), false, false, 1);
+        hbox_volume.pack_start(get_image_from_name("audio-volume-high-symbolic", 24), false, false, 1);
         hbox_volume.pack_end(scale_v, false, false, 0);
         vbox.pack_start(hbox_volume, false, false, 1);
 
@@ -204,7 +204,7 @@ public class LateralPanel: Gtk.Window {
         //scale.connect('value-changed', self.__brightness_changed)
 
         hbox_brightness = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
-        hbox_brightness.pack_start(get_image("display-brightness-symbolic", 24), false, false, 1);
+        hbox_brightness.pack_start(get_image_from_name("display-brightness-symbolic", 24), false, false, 1);
         hbox_brightness.pack_end(scale_b, true, true, 0);
         vbox.pack_start(hbox_brightness, false, false, 1);
 
@@ -214,28 +214,28 @@ public class LateralPanel: Gtk.Window {
         Gtk.Button shutdown_button = new Gtk.Button();
         shutdown_button.set_name("ShutdownButton");
         shutdown_button.set_tooltip_text("Shutdown");
-        shutdown_button.set_image(get_image("system-shutdown-symbolic", 48));
+        shutdown_button.set_image(get_image_from_name("system-shutdown-symbolic", 48));
         shutdown_button.clicked.connect(power_off_cb);
         hbox.pack_start(shutdown_button, true, true, 10);
 
         Gtk.Button reboot_button = new Gtk.Button();
         reboot_button.set_name("RebootButton");
         reboot_button.set_tooltip_text("Reboot");
-        reboot_button.set_image(get_image("view-refresh-symbolic", 48));
+        reboot_button.set_image(get_image_from_name("view-refresh-symbolic", 48));
         reboot_button.clicked.connect(reboot_cb);
         hbox.pack_start(reboot_button, true, true, 10);
 
         Gtk.Button lock_button = new Gtk.Button();
         lock_button.set_name("LockButton");
         lock_button.set_tooltip_text("Lock");
-        lock_button.set_image(get_image("system-lock-screen-symbolic", 48));
+        lock_button.set_image(get_image_from_name("system-lock-screen-symbolic", 48));
         shutdown_button.clicked.connect(lock_screen_cb);
         hbox.pack_start(lock_button, true, true, 10);
 
         Gtk.Button settings_button = new Gtk.Button();
         settings_button.set_name("SettingsButton");
         settings_button.set_tooltip_text("Settings");
-        settings_button.set_image(get_image("preferences-system-symbolic", 48));
+        settings_button.set_image(get_image_from_name("preferences-system-symbolic", 48));
         settings_button.clicked.connect(show_settings_cb);
         hbox.pack_start(settings_button, true, true, 10);
 

@@ -28,6 +28,7 @@ public class LestimWindow: Gtk.ApplicationWindow {
     public LestimPanel panel;
     public LateralPanel lateral_panel;
     public SettingsWindow settings_window;
+    public AppsView apps_view;
 
     public LestimWindow() {
         set_title("Lestim");
@@ -48,12 +49,17 @@ public class LestimWindow: Gtk.ApplicationWindow {
         lateral_panel.show_settings.connect(show_settings);
         lateral_panel.reveal_changed.connect(reveal_changed);
 
+        apps_view = new AppsView(this);
+        //apps_view.connect('run-app', self.run_app)
+        //apps_view.connect('favorited-app', self.update_favorited_buttons)
+
         settings_window = new SettingsWindow();
 
         load_settings();
     }
 
     public void show_apps(LestimPanel panel) {
+        apps_view.reveal(!apps_view.visible);
     }
 
     public void show_lateral_panel(LestimPanel _panel, bool visible) {
@@ -74,3 +80,43 @@ public class LestimWindow: Gtk.ApplicationWindow {
         panel.set_icon_size((int)object.get_int_member("icon-size"));
     }
 }
+
+public class AppButton: Gtk.Button {
+
+    public GLib.DesktopAppInfo app_info;
+    public Gtk.Box vbox;
+
+    public AppButton(GLib.DesktopAppInfo _app_info, bool show_label=false) {
+        app_info = _app_info;
+
+        set_name("AppButton");
+        set_tooltip_text(app_info.get_description());
+        set_hexpand(false);
+        set_vexpand(false);
+
+        vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+        vbox.set_hexpand(false);
+        add(vbox);
+
+        if (show_label) {
+            vbox.pack_end(new Gtk.Label(app_info.get_name()), false, false, 2);
+        }
+
+        int icon_size = 64;  // get from settings;
+
+        string name = app_info.get_icon().to_string();
+        var image = get_image_from_name(name, icon_size);
+        var pixbuf = image.get_pixbuf();
+
+        if (pixbuf == null) {
+            pixbuf = get_image_from_name("application-x-executable-symbolic", icon_size).get_pixbuf();
+        }
+
+        if (pixbuf.get_width() != icon_size || pixbuf.get_height() != icon_size) {
+            pixbuf = pixbuf.scale_simple(icon_size, icon_size, Gdk.InterpType.BILINEAR);
+        }
+
+        vbox.pack_start(new Gtk.Image.from_pixbuf(pixbuf), false, false, 0);
+    }
+}
+
