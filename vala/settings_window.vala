@@ -95,6 +95,15 @@ public class SettingsWindow: Gtk.Window {
         show_all();
     }
 
+    private void background_changed(Gtk.FlowBox fbox, Gtk.FlowBoxChild child) {
+        if (child == null) {
+            return;
+        }
+
+        var image = child.get_child();
+        set_wallpaper(image.get_data("image-path"));
+    }
+
     private Gtk.Box make_backgrounds_section() {
         Gtk.Box box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         Gtk.ScrolledWindow scrolled = new Gtk.ScrolledWindow(null, null);
@@ -107,6 +116,7 @@ public class SettingsWindow: Gtk.Window {
         fbox.set_selection_mode(Gtk.SelectionMode.SINGLE);
         fbox.set_row_spacing(5);
         fbox.set_column_spacing(5);
+        fbox.child_activated.connect(background_changed);
         scrolled.add(fbox);
 
         Gee.ArrayList<string> backgrounds = get_backgrounds();
@@ -121,12 +131,13 @@ public class SettingsWindow: Gtk.Window {
                     }
 
                     Gtk.Image image = new Gtk.Image.from_pixbuf(pixbuf);
+                    image.set_data("image-path", x);
                     fbox.add(image);
                 } catch {}
             }
         }
 
-    return box;
+        return box;
     }
 
     private Gtk.Box make_row(Gtk.ListBox listbox, string label) {

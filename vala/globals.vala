@@ -142,3 +142,11 @@ public Gee.ArrayList get_backgrounds() {
     return list;
 }
 
+public void set_wallpaper(string path) {
+    File file = File.new_for_path(get_background_path());
+    file.delete();
+
+	file.make_symbolic_link(path);
+	set_theme();
+}
+
