@@ -21,15 +21,18 @@ public class SettingsWindow: Gtk.Window {
     public signal void settings_changed();
 
     public Gtk.HeaderBar headerbar;
-    public Gtk.Box vbox;
-    public Gtk.Stack stack;
-    public Gtk.StackSwitcher stack_switcher;
+    public Gtk.Box hbox;
+    public Gtk.ListBox listbox;
+    public Gtk.Box box_switcher;
+    public Gtk.Box current_child;
 
     //private bool first_background_time = true;
 
     public SettingsWindow() {
         set_name("SettingsWindow");
         set_title("Settings");
+        set_icon_name("preferences-desktop");
+        set_position(Gtk.WindowPosition.CENTER);
         resize(840, 580);
 
         headerbar = new Gtk.HeaderBar();
@@ -37,35 +40,73 @@ public class SettingsWindow: Gtk.Window {
         headerbar.set_show_close_button(true);
         set_titlebar(headerbar);
 
-        vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        add(vbox);
+        hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+        add(hbox);
 
-        stack = new Gtk.Stack();
-        stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT);
-        stack.set_transition_duration(200);
-        stack.set_hexpand(true);
-        vbox.pack_start(stack, true, true, 0);
+        Gtk.ScrolledWindow scrolled = new Gtk.ScrolledWindow(null, null);
+        scrolled.set_size_request(200, -1);
+        hbox.pack_start(scrolled, false, false, 0);
 
-        stack_switcher = new Gtk.StackSwitcher();
-        stack_switcher.set_stack(stack);
-        headerbar.set_custom_title(stack_switcher);
+        listbox = new Gtk.ListBox();
+        listbox.set_selection_mode(Gtk.SelectionMode.SINGLE);
+        listbox.row_activated.connect(row_activated_cb);
+        scrolled.add(listbox);
 
-        make_backgrounds_section();
-        make_panel_section();
+        box_switcher = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+        hbox.pack_start(box_switcher, true, true, 5);
+
+        Gtk.Box child = make_panel_section();
+        current_child = child;
+        box_switcher.add(child);
+        add_section("Panel", "user-home-symbolic", child);
+        child.show_all();
+
+        child = make_backgrounds_section();
+        add_section("Background", "preferences-desktop-wallpaper-symbolic", child);
 
         delete_event.connect(delete_event_cb);
 
         hide();
     }
 
-    private void make_backgrounds_section() {
+    public void add_section(string name, string icon, Gtk.Box child) {
+        Gtk.ListBoxRow row = new Gtk.ListBoxRow();
+        Gtk.Box box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+        Gtk.Label label = new Gtk.Label(null);
+        var image = get_image_from_name(icon);
+
+        row.set_data("stack-child", child);
+        label.set_markup("<b>" + name + "</b>");
+
+        box.pack_start(image, false, false, 2);
+        box.pack_start(label, false, false, 0);
+        row.add(box);
+        listbox.add(row);
+    }
+
+    private void row_activated_cb(Gtk.ListBox listbox, Gtk.ListBoxRow row) {
+        if (row == null) {
+            return;
+        }
+
+        box_switcher.remove(current_child);
+        current_child = row.get_data("stack-child");
+        box_switcher.add(row.get_data("stack-child"));
+        show_all();
+    }
+
+    private Gtk.Box make_backgrounds_section() {
         Gtk.Box box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         Gtk.ScrolledWindow scrolled = new Gtk.ScrolledWindow(null, null);
-        box.pack_start(scrolled, true, true, 0);
+        scrolled.set_hexpand(true);
+        scrolled.set_vexpand(true);
+        box.add(scrolled);
 
         Gtk.FlowBox fbox = new Gtk.FlowBox();
         fbox.set_homogeneous(true);
         fbox.set_selection_mode(Gtk.SelectionMode.SINGLE);
+        fbox.set_row_spacing(5);
+        fbox.set_column_spacing(5);
         scrolled.add(fbox);
 
         Gee.ArrayList<string> backgrounds = get_backgrounds();
@@ -75,13 +116,17 @@ public class SettingsWindow: Gtk.Window {
             if (file.query_exists()) {
                 try {
                     Gdk.Pixbuf pixbuf = new Gdk.Pixbuf.from_file_at_size(x, 200, 100);
+                    if (pixbuf.get_width() != 200 || pixbuf.get_height() != 100) {
+                        pixbuf = pixbuf.scale_simple(200, 100, Gdk.InterpType.BILINEAR);
+                    }
+
                     Gtk.Image image = new Gtk.Image.from_pixbuf(pixbuf);
                     fbox.add(image);
                 } catch {}
             }
         }
 
-        stack.add_titled(box, "Background", "Background");
+    return box;
     }
 
     private Gtk.Box make_row(Gtk.ListBox listbox, string label) {
@@ -97,18 +142,12 @@ public class SettingsWindow: Gtk.Window {
         return hbox;
     }
 
-    private void make_panel_section() {
+    private Gtk.Box make_panel_section() {
         Gtk.Box box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        Gtk.Box hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
-        box.add(hbox);
-
-        Gtk.ScrolledWindow scrolled = new Gtk.ScrolledWindow(null, null);
-        scrolled.set_size_request(400, -1);
-        hbox.pack_start(scrolled, true, false, 0);
 
         Gtk.ListBox listbox = new Gtk.ListBox();
         listbox.set_selection_mode(Gtk.SelectionMode.NONE);
-        scrolled.add(listbox);
+        box.add(listbox);
 
         var box1 = make_row(listbox, "Orientation");
         Gtk.ComboBoxText combo = new Gtk.ComboBoxText();
@@ -137,12 +176,17 @@ public class SettingsWindow: Gtk.Window {
         //switch3.connect('notify::active', self.panel_reserve_space_changed)
         box4.pack_end(switch3, false, false, 0);
 
-        stack.add_titled(box, "Panel", "Panel");
+        return box;
     }
 
     public bool delete_event_cb () {
         hide();
         return true;
+    }
+
+    public void reveal() {
+        show_all();
+        current_child.show_all();
     }
 }
 /*

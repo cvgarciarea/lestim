@@ -67,7 +67,7 @@ public class LestimWindow: Gtk.ApplicationWindow {
     }
 
     public void show_settings(LateralPanel _panel) {
-        settings_window.show_all();
+        settings_window.reveal();
     }
 
     public void reveal_changed(LateralPanel _panel, bool visible) {

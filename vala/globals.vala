@@ -131,7 +131,7 @@ public Gee.ArrayList get_backgrounds() {
         GLib.Dir dir = GLib.Dir.open(get_system_backgrounds_dir(), 0);
         while ((name = dir.read_name()) != null) {
             string path = Path.build_filename(get_system_backgrounds_dir(), name);
-            list.add(Path.build_filename(path, name));
+            list.add(path);
         }
     }
 
