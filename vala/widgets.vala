@@ -29,6 +29,7 @@ public class LestimWindow: Gtk.ApplicationWindow {
     public LateralPanel lateral_panel;
     public SettingsWindow settings_window;
     public AppsView apps_view;
+    public MouseDetector mouse;
 
     public LestimWindow() {
         set_title("Lestim");
@@ -56,6 +57,9 @@ public class LestimWindow: Gtk.ApplicationWindow {
         settings_window = new SettingsWindow();
         settings_window.settings_changed.connect(settings_changed_cb);
 
+        mouse = new MouseDetector();
+        mouse.pos_checked.connect(mouse_pos_checked);
+
         load_settings();
     }
 
@@ -78,11 +82,50 @@ public class LestimWindow: Gtk.ApplicationWindow {
     public void load_settings() {
         Json.Object settings = get_config();
         panel.set_orientation(settings.get_string_member("panel-orientation"));
+        panel.set_autohide(settings.get_boolean_member("panel-autohide"));
         panel.set_icon_size((int)settings.get_int_member("icon-size"));
     }
 
     public void settings_changed_cb(SettingsWindow window) {
         load_settings();
+    }
+
+    public void mouse_pos_checked(MouseDetector mouse, int x1, int y1) {
+        int w, h, x2, y2;
+        panel.get_size(out w, out h);
+        panel.get_position(out x2, out y2);
+
+        //stdout.printf("(%d %d) (%d %d) (%d, %d)\n", x1, y1, x2, y2, w, h);
+
+        if (panel.autohide) {
+            if (panel.orientation == "Left") {
+                if ((x1 <= 10) && (y1 >= y2) && (y1 <= y2 + h) && !panel.shown) {
+                    panel.reveal(true);
+                }
+                else if ((x1 >= w) || (y1 <= y2) || (y1 >= y2 + h) && panel.shown) {
+                    //panel.reveal(detector.panel_visible || apps_view.shown);
+                    panel.reveal(apps_view.shown);
+                }
+            }
+            else if (panel.orientation == "Top") {
+                if ((y1 <= 10) && (x1 >= x2) && (x1 <= x2 + w) && !panel.shown) {
+                    panel.reveal(true);
+                }
+                else if ((y1 >= h) || (x1 <= x2) || (x1 >= x2 + w) && panel.shown) {
+                    //panel.reveal(detector.panel_visible || apps_view.shown);
+                    panel.reveal(apps_view.shown);
+                }
+            }
+            else if (panel.orientation == "Bottom") {
+                if ((y1 >= DISPLAY_HEIGHT - 10) && (x1 >= x2) && (x1 <= x2 + w) && !panel.shown) {
+                    panel.reveal(true);
+                }
+                else if ((y1 >= h) || (x1 <= x2) || (x1 >= x2 + w) && panel.shown) {
+                    //panel.reveal(detector.panel_visible || apps_view.shown);
+                    panel.reveal(apps_view.shown);
+                }
+            }
+        } else {panel.reveal(true);}
     }
 }
 

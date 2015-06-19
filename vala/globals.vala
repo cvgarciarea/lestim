@@ -158,3 +158,48 @@ public void set_wallpaper(string path) {
 	set_theme();
 }
 
+public class MouseDetector: Object {
+
+    public signal void pos_checked(int x, int y);
+
+    public int x;
+    public int y;
+
+    public MouseDetector() {
+        GLib.Timeout.add(20, () => {
+            X.Display display = new X.Display();
+            X.Event event = X.Event();
+            X.Window window = display.default_root_window();
+
+            display.query_pointer(window, out window,
+                out event.xbutton.subwindow, out event.xbutton.x_root,
+                out event.xbutton.y_root, out event.xbutton.x,
+                out event.xbutton.y, out event.xbutton.state);
+
+            x = event.xbutton.x_root;
+            y = event.xbutton.y_root;
+
+            pos_checked(x, y);
+
+            return true;
+        });
+
+    }
+}
+
+public class WindowPositionDetector: Object {
+
+    //__gsignals__ = {
+    //    'show-panel': (GObject.SIGNAL_RUN_FIRST, None, []),
+    //    'hide-panel': (GObject.SIGNAL_RUN_FIRST, None, [])
+    //}
+
+    public LestimPanel panel;
+    public bool panel_visible = true;
+    public Wnck.Screen screen;
+
+    public WindowPositionDetector(LestimPanel p) {
+        panel = p;
+        //screen = Wnck.Screen.get_default();
+    }
+}

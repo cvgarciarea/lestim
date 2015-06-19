@@ -69,7 +69,7 @@ public class GMenuManager {
 
 public class AppsView: Gtk.Window {
 
-    public bool visible = true;
+    public bool shown = false;
 
     public LestimWindow parent;
     public Gtk.Box vbox;
@@ -111,7 +111,7 @@ public class AppsView: Gtk.Window {
         focus_out_event.connect(focus_out_event_cb);
 
         show_apps();
-        reveal(false);
+        hide();
     }
 
     private bool focus_out_event_cb() {
@@ -120,13 +120,13 @@ public class AppsView: Gtk.Window {
     }
 
     public void reveal(bool _visible) {
-        if (_visible == visible) {
+        if (_visible == shown) {
             return;
         }
 
-        visible = _visible;
+        shown = _visible;
 
-        if (visible) {
+        if (shown) {
             entry.set_text("");
 
             int x, y, w, h;
