@@ -61,7 +61,6 @@ public class LestimPanel: Gtk.Window {
     public bool reserve_space = false;
     public int icon_size = 48;
     public bool panel_visible = false;
-    public bool started = false;
 
     public Gtk.Box box;
     public Gtk.Button button;
