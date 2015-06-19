@@ -196,7 +196,7 @@ public class WindowPositionDetector: Object {
 
     public LestimPanel panel;
     public bool panel_visible = true;
-    public Wnck.Screen screen;
+    //public Wnck.Screen screen;
 
     public WindowPositionDetector(LestimPanel p) {
         panel = p;

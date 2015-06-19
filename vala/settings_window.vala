@@ -202,6 +202,12 @@ public class SettingsWindow: Gtk.Window {
         switch3.notify["active"].connect(panel_reserve_space_changed);
         box4.pack_end(switch3, false, false, 0);
 
+        var box5 = make_row(listbox, "Icon size");
+        Gtk.Adjustment adjustment = new Gtk.Adjustment(settings.get_int_member("icon-size"), 15, 200, 1, 10, 0);
+        Gtk.SpinButton spin = new Gtk.SpinButton(adjustment, 0, 0);
+        spin.value_changed.connect(icon_size_changed);
+        box5.pack_end(spin, false, false, 0);
+
         return box;
     }
 
@@ -257,6 +263,16 @@ public class SettingsWindow: Gtk.Window {
         settings.set_boolean_member("panel-space-reserved", (switcher as Gtk.Switch).get_active());
         set_config(settings);
         settings_changed();
+    }
+
+    private void icon_size_changed(Gtk.SpinButton spin) {
+        Json.Object settings = get_config();
+        settings.set_int_member("icon-size", (int64)spin.get_value());
+        set_config(settings);
+        reload_icons();
+    }
+
+    public void reload_icons() {
     }
 }
 

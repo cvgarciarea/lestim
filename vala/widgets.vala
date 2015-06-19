@@ -95,8 +95,6 @@ public class LestimWindow: Gtk.ApplicationWindow {
         panel.get_size(out w, out h);
         panel.get_position(out x2, out y2);
 
-        //stdout.printf("(%d %d) (%d %d) (%d, %d)\n", x1, y1, x2, y2, w, h);
-
         if (panel.autohide) {
             if (panel.orientation == "Left") {
                 if ((x1 <= 10) && (y1 >= y2) && (y1 <= y2 + h) && !panel.shown) {
