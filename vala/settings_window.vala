@@ -26,8 +26,6 @@ public class SettingsWindow: Gtk.Window {
     public Gtk.Box box_switcher;
     public Gtk.Box current_child;
 
-    //private bool first_background_time = true;
-
     public SettingsWindow() {
         set_name("SettingsWindow");
         set_title("Settings");
@@ -261,12 +259,4 @@ public class SettingsWindow: Gtk.Window {
         settings_changed();
     }
 }
-/*
 
-    def panel_orientation_changed(self, combo):
-        values = {0: 'Top', 1: 'Bottom', 2: 'Left'}
-        value = values[combo.get_active()]
-        G.set_a_setting('panel-orientation', value)
-        self.emit('settings-changed')
-
-*/

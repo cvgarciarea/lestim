@@ -54,6 +54,7 @@ public class LestimWindow: Gtk.ApplicationWindow {
         //apps_view.connect('favorited-app', self.update_favorited_buttons)
 
         settings_window = new SettingsWindow();
+        settings_window.settings_changed.connect(settings_changed_cb);
 
         load_settings();
     }
@@ -75,9 +76,13 @@ public class LestimWindow: Gtk.ApplicationWindow {
     }
 
     public void load_settings() {
-        var object = get_config();
-        panel.set_orientation(object.get_string_member("panel-orientation"));
-        panel.set_icon_size((int)object.get_int_member("icon-size"));
+        Json.Object settings = get_config();
+        panel.set_orientation(settings.get_string_member("panel-orientation"));
+        panel.set_icon_size((int)settings.get_int_member("icon-size"));
+    }
+
+    public void settings_changed_cb(SettingsWindow window) {
+        load_settings();
     }
 }
 

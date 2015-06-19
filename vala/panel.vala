@@ -55,12 +55,13 @@ public class LestimPanel: Gtk.Window {
     public signal void show_lateral_panel(bool visible);
 
     public bool shown = false;
-    //public timeout = null;
-    public bool expanded = false;
     public string orientation = "Left";
+    public bool expand = false;
+    public bool autohide = false;
+    public bool reserve_space = false;
     public int icon_size = 48;
-    public bool pos_reseted = false;
     public bool panel_visible = false;
+    public bool started = false;
 
     public Gtk.Box box;
     public Gtk.Button button;
@@ -97,7 +98,16 @@ public class LestimPanel: Gtk.Window {
         lateral_panel_button.clicked.connect(show_lateral_panel_c);
         box.pack_end(lateral_panel_button, false, false, 1);
 
+        configure_event.connect(configure_event_cb);
+
         show_all();
+    }
+
+    private bool configure_event_cb(Gtk.Widget self, Gdk.EventConfigure event) {
+        if (!check_pos()) {
+            reset_pos();
+        }
+        return false;
     }
 
     private void show_lateral_panel_c(Gtk.Button button) {
@@ -113,11 +123,96 @@ public class LestimPanel: Gtk.Window {
         panel_visible = visible;
     }
 
-    public void set_orientation(string orie) {
-        orientation = orie;
+    public void set_orientation(string _orientation) {
+        orientation = _orientation;
+        if (orientation == "Top" || orientation == "Bottom") {
+            box.set_orientation(Gtk.Orientation.HORIZONTAL);
+            favorite_area.set_orientation(Gtk.Orientation.HORIZONTAL);
+        } else {
+            box.set_orientation(Gtk.Orientation.VERTICAL);
+            favorite_area.set_orientation(Gtk.Orientation.VERTICAL);
+        }
+
+        reset_pos();
+    }
+
+    public void set_autohide(bool _autohide) {
+        autohide = _autohide;
+    }
+
+    public void set_expand(bool _expand) {
+        expand = _expand;
+    }
+
+    public void set_reserve_space(bool _reserve_space) {
+        reserve_space = _reserve_space;
     }
 
     public void set_icon_size(int size) {
         icon_size = size;
+    }
+
+    private bool check_pos() {
+        int x, y, w, h;
+        get_position(out x, out y);
+        get_size(out w, out h);
+        bool result;
+
+        switch (orientation) {
+            case "Left":
+                result = x == 0 && y == DISPLAY_HEIGHT / 2 - h / 2;
+                break;
+
+            case "Top":
+                result = y == 0 && x == DISPLAY_WIDTH / 2 - w / 2;
+                break;
+
+            default:
+                result = y == DISPLAY_WIDTH - h && x == DISPLAY_WIDTH / 2 - w / 2;
+                break;
+        }
+
+        return result;
+    }
+
+    private void reset_pos() {
+        if (expand) {
+            if (orientation == "Left") {
+                set_size_request(48, DISPLAY_HEIGHT);
+                resize(48, DISPLAY_HEIGHT);
+                move(0, 0);
+            } else {
+                set_size_request(DISPLAY_WIDTH, 48);
+                resize(48, DISPLAY_WIDTH);
+
+                if (orientation == "Top") {
+                    move(0, 0);
+                } else {
+                    int w, h;
+                    get_size(out w, out h);
+                    move(0, DISPLAY_WIDTH - w);
+                }
+            }
+        } else {
+            if (orientation == "Left") {
+                set_size_request(48, 1);
+                resize(48, 1);
+                int w, h;
+                get_size(out w, out h);
+
+                move(0, DISPLAY_HEIGHT / 2 - h / 2);
+            } else {
+                set_size_request(1, 48);
+                resize(48, 1);
+                int w, h;
+                get_size(out w, out h);
+
+                if (orientation == "Top") {
+                    move(DISPLAY_WIDTH / 2 - w / 2, 0);
+                } else {
+                    move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT - h);
+                }
+            }
+        }
     }
 }
