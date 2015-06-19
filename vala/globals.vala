@@ -97,6 +97,14 @@ public Json.Object get_config() {
 	return parser.get_root().get_object();
 }
 
+public void set_config(Json.Object settings) {
+    var root_node = new Json.Node (Json.NodeType.OBJECT);
+    root_node.set_object(settings);
+
+    var generator = new Json.Generator(){pretty=true, root=root_node};
+    generator.to_file(get_settings_path());
+}
+
 public Gtk.Image get_image_from_name(string icon, int size=24) {
     try {
         var screen = Gdk.Screen.get_default();

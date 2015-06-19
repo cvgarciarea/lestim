@@ -116,6 +116,7 @@ public class SettingsWindow: Gtk.Window {
         fbox.set_selection_mode(Gtk.SelectionMode.SINGLE);
         fbox.set_row_spacing(5);
         fbox.set_column_spacing(5);
+        fbox.set_border_width(10);
         fbox.child_activated.connect(background_changed);
         scrolled.add(fbox);
 
@@ -160,37 +161,53 @@ public class SettingsWindow: Gtk.Window {
         listbox.set_selection_mode(Gtk.SelectionMode.NONE);
         box.add(listbox);
 
+        Json.Object settings = get_config();
+
         var box1 = make_row(listbox, "Orientation");
         Gtk.ComboBoxText combo = new Gtk.ComboBoxText();
         combo.append_text("Top");
         combo.append_text("Bottom");
         combo.append_text("Left");
-        //combo.set_active({'Top': 0, 'Bottom': 1, 'Left': 2}[settings['panel-orientation']])
         //combo.connect('changed', self.panel_orientation_changed)
         box1.pack_end(combo, false, false, 0);
 
+        switch (settings.get_string_member("panel-orientation")) {
+            case "Top":
+                combo.set_active(0);
+                break;
+            case "Bottom":
+                combo.set_active(1);
+                break;
+            case "Left":
+                combo.set_active(2);
+                break;
+            default:
+                combo.set_active(2);
+                break;
+        }
+
         var box2 = make_row(listbox, "Autohide");
         Gtk.Switch switch1 = new Gtk.Switch();
-        //switch1.set_active(settings['panel-autohide'])
-        //switch1.connect('notify::active', self.panel_autohide_changed)
+        switch1.set_active(settings.get_boolean_member("panel-autohide"));
+        switch1.notify["active"].connect(panel_autohide_changed);
         box2.pack_end(switch1, false, false, 0);
 
         var box3 = make_row(listbox, "Expand");
         Gtk.Switch switch2 = new Gtk.Switch();
-        //switch2.set_active(settings['panel-expand'])
-        //switch2.connect('notify::active', self.panel_expand_changed)
+        switch2.set_active(settings.get_boolean_member("panel-expand"));
+        switch2.notify["active"].connect(panel_expand_changed);
         box3.pack_end(switch2, false, false, 0);
 
         var box4 = make_row(listbox, "Reserve screen space");
         Gtk.Switch switch3 = new Gtk.Switch();
-        //switch3.set_active(settings['panel-space-reserved'])
-        //switch3.connect('notify::active', self.panel_reserve_space_changed)
+        switch3.set_active(settings.get_boolean_member("panel-space-reserved"));
+        switch3.notify["active"].connect(panel_reserve_space_changed);
         box4.pack_end(switch3, false, false, 0);
 
         return box;
     }
 
-    public bool delete_event_cb () {
+    public bool delete_event_cb() {
         hide();
         return true;
     }
@@ -199,32 +216,29 @@ public class SettingsWindow: Gtk.Window {
         show_all();
         current_child.show_all();
     }
+
+    private void panel_autohide_changed(GLib.Object switcher, GLib.ParamSpec pspec) {
+        Json.Object settings = get_config();
+        settings.set_boolean_member("panel-autohide", (switcher as Gtk.Switch).get_active());
+        set_config(settings);
+        settings_changed();
+    }
+
+    private void panel_expand_changed(GLib.Object switcher, GLib.ParamSpec pspec) {
+        Json.Object settings = get_config();
+        settings.set_boolean_member("panel-expand", (switcher as Gtk.Switch).get_active());
+        set_config(settings);
+        settings_changed();
+    }
+
+    private void panel_reserve_space_changed(GLib.Object switcher, GLib.ParamSpec pspec) {
+        Json.Object settings = get_config();
+        settings.set_boolean_member("panel-space-reserved", (switcher as Gtk.Switch).get_active());
+        set_config(settings);
+        settings_changed();
+    }
 }
 /*
-        box.connect('selected-children-changed', self.background_changed)
-        scrolled.add(box)
-
-        backgrounds = G.get_backgrounds()
-
-
-    def make_panel_section(self):
-
-        settings = G.get_settings()
-
-        self.stack.add_titled(vbox, 'panel', 'Panel')
-
-    def background_changed(self, widget):
-        if widget.first_time:
-            widget.first_time = False
-            widget.unselect_all()
-            return
-
-        if widget.get_selected_children():
-            image = widget.get_selected_children()[0].get_children()[0]
-            file = image.file
-
-            if os.path.isfile(file):
-                GObject.idle_add(G.set_background, file, True)
 
     def panel_orientation_changed(self, combo):
         values = {0: 'Top', 1: 'Bottom', 2: 'Left'}
@@ -232,15 +246,4 @@ public class SettingsWindow: Gtk.Window {
         G.set_a_setting('panel-orientation', value)
         self.emit('settings-changed')
 
-    def panel_autohide_changed(self, switch, gparam):
-        G.set_a_setting('panel-autohide', switch.get_active())
-        self.emit('settings-changed')
-
-    def panel_expand_changed(self, switch, gparam):
-        G.set_a_setting('panel-expand', switch.get_active())
-        self.emit('settings-changed')
-
-    def panel_reserve_space_changed(self, switch, gparam):
-        G.set_a_setting('panel-space-reserved', switch.get_active())
-        self.emit('settings-changed')
 */
