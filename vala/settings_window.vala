@@ -168,7 +168,7 @@ public class SettingsWindow: Gtk.Window {
         combo.append_text("Top");
         combo.append_text("Bottom");
         combo.append_text("Left");
-        //combo.connect('changed', self.panel_orientation_changed)
+        combo.changed.connect(panel_orientation_changed);
         box1.pack_end(combo, false, false, 0);
 
         switch (settings.get_string_member("panel-orientation")) {
@@ -215,6 +215,29 @@ public class SettingsWindow: Gtk.Window {
     public void reveal() {
         show_all();
         current_child.show_all();
+    }
+
+    private void panel_orientation_changed(Gtk.ComboBox combo) {
+        string orientation;
+        Json.Object settings = get_config();
+        switch (combo.get_active()) {
+            case 0:
+                orientation = "Top";
+                break;
+            case 1:
+                orientation = "Bottom";
+                break;
+            case 2:
+                orientation = "Left";
+                break;
+            default:
+                orientation = "Left";
+                break;
+        }
+
+        settings.set_string_member("panel-orientation", orientation);
+        set_config(settings);
+        settings_changed();
     }
 
     private void panel_autohide_changed(GLib.Object switcher, GLib.ParamSpec pspec) {
