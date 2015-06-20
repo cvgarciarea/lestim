@@ -143,6 +143,27 @@ public class LestimPanel: Gtk.Window {
 
     public void set_expand(bool _expand) {
         expand = _expand;
+        int w, h;
+        get_size(out w, out h);
+
+        if (orientation == "Left") {
+            set_size_request(w, DISPLAY_HEIGHT);
+            resize(w, DISPLAY_HEIGHT);
+            move(0, 0);
+        } else {
+            if (h == DISPLAY_WIDTH) {
+                h = 48;
+            }
+
+            set_size_request(DISPLAY_WIDTH, h);
+            resize(DISPLAY_WIDTH, h);
+            if (orientation == "Top") {
+                move(0, 0);
+            } else {
+                get_size(out w, out h);
+                move(DISPLAY_HEIGHT - h, 0);
+            }
+        }
     }
 
     public void set_reserve_space(bool _reserve_space) {
@@ -202,14 +223,15 @@ public class LestimPanel: Gtk.Window {
                 move(0, 0);
             } else {
                 set_size_request(DISPLAY_WIDTH, 48);
-                resize(48, DISPLAY_WIDTH);
+                resize(DISPLAY_WIDTH, 48);
+
+                int w, h;
+                get_size(out w, out h);
 
                 if (orientation == "Top") {
                     move(0, 0);
                 } else {
-                    int w, h;
-                    get_size(out w, out h);
-                    move(0, DISPLAY_WIDTH - w);
+                    move(0, DISPLAY_HEIGHT - h);
                 }
             }
         } else {

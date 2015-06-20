@@ -171,6 +171,7 @@ public class LateralPanel: Gtk.Window {
     public Gtk.Box monitors;
     public Gtk.Box hbox_volume;
     public Gtk.Box hbox_brightness;
+    public Gtk.Image volume_icon;
 
     public LateralPanel() {
         move(DISPLAY_WIDTH, 0);
@@ -193,8 +194,9 @@ public class LateralPanel: Gtk.Window {
         scale_v.set_draw_value(false);
         //scale.connect('value-changed', self.__volume_changed)
 
+        volume_icon = get_image_from_name("audio-volume-high-symbolic", 24);
         hbox_volume = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
-        hbox_volume.pack_start(get_image_from_name("audio-volume-high-symbolic", 24), false, false, 1);
+        hbox_volume.pack_start(volume_icon, false, false, 1);
         hbox_volume.pack_end(scale_v, false, false, 0);
         vbox.pack_start(hbox_volume, false, false, 1);
 

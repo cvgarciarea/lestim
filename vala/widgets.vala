@@ -84,6 +84,7 @@ public class LestimWindow: Gtk.ApplicationWindow {
         panel.set_orientation(settings.get_string_member("panel-orientation"));
         panel.set_autohide(settings.get_boolean_member("panel-autohide"));
         panel.set_icon_size((int)settings.get_int_member("icon-size"));
+        panel.set_expand(settings.get_boolean_member("panel-expand"));
     }
 
     public void settings_changed_cb(SettingsWindow window) {
