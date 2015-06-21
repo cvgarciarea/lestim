@@ -134,21 +134,17 @@ public class AppsView: Gtk.Window {
             parent.panel.get_size(out w, out h);
 
             if (parent.panel.orientation == "Left") {
-                move(x + w + 10, y);
-                set_size_request(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT - y - 10);
-                resize(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT - y - 10);
-            }
-
-            else if (parent.panel.orientation == "Top") {
-                move(x, h + 10);
-                set_size_request(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2 - h);
-                resize(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2 - h);
-            }
-
-            else {
-                move(x, DISPLAY_HEIGHT / 2);
-                set_size_request(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2 - h - 10);
-                resize(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2 - h - 10);
+                move(w + 10, 0);
+                set_size_request(DISPLAY_WIDTH - w - 10, DISPLAY_HEIGHT);
+                resize(DISPLAY_WIDTH - w - 10, DISPLAY_HEIGHT);
+            } else {
+                set_size_request(DISPLAY_WIDTH, DISPLAY_HEIGHT - h - 10);
+                resize(DISPLAY_WIDTH, DISPLAY_HEIGHT - h - 10);
+                if (parent.panel.orientation == "Top") {
+                    move(0, h + 10);
+                } else {
+                    move(0, 0);
+                }
             }
 
             show_all();
