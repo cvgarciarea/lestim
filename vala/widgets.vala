@@ -85,6 +85,12 @@ public class LestimWindow: Gtk.ApplicationWindow {
         panel.set_autohide(settings.get_boolean_member("panel-autohide"));
         panel.set_icon_size((int)settings.get_int_member("icon-size"));
         panel.set_expand(settings.get_boolean_member("panel-expand"));
+
+        if (settings.get_boolean_member("panel-autohide")) {
+            mouse.start();
+        } else {
+            mouse.stop();
+        }
     }
 
     public void settings_changed_cb(SettingsWindow window) {

@@ -190,26 +190,38 @@ public class MouseDetector: Object {
 
     public int x;
     public int y;
+    public bool checking = false;
 
     public MouseDetector() {
-        GLib.Timeout.add(20, () => {
-            X.Display display = new X.Display();
-            X.Event event = X.Event();
-            X.Window window = display.default_root_window();
+    }
 
-            display.query_pointer(window, out window,
-                out event.xbutton.subwindow, out event.xbutton.x_root,
-                out event.xbutton.y_root, out event.xbutton.x,
-                out event.xbutton.y, out event.xbutton.state);
+    public void start() {
+        if (!checking) {
+            checking = true;
+            GLib.Timeout.add(20, check);
+        }
+    }
 
-            x = event.xbutton.x_root;
-            y = event.xbutton.y_root;
+    public void stop() {
+        checking = false;
+    }
 
-            pos_checked(x, y);
+    private bool check() {
+        X.Display display = new X.Display();
+        X.Event event = X.Event();
+        X.Window window = display.default_root_window();
 
-            return true;
-        });
+        display.query_pointer(window, out window,
+            out event.xbutton.subwindow, out event.xbutton.x_root,
+            out event.xbutton.y_root, out event.xbutton.x,
+            out event.xbutton.y, out event.xbutton.state);
 
+        x = event.xbutton.x_root;
+        y = event.xbutton.y_root;
+
+        pos_checked(x, y);
+
+        return checking;
     }
 }
 
