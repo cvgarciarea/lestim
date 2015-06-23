@@ -141,6 +141,13 @@ public class AppButton: Gtk.Button {
         set_hexpand(false);
         set_vexpand(false);
 
+        Gtk.drag_source_set(
+            this,
+            Gdk.ModifierType.BUTTON1_MASK,
+            app_button_target_list,
+            Gdk.DragAction.COPY
+        );
+
         vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         vbox.set_hexpand(false);
         add(vbox);

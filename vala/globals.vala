@@ -16,8 +16,21 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+using Gtk;
+using Gdk;
+
 public int DISPLAY_WIDTH = 1366;
 public int DISPLAY_HEIGHT = 768;
+
+enum Target {
+    STRING,
+}
+
+const TargetEntry[] app_button_target_list = {
+    {"STRING", 0, Target.STRING},
+    {"STRING", 0, Target.STRING},
+    {"STRING", 0, Target.STRING},
+};
 
 public string get_home_dir() {
     return GLib.Environment.get_home_dir();

@@ -77,6 +77,13 @@ public class LestimPanel: Gtk.Window {
         move(0, DISPLAY_HEIGHT / 2 - 200);
         set_name("LestimPanel");
 
+        Gtk.drag_dest_set (
+            this,
+            Gtk.DestDefaults.MOTION | Gtk.DestDefaults.HIGHLIGHT,
+            app_button_target_list,
+            Gdk.DragAction.COPY
+        );
+
         box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         add(box);
 
@@ -87,7 +94,7 @@ public class LestimPanel: Gtk.Window {
         box.pack_start(button, false, false, 0);
 
         favorite_area = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        box.pack_start(favorite_area, false, false, 0);
+        box.pack_start(favorite_area, false, false, 5);
 
         //Wnck.Tasklist opened_apps_area = new Wnck.Tasklist();
         //opened_apps_area = new Wnck.Tasklist();
@@ -99,6 +106,7 @@ public class LestimPanel: Gtk.Window {
         box.pack_end(lateral_panel_button, false, false, 1);
 
         configure_event.connect(configure_event_cb);
+        drag_data_received.connect(drag_data_received_cb);
 
         show_all();
     }
@@ -108,6 +116,21 @@ public class LestimPanel: Gtk.Window {
             reset_pos();
         }
         return false;
+    }
+
+    private void drag_data_received_cb(Gtk.Widget widget, Gdk.DragContext context, int x, int y, Gtk.SelectionData selection_data, uint target_type, uint time) {
+        if ((selection_data == null) || !(selection_data.get_length() >= 0)) {
+            return;
+        }
+
+        switch (target_type) {
+            case Target.STRING:
+                stdout.printf((string)selection_data.get_data());
+                break;
+            default:
+                stdout.printf("Anything");
+                break;
+        }
     }
 
     private void show_lateral_panel_c(Gtk.Button button) {
