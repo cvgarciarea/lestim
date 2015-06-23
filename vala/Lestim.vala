@@ -25,6 +25,7 @@ class LestimApp: Gtk.Application {
     public LestimWindow window;
 
     protected override void activate() {
+        set_display_size();
         check_paths();
 
         window = new LestimWindow();
@@ -33,7 +34,7 @@ class LestimApp: Gtk.Application {
         set_theme();
   }
 
-    public LestimApp () {
+    public LestimApp() {
         Object(application_id: "org.lestim.session");
   }
 }

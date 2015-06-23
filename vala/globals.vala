@@ -19,16 +19,29 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 using Gtk;
 using Gdk;
 
-public int DISPLAY_WIDTH = 1366;
-public int DISPLAY_HEIGHT = 768;
+public int CURRENT_MONITOR = 0;
+public int DISPLAY_WIDTH = 0;
+public int DISPLAY_HEIGHT = 0;
+
+public void set_display_size(int? monitor_id = null) {
+    Gdk.Screen screen = Gdk.Screen.get_default();
+    Gdk.Rectangle rect;
+
+    if (monitor_id == null) {
+        monitor_id = screen.get_primary_monitor();
+    }
+
+    CURRENT_MONITOR = monitor_id;
+    screen.get_monitor_geometry(CURRENT_MONITOR, out rect);
+    DISPLAY_WIDTH = rect.width;
+    DISPLAY_HEIGHT = rect.height;
+}
 
 enum Target {
     STRING,
 }
 
 const TargetEntry[] app_button_target_list = {
-    {"STRING", 0, Target.STRING},
-    {"STRING", 0, Target.STRING},
     {"STRING", 0, Target.STRING},
 };
 
