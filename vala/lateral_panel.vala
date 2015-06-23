@@ -23,6 +23,7 @@ private class Calendar: Gtk.Calendar {
 }
 
 private class CalendarItem: Gtk.Box {
+
     public Gtk.Label time_label;
     public Gtk.Label day_label;
     public Gtk.Revealer revealer;
@@ -85,51 +86,59 @@ private class CalendarItem: Gtk.Box {
     }
 }
 
-private class MonitorsItem: Gtk.Box {
-    public Gtk.Box network_item;
-    public Gtk.Box battery_item;
-    public Gtk.Label network_label;
-    public Gtk.Label battery_label;
+private class MonitorItem: Gtk.Box {
 
-    public string battery_state = "";
-    public int battery_percentage = 0;
+    public Gtk.Image icon;
+    public Gtk.Label label;
 
-    private string battery_path = "/sys/class/power_supply/BAT1/status";
+    public MonitorItem() {
+        label = new Gtk.Label(null);
+        icon = new Gtk.Image();
 
-    public MonitorsItem() {
-        set_orientation(Gtk.Orientation.HORIZONTAL);
+        set_orientation(Gtk.Orientation.VERTICAL);
+        pack_start(icon, true, true, 0);
+        pack_end(label, false, false, 0);
 
-        GLib.File file = GLib.File.new_for_path(battery_path);
-        if (file.query_exists()) {
-            make_battery_item();
-        }
-
-        network_item = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        network_item.pack_start(get_image_from_name("network-wireless-signal-excellent-symbolic"), true, true, 10);
-        pack_start(network_item);
-
-        network_label = new Gtk.Label("");
-        network_item.pack_start(network_label, false, false, 0);
+        show_all();
     }
 
-    private void make_battery_item() {
-        battery_item = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        battery_item.pack_start(get_image_from_name("battery-symbolic"), true, true, 10);
-        pack_start(battery_item, true, true, 0);
+    public void set_icon(string icon_name) {
+        remove(icon);
 
-        battery_label = new Gtk.Label("0%");
-        battery_item.pack_end(battery_label, false, false, 0);
+        icon = get_image_from_name(icon_name);
+        pack_start(icon, true, true, 0);
+        show_all();
+    }
 
-        GLib.Timeout.add(1000, () => {
-            GLib.File file = GLib.File.new_for_path(battery_path);
-            if (!file.query_exists()) {
-                return false;
-            }
+    public void set_label(string text) {
+        label.set_label(text);
+    }
+}
 
-            check_battery_state();
-            check_battery_percentage();
-            return true;
-        });
+private class BatteryItem: MonitorItem {
+
+    public string state = "";
+    public int percentage = 0;
+    public string battery_path;
+
+    public BatteryItem(string _path) {
+        set_label("100%");
+        set_icon("battery-symbolic");
+
+        battery_path = _path;
+
+        GLib.Timeout.add(1000, check);
+    }
+
+    private bool check() {
+        GLib.File file = GLib.File.new_for_path(battery_path);
+        if (!file.query_exists()) {
+            return false;
+        }
+
+        check_battery_state();
+        check_battery_percentage();
+        return true;
     }
 
     private void check_battery_state() {
@@ -137,20 +146,48 @@ private class MonitorsItem: Gtk.Box {
         try {
             GLib.FileUtils.get_contents(battery_path, out status);
             status = status.replace("\n", "");
-            if (status != battery_state && status != "Unknown") {
-                //battery_state = status;
-                //battery_label.set_label(battery_state);
+            if (status != state && status != "Unknown") {
+                state = status;
+                set_label(state);
             }
         } catch {}
     }
 
     private void check_battery_percentage() {
-        int percentage = 0;
+        int _percentage = 0;
 
-        if (percentage != battery_percentage) {
-            battery_percentage = percentage;
-            battery_label.set_label((string)percentage + "%");
+        if (_percentage != percentage) {
+            percentage = _percentage;
+            set_label((string)percentage + "%");
         }
+    }
+}
+
+private class NetworkItem: MonitorItem {
+    public NetworkItem() {
+        set_label("Network");
+        set_icon("network-wireless-signal-excellent-symbolic");
+    }
+}
+
+private class MonitorsItem: Gtk.Box {
+
+    private string battery_path = "/sys/class/power_supply/BAT1/status";
+
+    public BatteryItem battery_item;
+    public NetworkItem network_item;
+
+    public MonitorsItem() {
+        set_orientation(Gtk.Orientation.HORIZONTAL);
+
+        GLib.File file = GLib.File.new_for_path(battery_path);
+        if (file.query_exists()) {
+            battery_item = new BatteryItem(battery_path);
+            pack_start(battery_item, true, true, 0);
+        }
+
+        network_item = new NetworkItem();
+        pack_start(network_item, true, true, 0);
     }
 }
 
