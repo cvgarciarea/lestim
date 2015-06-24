@@ -136,8 +136,12 @@ public Gtk.Image get_image_from_name(string icon, int size=24) {
         var screen = Gdk.Screen.get_default();
         var theme = Gtk.IconTheme.get_for_screen(screen);
         var pixbuf = theme.load_icon(icon, size, Gtk.IconLookupFlags.FORCE_SYMBOLIC);
-        var image = new Gtk.Image.from_pixbuf(pixbuf);
-        return image;
+
+        if (pixbuf.get_width() != size || pixbuf.get_height() != size) {
+            pixbuf = pixbuf.scale_simple(size, size, Gdk.InterpType.BILINEAR);
+        }
+
+        return new Gtk.Image.from_pixbuf(pixbuf);;
     }
     catch (GLib.Error e) {
         return new Gtk.Image();

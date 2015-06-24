@@ -269,10 +269,7 @@ public class SettingsWindow: Gtk.Window {
         Json.Object settings = get_config();
         settings.set_int_member("icon-size", (int64)spin.get_value());
         set_config(settings);
-        reload_icons();
-    }
-
-    public void reload_icons() {
+        settings_changed();
     }
 }
 

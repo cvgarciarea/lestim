@@ -19,35 +19,139 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 using Wnck;
 
 
-class OpenedAppButton: Gtk.Button {
+class PanelButton: Gtk.EventBox {
 
-    //public Wnck.Window window;
-    //public Gtk.Image image;
+    public signal void right_click();
+    public signal void left_click();
 
-    public OpenedAppButton() {
+    public Gtk.Box box;
+    public Gtk.Image image;
+    public Gtk.Label label;
+
+    public int icon_size = 48;
+    public bool show_label = true;
+    public string? icon_name;
+
+    public PanelButton() {
+        box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+        add(box);
+
+        image = new Gtk.Image();
+        box.add(image);
+
+        label = new Gtk.Label(null);
+        box.pack_end(label, true, true, 0);
+
+        button_release_event.connect(button_release_event_cb);
     }
 
-    //public void set_window(Wnck.Window w) {
-    //    window = w;
+    private bool button_release_event_cb(Gtk.Widget self, Gdk.EventButton event) {
+        if (event.button == 1) {
+            left_click();
+        } else if (event.button == 3) {
+            right_click();
+        }
 
-    //    image = new Gtk.Image();
-        //self.image = Gtk.Image.new_from_pixbuf(window.get_icon())
-        //self.set_image(self.image)
-        //self.set_tooltip_text(window.get_name())
+        return true;
+    }
 
-        //self.connect('button-release-event', self.__button_press_event_cb)
+    public void set_image_from_string(string name) {
+        icon_name = name;
+        box.remove(image);
 
-    //def __button_press_event_cb(self, widget, event):
-    //    if event.button == 1:
-    //        if not self.window.is_active():
-    //            self.window.activate(0)
+        image = get_image_from_name(icon_name, icon_size);
+        box.add(image);
+        show_all();
+    }
 
-    //        else:
-    //            self.window.minimize()
-    //}
+    public void set_image_from_widget(Gtk.Image _image) {
+        icon_name = null;
+        box.remove(image);
+
+        image = _image;
+        box.add(image);
+        show_all();
+    }
+
+    public void set_image_from_pixbuf(Gdk.Pixbuf pixbuf) {
+        icon_name = null;
+        box.remove(image);
+
+        image = new Gtk.Image.from_pixbuf(pixbuf);
+        box.add(image);
+        show_all();
+    }
+
+    public void set_icon_size(int size) {
+        if (size == icon_size) {
+            return;
+        }
+
+        icon_size = size;
+
+        if (icon_name != null) {
+            set_image_from_string(icon_name);
+        } else {
+            Gdk.Pixbuf pixbuf = image.get_pixbuf();
+            pixbuf = pixbuf.scale_simple(icon_size, icon_size, Gdk.InterpType.TILES);
+            set_image_from_pixbuf(pixbuf);
+        }
+    }
+
+    public void set_label(string text) {
+        label.set_label(text);
+    }
+
+    public void set_show_label(bool show) {
+        if (show != show_label) {
+            show_label = show;
+            if (show_label) {
+                box.pack_end(label, true, true, 0);
+            } else {
+                box.remove(label);
+            }
+        }
+    }
 }
 
+class OpenedAppButton: PanelButton {
 
+    public OpenedAppButton() {}
+    /*public Wnck.Window window;
+
+    public OpenedAppButton(Wnck.Window _window) {
+        window = _window;
+        set_image_from_pixbuf(window.get_icon());
+        set_tooltip_text(window.get_name());
+
+        left_click.connect(left_click_cb);
+    }
+
+    private void left_click_cb() {
+        if (!window.is_active()) {
+            window.active(0);
+        } else {
+            window.minimize();
+        }
+    }
+    */
+}
+
+private class ShowAppsButton: PanelButton {
+    public ShowAppsButton() {
+        set_name("PanelAppsButton");
+        set_image_from_string("view-grid-symbolic");
+        set_show_label(false);
+    }
+}
+
+private class LateralPanelButton: PanelButton {
+    public LateralPanelButton() {
+        set_name("ShowPanelButton");
+        set_image_from_string("go-previous-symbolic");
+        set_show_label(false);
+    }
+}
 
 public class LestimPanel: Gtk.Window {
 
@@ -62,12 +166,13 @@ public class LestimPanel: Gtk.Window {
     public int icon_size = 48;
     public bool panel_visible = false;
     public bool in_transition = false;
+    public bool can_reset = true;
 
     public Gtk.Box box;
-    public Gtk.Button button;
     public Gtk.Box favorite_area;
     //public Wnck.Tasklist opened_apps_area;
-    private Gtk.Button lateral_panel_button;
+    private ShowAppsButton show_apps_button;
+    private LateralPanelButton lateral_panel_button;
 
     public LestimPanel() {
         set_keep_above(true);
@@ -87,11 +192,9 @@ public class LestimPanel: Gtk.Window {
         box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         add(box);
 
-        Gtk.Button button = new Gtk.Button();
-        button.set_name("PanelAppsButton");
-        button.set_image(get_image_from_name("view-grid-symbolic", 48));
-        button.clicked.connect(show_apps_c);
-        box.pack_start(button, false, false, 0);
+        show_apps_button = new ShowAppsButton();
+        show_apps_button.left_click.connect(show_apps_cb);
+        box.pack_start(show_apps_button, false, false, 0);
 
         favorite_area = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         box.pack_start(favorite_area, false, false, 5);
@@ -100,9 +203,8 @@ public class LestimPanel: Gtk.Window {
         //opened_apps_area = new Wnck.Tasklist();
         //box.pack_start(opened_apps_area, false, false, 0);
 
-        lateral_panel_button = new Gtk.Button();
-        lateral_panel_button.set_name("ShowPanelButton");
-        lateral_panel_button.clicked.connect(show_lateral_panel_c);
+        lateral_panel_button = new LateralPanelButton();
+        lateral_panel_button.left_click.connect(show_lateral_panel_cb);
         box.pack_end(lateral_panel_button, false, false, 1);
 
         configure_event.connect(configure_event_cb);
@@ -112,7 +214,7 @@ public class LestimPanel: Gtk.Window {
     }
 
     private bool configure_event_cb(Gtk.Widget self, Gdk.EventConfigure event) {
-        if (!check_pos()) {
+        if (!check_pos() && can_reset) {
             reset_pos();
         }
         return false;
@@ -133,17 +235,22 @@ public class LestimPanel: Gtk.Window {
         }
     }
 
-    private void show_lateral_panel_c(Gtk.Button button) {
+    private void show_lateral_panel_cb() {
         panel_visible = !(panel_visible);
         show_lateral_panel(panel_visible);
     }
 
-    private void show_apps_c(Gtk.Button button) {
+    private void show_apps_cb() {
         show_apps();
     }
 
     public void set_reveal_state(bool visible) {
         panel_visible = visible;
+        if (!visible) {
+            lateral_panel_button.set_image_from_string("go-previous-symbolic");
+        } else {
+            lateral_panel_button.set_image_from_string("go-next-symbolic");
+        }
     }
 
     public void set_orientation(string _orientation) {
@@ -194,7 +301,17 @@ public class LestimPanel: Gtk.Window {
     }
 
     public void set_icon_size(int size) {
-        icon_size = size;
+        can_reset = false;
+
+        if (size != icon_size) {
+            icon_size = size;
+            show_apps_button.set_icon_size(icon_size);
+            lateral_panel_button.set_icon_size(icon_size);
+
+            reset_pos();
+        }
+
+        can_reset = true;
     }
 
     private bool check_pos() {
