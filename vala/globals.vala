@@ -77,7 +77,7 @@ public string get_system_apps_dir() {
     return "/usr/share/applications";
 }
 
-public void check_paths () {
+public void check_paths() {
     GLib.File work_dir = GLib.File.new_for_path(get_work_dir());
     GLib.File settings_path = GLib.File.new_for_path(get_settings_path());
     GLib.File background_path = GLib.File.new_for_path(get_background_path());

@@ -16,9 +16,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-using Wnck;
-
-
 class PanelButton: Gtk.EventBox {
 
     public signal void right_click();
@@ -272,26 +269,64 @@ public class LestimPanel: Gtk.Window {
     }
 
     public void set_expand(bool _expand) {
+        if (expand == _expand) {
+            return;
+        }
+
         expand = _expand;
+        var settings = get_config();
+        int s = (int)settings.get_int_member("icon-size");
         int w, h;
         get_size(out w, out h);
 
-        if (orientation == "Left") {
-            set_size_request(w, DISPLAY_HEIGHT);
-            resize(w, DISPLAY_HEIGHT);
-            move(0, 0);
-        } else {
-            if (h == DISPLAY_WIDTH) {
-                h = 48;
-            }
+        if (expand) {
+            switch (orientation) {
+                case "Left":
+                    set_size_request(w, DISPLAY_HEIGHT);
+                    resize(w, DISPLAY_HEIGHT);
+                    move(0, 0);
+                    break;
 
-            set_size_request(DISPLAY_WIDTH, h);
-            resize(DISPLAY_WIDTH, h);
-            if (orientation == "Top") {
-                move(0, 0);
-            } else {
-                get_size(out w, out h);
-                move(DISPLAY_HEIGHT - h, 0);
+                case "Top":
+                    if (h == DISPLAY_WIDTH) {
+                        h = s;
+                    }
+
+                    set_size_request(DISPLAY_WIDTH, h);
+                    resize(DISPLAY_WIDTH, h);
+                    move(0, 0);
+                    break;
+
+                case "Bottom":
+                    if (h == DISPLAY_WIDTH) {
+                        h = s;
+                    }
+
+                    set_size_request(DISPLAY_WIDTH, h);
+                    resize(DISPLAY_WIDTH, h);
+                    get_size(out w, out h);
+                    move(DISPLAY_HEIGHT - h, 0);
+                    break;
+            }
+        } else {
+            switch (orientation) {
+                case "Left":
+                    set_size_request(s, 1);
+                    resize(s, 1);
+                    move(0, DISPLAY_HEIGHT / 2 - h / 2);
+                    break;
+
+                case "Top":
+                    set_size_request(1, s);
+                    resize(1, s);
+                    move(DISPLAY_WIDTH / 2 - w / 2, 0);
+                    break;
+
+                case "Bottom":
+                    set_size_request(1, s);
+                    resize(1, s);
+                    move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT - h);
+                    break;
             }
         }
     }

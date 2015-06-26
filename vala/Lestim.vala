@@ -31,7 +31,7 @@ class LestimApp: Gtk.Application {
         window = new LestimWindow();
         window.set_application(this);
         window.show();
-        set_theme();
+        //set_theme();
   }
 
     public LestimApp() {

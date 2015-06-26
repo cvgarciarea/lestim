@@ -23,7 +23,7 @@ private class AppsEntry: Gtk.Entry {
         set("xalign", 0.015);
     }
 }
-
+/*
 public class GMenuManager {
 
     public List<GMenu.TreeDirectory> get_categories() {
@@ -59,14 +59,14 @@ public class GMenuManager {
         return new DesktopAppInfo.from_filename(entry.get_desktop_file_path());
     }
 
-    /* Launch an application described in DesktopAppInfo */
+    /* Launch an application described in DesktopAppInfo *//*
     public void launch_desktop_app_info(DesktopAppInfo info) {
         try {
             info.launch(null, new AppLaunchContext());
         } catch (Error error) {}
     }
 }
-
+*/
 public class AppsView: Gtk.Window {
 
     public bool shown = false;
@@ -76,11 +76,11 @@ public class AppsView: Gtk.Window {
     public Gtk.Entry entry;
     public Gtk.FlowBox grid;
 
-    public GMenuManager apps_manager;
+    //public GMenuManager apps_manager;
 
     public AppsView(LestimWindow _parent) {
         parent = _parent;
-        apps_manager = new GMenuManager();
+        //apps_manager = new GMenuManager();
 
         set_name("AppsView");
 
@@ -110,7 +110,7 @@ public class AppsView: Gtk.Window {
 
         focus_out_event.connect(focus_out_event_cb);
 
-        show_apps();
+        //show_apps();
         hide();
     }
 
@@ -155,7 +155,7 @@ public class AppsView: Gtk.Window {
     }
 
     public void show_apps(string search="") {
-        foreach (var button in grid.get_children()) {
+        /*foreach (var button in grid.get_children()) {
             grid.remove(button);
         }
 
@@ -182,6 +182,7 @@ public class AppsView: Gtk.Window {
         }
 
         show_all();
+    */
     }
 
     private void search_app(Gtk.Editable _entry) {
