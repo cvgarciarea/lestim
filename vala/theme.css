@@ -5,33 +5,131 @@ Based on: Numix Frost Dark
 
 @define-color bg_color #161616;
 @define-color focus_color #242424;
+@define-color text_color #DEDEDE;
+@define-color selected_bg_color #1a80b6;
+@define-color selected_fg_color #F9F9F9;
 
-* {
-    background-color: @bg_color;
-    border-color: @bg_color;
-}
-
-*:focused, *:hover, *:prelight {
-    background-color: @bg_color;
-}
 
 LestimWindow {
     background-image: url('./background');
     background-repeat: no-repeat;
 }
 
-Canvas, GtkIconView, AppsBox, AppsGrid {
+LestimCanvas {
     background-color: transparent;
 }
 
-GtkIconView.view.cell:selected,
-GtkIconView.view.cell:selected:focused {
-    border-style: solid;
-    border-radius: 10px;
-    border-width: 3px;
-    border-color: #D3D7CF;
+LestimPanel {
+    background-color: @bg_color;
+    border-width: 1px;
+    border-radius: 2px;
 }
 
+PanelButton {
+    background-color: @bg_color;
+    border-color: @bg_color;
+}
+
+PanelButton:focus {
+    border-color: @selected_bg_color;
+}
+
+AppsView {
+    background-color: @bg_color;
+}
+
+AppButton {
+    background-color: @bg_color;
+    border-width: 2px;
+    border-radius: 2px;
+    border-style: solid;
+}
+
+AppsEntry {
+    padding: 4px 3px;
+
+    background-color: @bg_color;
+    background-image: none;
+    color: @text_color;
+
+    border-style: solid;
+    border-color: @bg_color;
+    border-radius: 2px;
+    border-width: 1px;
+
+    font-size: 22px;
+}
+
+AppsEntry:focus, AppsEntry:active {
+    border-color: shade(@bg_color, 0.7);
+}
+
+AppsEntry:selected, AppsEntry:selected:focus {
+    background-color: @theme_selected_bg_color;
+    color: @selected_fg_color;
+}
+
+LateralPanel {
+    background-color: @bg_color;
+}
+
+CalendarItem {
+    background-color: @bg_color;
+}
+
+CalendarItem:focus {
+    background-color: @focus_color;
+}
+
+GtkCalendar {
+    padding: 4px;
+    outline-offset: -1px;
+}
+
+GtkCalendar:inconsistent {
+    color: mix(@theme_fg_color, @theme_bg_color, 0.5);
+}
+
+Calendar.view,
+Calendar.header,
+Calendar.button,
+Calendar.button:hover,
+Calendar.button:insensitive {
+    border-width: 0;
+    background-color: transparent;
+    background-image: none;
+}
+
+.highlight,
+Calendar.highlight {
+    border-width: 0;
+    background-color: transparent;
+    color: @selected_bg_color;
+}
+
+VolumeScale {
+}
+
+VolumeScale.slider {
+}
+
+BrightnessScale {
+}
+
+PowerButton {
+    border-width: 1px;
+    border-radius: 2px;
+
+    background-color: @bg_color;
+    background: @bg_color;
+    border-color: shade(@bg_color, 0.7);
+}
+
+PowerButton:active {
+    background-color: shade(@bg_color, 0.7);
+}
+
+/*
 GtkPopover {
     margin: 10px;
     padding: 2px;
@@ -138,7 +236,7 @@ LateralCalendar {
     padding: 4px;
     outline-offset: -1px;
 }
-/*
+//
 LateralCalendar:inconsistent {
     color: mix(#DCDCDC, #2D2D2D, 0.5);
 }

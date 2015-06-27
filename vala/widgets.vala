@@ -39,7 +39,7 @@ public class LestimWindow: Gtk.ApplicationWindow {
         move(0, 0);
 
         box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        box.set_name("Canvas");
+        box.set_name("LestimCanvas");
         add(box);
 
         panel = new LestimPanel();
@@ -161,6 +161,7 @@ public class AppButton: Gtk.Button {
         set_tooltip_text(app_info.get_description());
         set_hexpand(false);
         set_vexpand(false);
+        set_can_focus(true);
 
         Gtk.drag_source_set(
             this,

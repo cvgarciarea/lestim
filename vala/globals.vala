@@ -154,9 +154,9 @@ public void set_theme() {
     Gtk.StyleContext style_context = new Gtk.StyleContext();
 
     style_context.remove_provider_for_screen(screen, css_provider);
-    try {
-        css_provider.load_from_path(get_theme_path());
-    } catch (GLib.Error e) {return;}
+    //try {
+    css_provider.load_from_path(get_theme_path());
+    //} catch (GLib.Error e) {return;}
 
     style_context.add_provider_for_screen(screen, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 }

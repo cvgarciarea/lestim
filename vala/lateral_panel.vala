@@ -24,13 +24,12 @@ private class Calendar: Gtk.Calendar {
 
 private class CalendarItem: Gtk.Box {
 
-    public Gtk.Label time_label;
-    public Gtk.Label day_label;
-    public Gtk.Revealer revealer;
-    public Calendar calendar;
+    private Gtk.Label time_label;
+    private  Gtk.Label day_label;
+    private Gtk.Revealer revealer;
+    private Calendar calendar;
 
     private DateTime time;
-    //private int day;
 
     public bool show_seconds = false;
 
@@ -63,7 +62,7 @@ private class CalendarItem: Gtk.Box {
 
         time = new DateTime.now_local();
 
-        GLib.Timeout.add(1000, () => {update_clock(); return true;});
+        GLib.Timeout.add(1000, update_clock);
     }
 
     public bool show_calendar(Gtk.Widget box, Gdk.EventButton event) {
@@ -71,16 +70,17 @@ private class CalendarItem: Gtk.Box {
         return true;
     }
 
-    protected bool update_clock() {
+    private bool update_clock() {
         time = new DateTime.now_local();
         int current_day = time.get_day_of_month();
         int current_month = time.get_month();
         int current_year = time.get_year();
         string format = "%H:%M";
         string date = "%d/%d/%d".printf(current_day, current_month, current_year);
+        string time_markup = "<b><big><big><big><big><big><big><big>" + time.format(format + (show_seconds ? ":%S": "")) + "</big></big></big></big></big></big></big></b>";
 
-        time_label.set_label(time.format(format + (show_seconds ? ":%S": "")));
-        day_label.set_label(date);
+        time_label.set_markup(time_markup);
+        day_label.set_markup("<big><big>" + date + "</big></big>");
 
         return true;
     }
@@ -191,6 +191,56 @@ private class MonitorsItem: Gtk.Box {
     }
 }
 
+private class PowerButton: Gtk.Button {
+
+    public string? icon_name = null;
+    public Gtk.Image? image = null;
+
+    public PowerButton() {
+        set_name("PowerButton");
+        set_image_from_string("image-x-generic-symbolic");
+        show_all();
+    }
+
+    public void set_image_from_string(string icon_name) {
+        image = get_image_from_name(icon_name, 48);
+        set_image(image);
+        show_all();
+    }
+}
+
+private class ShutdownButton: PowerButton {
+    public ShutdownButton() {
+        set_name("ShutdownButton");
+        set_tooltip_text("Shutdown");
+        set_image_from_string("system-shutdown-symbolic");
+    }
+}
+
+private class RebootButton: PowerButton {
+    public RebootButton() {
+        set_name("RebootButton");
+        set_tooltip_text("Reboot");
+        set_image_from_string("view-refresh-symbolic");
+    }
+}
+
+private class LockButton: PowerButton {
+    public LockButton() {
+        set_name("LockButton");
+        set_tooltip_text("Lock");
+        set_image_from_string("system-lock-screen-symbolic");
+    }
+}
+
+private class SettingsButton: PowerButton {
+    public SettingsButton() {
+        set_name("SettingsButton");
+        set_tooltip_text("Settings");
+        set_image_from_string("preferences-system-symbolic");
+    }
+}
+
 public class LateralPanel: Gtk.Window {
 
     public signal void reveal_changed(bool visible);
@@ -211,13 +261,14 @@ public class LateralPanel: Gtk.Window {
     public Gtk.Image volume_icon;
 
     public LateralPanel() {
-        move(DISPLAY_WIDTH, 0);
+        set_name("LateralPanel");
+        set_can_focus(false);
         set_keep_above(true);
         set_size_request(300, DISPLAY_HEIGHT);
-        set_type_hint(Gdk.WindowTypeHint.DND);
-        set_name("LateralPanel");
+        set_type_hint(Gdk.WindowTypeHint.DOCK);
+        move(DISPLAY_WIDTH, 0);
 
-        vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+        vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 5);
         add(vbox);
 
         CalendarItem calendar = new CalendarItem();
@@ -227,22 +278,24 @@ public class LateralPanel: Gtk.Window {
         vbox.pack_start(monitors, false, false, 0);
 
         Gtk.Scale scale_v = new Gtk.Scale.with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 10);
+        scale_v.set_name("VolumeScale");
         scale_v.set_value(volume);
         scale_v.set_draw_value(false);
-        //scale.connect('value-changed', self.__volume_changed)
 
-        volume_icon = get_image_from_name("audio-volume-high-symbolic", 24);
-        hbox_volume = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
-        hbox_volume.pack_start(volume_icon, false, false, 1);
-        hbox_volume.pack_end(scale_v, false, false, 0);
+        hbox_volume = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 10);
+        hbox_volume.set_margin_left(2);
+        hbox_volume.pack_start(get_image_from_name("audio-volume-high-symbolic", 24), false, false, 1);
+        hbox_volume.pack_end(scale_v, true, true, 0);
         vbox.pack_start(hbox_volume, false, false, 1);
 
         Gtk.Scale scale_b = new Gtk.Scale.with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 10);
+        scale_b.set_name("BrightnessScale");
         scale_b.set_value(brightness);
         scale_b.set_draw_value(false);
         //scale.connect('value-changed', self.__brightness_changed)
 
-        hbox_brightness = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+        hbox_brightness = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 10);
+        hbox_brightness.set_margin_left(2);
         hbox_brightness.pack_start(get_image_from_name("display-brightness-symbolic", 24), false, false, 1);
         hbox_brightness.pack_end(scale_b, true, true, 0);
         vbox.pack_start(hbox_brightness, false, false, 1);
@@ -250,35 +303,21 @@ public class LateralPanel: Gtk.Window {
         Gtk.Box hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
         vbox.pack_end(hbox, false, false, 10);
 
-        Gtk.Button shutdown_button = new Gtk.Button();
-        shutdown_button.set_name("ShutdownButton");
-        shutdown_button.set_tooltip_text("Shutdown");
-        shutdown_button.set_image(get_image_from_name("system-shutdown-symbolic", 48));
-        shutdown_button.clicked.connect(power_off_cb);
+        ShutdownButton shutdown_button = new ShutdownButton();
+        shutdown_button.clicked.connect(shutdown_request);
         hbox.pack_start(shutdown_button, true, true, 10);
 
-        Gtk.Button reboot_button = new Gtk.Button();
-        reboot_button.set_name("RebootButton");
-        reboot_button.set_tooltip_text("Reboot");
-        reboot_button.set_image(get_image_from_name("view-refresh-symbolic", 48));
-        reboot_button.clicked.connect(reboot_cb);
+        RebootButton reboot_button = new RebootButton();
+        reboot_button.clicked.connect(reboot_request);
         hbox.pack_start(reboot_button, true, true, 10);
 
-        Gtk.Button lock_button = new Gtk.Button();
-        lock_button.set_name("LockButton");
-        lock_button.set_tooltip_text("Lock");
-        lock_button.set_image(get_image_from_name("system-lock-screen-symbolic", 48));
-        shutdown_button.clicked.connect(lock_screen_cb);
+        LockButton lock_button = new LockButton();
+        lock_button.clicked.connect(lock_screen_request);
         hbox.pack_start(lock_button, true, true, 10);
 
-        Gtk.Button settings_button = new Gtk.Button();
-        settings_button.set_name("SettingsButton");
-        settings_button.set_tooltip_text("Settings");
-        settings_button.set_image(get_image_from_name("preferences-system-symbolic", 48));
-        settings_button.clicked.connect(show_settings_cb);
+        SettingsButton settings_button = new SettingsButton();
+        settings_button.clicked.connect(show_settings_request);
         hbox.pack_start(settings_button, true, true, 10);
-
-        focus_out_event.connect(focus_out_event_cb);
     }
 
     public void reveal(bool visible) {
@@ -354,22 +393,22 @@ public class LateralPanel: Gtk.Window {
         return true;
     }
 
-    private void power_off_cb(Gtk.Button button) {
+    private void shutdown_request(Gtk.Button button) {
         reveal(false);
         power_off();
     }
 
-    private void reboot_cb(Gtk.Button button) {
+    private void reboot_request(Gtk.Button button) {
         reveal(false);
         reboot();
     }
 
-    private void lock_screen_cb(Gtk.Button button) {
+    private void lock_screen_request(Gtk.Button button) {
         reveal(false);
         lock_screen();
     }
 
-    private void show_settings_cb(Gtk.Button button) {
+    private void show_settings_request(Gtk.Button button) {
         reveal(false);
         show_settings();
     }
