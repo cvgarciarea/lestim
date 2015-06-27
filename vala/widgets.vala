@@ -60,6 +60,10 @@ public class LestimWindow: Gtk.ApplicationWindow {
         mouse = new MouseDetector();
         mouse.pos_checked.connect(mouse_pos_checked);
 
+        realize.connect(realize_cb);
+    }
+
+    private void realize_cb(Gtk.Widget widget) {
         load_settings();
     }
 
@@ -98,12 +102,17 @@ public class LestimWindow: Gtk.ApplicationWindow {
     }
 
     public void mouse_pos_checked(MouseDetector mouse, int x1, int y1) {
+        if (!panel.autohide) {
+            mouse.stop();
+            return;
+        }
+
         int w, h, x2, y2;
         panel.get_size(out w, out h);
         panel.get_position(out x2, out y2);
 
-        if (panel.autohide) {
-            if (panel.orientation == "Left") {
+        switch (panel.orientation) {
+            case "Left":
                 if ((x1 <= 10) && (y1 >= y2) && (y1 <= y2 + h) && !panel.shown) {
                     panel.reveal(true);
                 }
@@ -111,8 +120,9 @@ public class LestimWindow: Gtk.ApplicationWindow {
                     //panel.reveal(detector.panel_visible || apps_view.shown);
                     panel.reveal(apps_view.shown);
                 }
-            }
-            else if (panel.orientation == "Top") {
+                break;
+
+            case "Top":
                 if ((y1 <= 10) && (x1 >= x2) && (x1 <= x2 + w) && !panel.shown) {
                     panel.reveal(true);
                 }
@@ -120,17 +130,22 @@ public class LestimWindow: Gtk.ApplicationWindow {
                     //panel.reveal(detector.panel_visible || apps_view.shown);
                     panel.reveal(apps_view.shown);
                 }
-            }
-            else if (panel.orientation == "Bottom") {
+                break;
+
+            case "Bottom":
                 if ((y1 >= DISPLAY_HEIGHT - 10) && (x1 >= x2) && (x1 <= x2 + w) && !panel.shown) {
                     panel.reveal(true);
                 }
-                else if ((y1 >= h) || (x1 <= x2) || (x1 >= x2 + w) && panel.shown) {
+                else if ((y1 <= DISPLAY_HEIGHT - h) || (x1 <= x2) || (x1 >= x2 + w) && panel.shown) {
                     //panel.reveal(detector.panel_visible || apps_view.shown);
                     panel.reveal(apps_view.shown);
                 }
-            }
-        } else {panel.reveal(true);}
+                break;
+
+            default:
+                panel.reveal(true);
+                break;
+        }
     }
 }
 

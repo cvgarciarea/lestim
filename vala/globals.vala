@@ -202,7 +202,7 @@ public class MouseDetector: Object {
     public void start() {
         if (!checking) {
             checking = true;
-            GLib.Timeout.add(20, check);
+            GLib.Timeout.add(100, check);
         }
     }
 

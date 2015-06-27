@@ -163,7 +163,9 @@ public class LestimPanel: Gtk.Window {
     public int icon_size = 48;
     public bool panel_visible = false;
     public bool in_transition = false;
-    public bool can_reset = true;
+
+    private int? last_x = null;
+    private int? last_y = null;
 
     public Gtk.Box box;
     public Gtk.Box favorite_area;
@@ -172,12 +174,17 @@ public class LestimPanel: Gtk.Window {
     private LateralPanelButton lateral_panel_button;
 
     public LestimPanel() {
+        set_name("LestimPanel");
         set_keep_above(true);
         set_decorated(false);
         set_type_hint(Gdk.WindowTypeHint.DOCK);
+        set_gravity(Gdk.Gravity.STATIC);
         resize(48, 400);
+        set_border_width(2);
         move(0, DISPLAY_HEIGHT / 2 - 200);
-        set_name("LestimPanel");
+        set_skip_taskbar_hint(true);
+        set_skip_pager_hint(true);
+        set_urgency_hint(true);
 
         Gtk.drag_dest_set (
             this,
@@ -204,17 +211,9 @@ public class LestimPanel: Gtk.Window {
         lateral_panel_button.left_click.connect(show_lateral_panel_cb);
         box.pack_end(lateral_panel_button, false, false, 1);
 
-        configure_event.connect(configure_event_cb);
         drag_data_received.connect(drag_data_received_cb);
 
         show_all();
-    }
-
-    private bool configure_event_cb(Gtk.Widget self, Gdk.EventConfigure event) {
-        if (!check_pos() && can_reset) {
-            reset_pos();
-        }
-        return false;
     }
 
     private void drag_data_received_cb(Gtk.Widget widget, Gdk.DragContext context, int x, int y, Gtk.SelectionData selection_data, uint target_type, uint time) {
@@ -251,6 +250,10 @@ public class LestimPanel: Gtk.Window {
     }
 
     public void set_orientation(string _orientation) {
+        if (orientation == _orientation) {
+            return;
+        }
+
         orientation = _orientation;
         if (orientation == "Top" || orientation == "Bottom") {
             box.set_orientation(Gtk.Orientation.HORIZONTAL);
@@ -329,264 +332,271 @@ public class LestimPanel: Gtk.Window {
                     break;
             }
         }
+        reset_pos();
     }
 
     public void set_reserve_space(bool _reserve_space) {
+        if (reserve_space == _reserve_space) {
+            return;
+        }
+
         reserve_space = _reserve_space;
     }
 
     public void set_icon_size(int size) {
-        can_reset = false;
-
         if (size != icon_size) {
             icon_size = size;
             show_apps_button.set_icon_size(icon_size);
             lateral_panel_button.set_icon_size(icon_size);
-
-            reset_pos();
         }
 
-        can_reset = true;
+        reset_pos();
     }
 
-    private bool check_pos() {
-        int x, y, w, h;
-        get_position(out x, out y);
+    public void reset_pos() {
+        GLib.Idle.add(() => {
+
+        if (in_transition) {
+            return false;
+        }
+
+        var settings = get_config();
+        int s = (int)settings.get_int_member("icon-size");
+        int w, h;
         get_size(out w, out h);
-        bool result = false;
 
-        if (shown && !in_transition) {
-            switch (orientation) {
-                case "Left":
-                    result = x == 0 && y == DISPLAY_HEIGHT / 2 - h / 2;
-                    break;
-
-                case "Top":
-                    result = y == 0 && x == DISPLAY_WIDTH / 2 - w / 2;
-                    break;
-
-                default:
-                    result = y == DISPLAY_WIDTH - h && x == DISPLAY_WIDTH / 2 - w / 2;
-                    break;
-            }
-        } else if (!shown && !in_transition) {
-            switch (orientation) {
-                case "Left":
-                    result = x == -w && y == DISPLAY_HEIGHT / 2 - h / 2;
-                    break;
-
-                case "Top":
-                    result = y == -h && x == DISPLAY_WIDTH / 2 - w / 2;
-                    break;
-
-                default:
-                    result = y == DISPLAY_WIDTH && x == DISPLAY_WIDTH / 2 - w / 2;
-                    break;
-            }
-        } else if (in_transition) {
-            result = true;
-        }
-
-        return result;
-    }
-
-    private void reset_pos() {
         if (expand) {
-            if (orientation == "Left") {
-                set_size_request(48, DISPLAY_HEIGHT);
-                resize(48, DISPLAY_HEIGHT);
-                move(0, 0);
-            } else {
-                set_size_request(DISPLAY_WIDTH, 48);
-                resize(DISPLAY_WIDTH, 48);
-
-                int w, h;
-                get_size(out w, out h);
-
-                if (orientation == "Top") {
+            switch (orientation) {
+                case "Left":
+                    set_size_request(s, DISPLAY_WIDTH);
                     move(0, 0);
-                } else {
+                    break;
+
+                case "Top":
+                    set_size_request(DISPLAY_WIDTH, s);
+                    resize(DISPLAY_WIDTH, s);
+                    move(0, 0);
+                    break;
+
+                case "Bottom":
+                    set_size_request(DISPLAY_WIDTH, s);
+                    resize(DISPLAY_WIDTH, s);
                     move(0, DISPLAY_HEIGHT - h);
-                }
+                    break;
             }
         } else {
-            if (orientation == "Left") {
-                set_size_request(48, 1);
-                resize(48, 1);
-                int w, h;
-                get_size(out w, out h);
+            switch (orientation) {
+                case "Left":
+                    set_size_request(s, 1);
+                    resize(s, 1);
+                    move(0, DISPLAY_HEIGHT / 2 - h / 2);
+                    break;
 
-                move(0, DISPLAY_HEIGHT / 2 - h / 2);
-            } else {
-                set_size_request(1, 48);
-                resize(48, 1);
-                int w, h;
-                get_size(out w, out h);
-
-                if (orientation == "Top") {
+                case "Top":
+                    set_size_request(1, s);
+                    resize(1, s);
                     move(DISPLAY_WIDTH / 2 - w / 2, 0);
-                } else {
+                    break;
+
+                case "Bottom":
+                    set_size_request(1, s);
+                    resize(1, s);
                     move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT - h);
-                }
+                    break;
             }
+        }
+
+        return true;
+        });
+    }
+
+    private bool _reveal_left() {
+        int w, h, lx, ly;
+        get_size(out w, out h);
+        get_position(out lx, out ly);
+
+        if (lx < 0 && lx != last_x) {
+            in_transition = true;
+            lx += (w - lx) / 2;
+            move(lx, DISPLAY_HEIGHT / 2 - h / 2);
+            last_x = lx;
+
+            return true;
+        } else {
+            move(0, DISPLAY_HEIGHT / 2 - h / 2);
+            in_transition = false;
+            shown = true;
+            return false;
+        }
+    }
+
+    private bool _reveal_top() {
+        int avance, w, h, lx, ly;
+        get_size(out w, out h);
+        get_position(out lx, out ly);
+
+        if (ly - h < 0 && ly != last_y) {
+            in_transition = true;
+            avance = (h - ly) / 2;
+            ly = (ly + avance);
+            if (ly <= 0) {
+                move(DISPLAY_WIDTH / 2 - w / 2, ly);
+                last_y = ly;
+            } else {
+                move(DISPLAY_WIDTH / 2 - w / 2, 0);
+            }
+            return true;
+        } else {
+            move(DISPLAY_WIDTH / 2 - w / 2, 0);
+            in_transition = false;
+            shown = true;
+            return false;
+        }
+    }
+
+    private bool _reveal_bottom() {
+        int avance, w, h, lx, ly;
+        get_size(out w, out h);
+        get_position(out lx, out ly);
+
+        if (ly < DISPLAY_HEIGHT + h && ly != last_y) {
+            in_transition = true;
+            avance = (DISPLAY_HEIGHT - ly) / 2;
+            ly += avance;
+
+            if (ly <= DISPLAY_HEIGHT - h) {
+                move(DISPLAY_WIDTH / 2 - w / 2, ly);
+                last_y = ly;
+            } else {
+                move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT - h);
+                in_transition = false;
+                shown = true;
+                return false;
+            }
+            return true;
+        } else {
+            move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT - h);
+            in_transition = false;
+            shown = true;
+            return false;
         }
     }
 
     private void _reveal() {
+        last_x = null;
+        last_y = null;
+
         if (in_transition) {
             return;
         }
 
-        shown = true;
+        switch (orientation) {
+            case "Left":
+                GLib.Timeout.add(20, _reveal_left);
+                break;
 
-        int avance = 0;
-        int w, h;
+            case "Top":
+                GLib.Timeout.add(20, _reveal_top);
+                break;
+
+            case "Bottom":
+                GLib.Timeout.add(20, _reveal_bottom);
+                break;
+        }
+    }
+
+    private bool _disreveal_left() {
+        int avance, w, h, lx, ly;
         get_size(out w, out h);
+        get_position(out lx, out ly);
 
-        int _x = DISPLAY_WIDTH / 2 - w / 2;
-        int _y = DISPLAY_HEIGHT / 2 - h / 2;
+        if (lx + w > 0 && lx != last_x) {
+            in_transition = true;
+            avance = (lx - w) / 2;
+            lx += avance;
+            move(lx, DISPLAY_HEIGHT / 2 - h / 2);
+            last_x = lx;
+            return true;
+        } else {
+            move(-w, DISPLAY_HEIGHT / 2 - h / 2);
+            in_transition = false;
+            shown = false;
+            return false;
+        }
+    }
 
-        int lx = 0;
-        int ly = 0;
+    private bool _disreveal_top() {
+        int avance, w, h, lx, ly;
+        get_size(out w, out h);
+        get_position(out lx, out ly);
 
-        if (orientation == "Left") {
-            GLib.Timeout.add(20, () => {
-                get_position(out lx, out ly);
+        if (ly + h > 0 && ly != last_y) {
+            in_transition = true;
+            avance = (ly - h) / 2;
+            ly += avance;
+            move(DISPLAY_WIDTH / 2 - w / 2, ly);
+            last_y = ly;
+            return true;
+        } else {
+            move(DISPLAY_WIDTH / 2 - w / 2, 0);
+            in_transition = false;
+            shown = false;
+            return false;
+        }
+    }
 
-                if (lx < 0) {
-                    in_transition = true;
-
-                    avance = (w - lx) / 2;
-                    lx = (lx + avance);
-                    if (lx <= 0) {
-                        move(lx, _y);
-                    } else {
-                        move(0, _y);
-                    }
-
-                    return true;
-                } else {
-                    in_transition = false;
-                    return false;
-                }
-            });
-
-        } else if (orientation == "Up") {
-            GLib.Timeout.add(20, () => {
-                get_position(out lx, out ly);
-
-                if (ly < 0) {
-                    in_transition = true;
-
-                    avance = (h - ly) / 2;
-                    ly = (ly + avance);
-                    if (ly <= 0) {
-                        move(_x, ly);
-                    } else {
-                        move(_x, 0);
-                    }
-                    return true;
-                } else {
-                    in_transition = false;
-                    return false;
-                }
-            });
-
-        } else if (orientation == "Bottom") {
-            GLib.Timeout.add(20, () => {
-                get_position(out lx, out ly);
-
-                if (ly < DISPLAY_HEIGHT + h) {
-                    avance = (DISPLAY_HEIGHT - ly) / 2;
-                    ly = (ly + avance);
-                    if (ly <= DISPLAY_HEIGHT - h) {
-                        move(_x, ly);
-                    } else {
-                        move(_x, DISPLAY_HEIGHT - h);
-                    }
-                    return true;
-                } else {
-                    in_transition = false;
-                    return false;
-                }
-            });
+    private bool _disreveal_bottom() {
+        int w, h, lx, ly;
+        get_size(out w, out h);
+        get_position(out lx, out ly);
+        if (ly + h < DISPLAY_HEIGHT) {
+            in_transition = true;
+            ly += (DISPLAY_HEIGHT - ly) / 2;
+            stdout.printf("%d\n", ly);
+            move(DISPLAY_WIDTH / 2 - w / 2, ly);
+            last_y = ly;
+            return true;
+        } else {
+            move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT);
+            in_transition = false;
+            shown = false;
+            return false;
         }
     }
 
     private void _disreveal() {
+        last_x = null;
+        last_y = null;
+
         if (in_transition) {
             return;
         }
 
-        shown = false;
+        switch (orientation) {
+            case "Left":
+                GLib.Timeout.add(20, _disreveal_left);
+                break;
 
-        int avance = 0;
-        int w, h;
-        get_size(out w, out h);
+            case "Top":
+                GLib.Timeout.add(20, _disreveal_top);
+                break;
 
-        int _x = DISPLAY_WIDTH / 2 - w / 2;
-        int _y = DISPLAY_HEIGHT / 2 - h / 2;
-
-        int lx = 0;
-        int ly = 0;
-        if (orientation == "Left") {
-            GLib.Timeout.add(20, () => {
-                get_position(out lx, out ly);
-
-                if (lx + w > 0) {
-                    in_transition = true;
-
-                    avance = (lx - w) / 2;
-                    move(lx + avance, _y);
-                    return true;
-                } else {
-                    in_transition = false;
-                    return false;
-                }
-            });
-
-        } else if (orientation == "Up") {
-            GLib.Timeout.add(20, () => {
-                get_position(out lx, out ly);
-                if (ly + h > 0) {
-                    in_transition = true;
-
-                    avance = (ly - h) / 2;
-                    move(_x, ly + avance);
-                    return true;
-                } else {
-                    in_transition = false;
-                    return false;
-                }
-            });
-
-        } else if (orientation == "Bottom") {
-            GLib.Timeout.add(20, () => {
-                get_position(out lx, out ly);
-                if (ly + h < DISPLAY_HEIGHT) {
-                    in_transition = true;
-
-                    avance = (DISPLAY_HEIGHT - ly) / 2;
-                    move(_x, ly + avance);
-                    return true;
-                } else {
-                    in_transition = false;
-                    return false;
-                }
-            });
+            case "Bottom":
+                GLib.Timeout.add(20, _disreveal_bottom);
+                break;
         }
     }
 
-    public void reveal(bool visible) {
-        if (visible == shown) {
+    public void reveal(bool _shown) {
+        if (_shown == shown) {
             return;
         }
 
-        shown = visible;
-        if (!visible) {
-            _disreveal();
-        } else {
+        shown = _shown;
+        if (shown) {
             _reveal();
+        } else {
+            _disreveal();
         }
     }
 }
