@@ -253,6 +253,7 @@ public class LateralPanel: Gtk.Window {
     public int last_position = DISPLAY_WIDTH;
     public int volume = 0;
     public int brightness = 0;
+    public int current_y = 0;
 
     public Gtk.Box vbox;
     public Gtk.Box monitors;
@@ -346,7 +347,7 @@ public class LateralPanel: Gtk.Window {
         GLib.Timeout.add(20, () => {
             bool t = x > DISPLAY_WIDTH - w;
             if (x == last_position || !t) {
-                move(DISPLAY_WIDTH - w, 0);
+                move(DISPLAY_WIDTH - w, current_y);
                 last_position = 0;
                 return false;
             }
@@ -354,7 +355,7 @@ public class LateralPanel: Gtk.Window {
             else {
                 int avance = (x - (DISPLAY_WIDTH - w)) / 2;
                 x -= avance;
-                move(x, 0);
+                move(x, current_y);
                 last_position = x;
                 return true;
             }
@@ -372,7 +373,7 @@ public class LateralPanel: Gtk.Window {
 
         GLib.Timeout.add(20, () => {
             if (x == last_position || x > DISPLAY_WIDTH) {
-                move(DISPLAY_WIDTH, 0);
+                move(DISPLAY_WIDTH, current_y);
                 last_position = 0;
                 hide();
                 return false;
@@ -382,7 +383,7 @@ public class LateralPanel: Gtk.Window {
                 int avance = (DISPLAY_WIDTH - x) / 2;
                 x += avance;
                 last_position = x;
-                move(x, 0);
+                move(x, current_y);
                 return true;
             }
         });

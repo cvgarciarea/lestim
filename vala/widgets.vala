@@ -95,6 +95,36 @@ public class LestimWindow: Gtk.ApplicationWindow {
         } else {
             mouse.stop();
         }
+
+
+        if (panel.expand) {
+            int w, h;
+            panel.get_size(out w, out h);
+
+            switch(panel.orientation) {
+                case "Left":
+                    lateral_panel.set_size_request(300, DISPLAY_HEIGHT);
+                    lateral_panel.resize(300, DISPLAY_HEIGHT);
+                    lateral_panel.current_y = 0;
+                    lateral_panel.reveal(false);
+                    break;
+
+                case "Top":
+                    lateral_panel.set_size_request(300, DISPLAY_HEIGHT - h);
+                    lateral_panel.resize(300, DISPLAY_HEIGHT - h);
+                    lateral_panel.current_y = h;
+                    lateral_panel.reveal(false);
+                    break;
+
+                case "Bottom":
+                    lateral_panel.set_size_request(300, DISPLAY_HEIGHT - h);
+                    lateral_panel.resize(300, DISPLAY_HEIGHT - h);
+                    lateral_panel.current_y = 0;
+                    lateral_panel.reveal(false);
+                    break;
+            }
+        }
+
     }
 
     public void settings_changed_cb(SettingsWindow window) {
