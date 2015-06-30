@@ -163,9 +163,7 @@ public class LestimPanel: Gtk.Window {
     public int icon_size = 48;
     public bool panel_visible = false;
     public bool in_transition = false;
-
-    private int? last_x = null;
-    private int? last_y = null;
+    public int avance = 10;
 
     public Gtk.Box box;
     public Gtk.Box favorite_area;
@@ -212,6 +210,7 @@ public class LestimPanel: Gtk.Window {
         box.pack_end(lateral_panel_button, false, false, 1);
 
         drag_data_received.connect(drag_data_received_cb);
+        realize.connect(realize_cb);
 
         show_all();
     }
@@ -223,12 +222,16 @@ public class LestimPanel: Gtk.Window {
 
         switch (target_type) {
             case Target.STRING:
-                stdout.printf((string)selection_data.get_data());
+                stdout.printf((string)selection_data.get_data() + "\n");
                 break;
             default:
-                stdout.printf("Anything");
+                stdout.printf("Anything\n");
                 break;
         }
+    }
+
+    private void realize_cb() {
+        reset_pos();
     }
 
     private void show_lateral_panel_cb() {
@@ -341,6 +344,47 @@ public class LestimPanel: Gtk.Window {
         }
 
         reserve_space = _reserve_space;
+        reserve_screen_space();
+    }
+
+    private void reserve_screen_space() {
+        if (!get_realized()) {
+            return;
+        }
+        /*
+        int w, h;
+        get_size(out w, out h);
+
+        Gdk.Atom atom;
+        long struts[12];
+
+        if (shown) {
+            switch (orientation) {
+                case "Top":
+                    struts = {0, 0, h, 0,
+                              0, 0, 0, 0,
+                              0, DISPLAY_WIDTH, 0, 0};
+                    break;
+                case "Left":
+                    struts = {w, 0, 0, 0,
+                              0, DISPLAY_HEIGHT,
+                              0, 0, 0, 0, 0, 0};
+                    break;
+                case "Bottom":
+                    struts = {0, 0, 0,
+                              DISPLAY_HEIGHT - h,
+                              0, 0, 0, 0, 0, 0,
+                              0, w};
+                    break;
+            }
+        } else {
+            struts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        }
+
+        atom = Gdk.Atom.intern("_NET_WM_STRUT_PARTIAL", false);
+        Gdk.property_change(get_window(), atom, Gdk.Atom.intern("CARDINAL", false),
+            32, Gdk.PropMode.REPLACE, (uint8[])struts, 12);
+    */
     }
 
     public void set_icon_size(int size) {
@@ -364,11 +408,13 @@ public class LestimPanel: Gtk.Window {
         int s = (int)settings.get_int_member("icon-size");
         int w, h;
         get_size(out w, out h);
+        shown = true;
 
         if (expand) {
             switch (orientation) {
                 case "Left":
-                    set_size_request(s, DISPLAY_WIDTH);
+                    set_size_request(s, DISPLAY_HEIGHT);
+                    resize(s, DISPLAY_HEIGHT);
                     move(0, 0);
                     break;
 
@@ -411,16 +457,13 @@ public class LestimPanel: Gtk.Window {
     }
 
     private bool _reveal_left() {
-        int w, h, lx, ly;
+        int x, y, w, h;
+        get_position(out x, out y);
         get_size(out w, out h);
-        get_position(out lx, out ly);
 
-        if (lx < 0 && lx != last_x) {
+        if (x + avance < 0) {
             in_transition = true;
-            lx += (w - lx) / 2;
-            move(lx, DISPLAY_HEIGHT / 2 - h / 2);
-            last_x = lx;
-
+            move(x + avance, DISPLAY_HEIGHT / 2 - h / 2);
             return true;
         } else {
             move(0, DISPLAY_HEIGHT / 2 - h / 2);
@@ -431,20 +474,13 @@ public class LestimPanel: Gtk.Window {
     }
 
     private bool _reveal_top() {
-        int avance, w, h, lx, ly;
+        int x, y, w, h;
+        get_position(out x, out y);
         get_size(out w, out h);
-        get_position(out lx, out ly);
 
-        if (ly - h < 0 && ly != last_y) {
+        if (y + avance < 0) {
             in_transition = true;
-            avance = (h - ly) / 2;
-            ly = (ly + avance);
-            if (ly <= 0) {
-                move(DISPLAY_WIDTH / 2 - w / 2, ly);
-                last_y = ly;
-            } else {
-                move(DISPLAY_WIDTH / 2 - w / 2, 0);
-            }
+            move(DISPLAY_WIDTH / 2 - w / 2, y + avance);
             return true;
         } else {
             move(DISPLAY_WIDTH / 2 - w / 2, 0);
@@ -455,24 +491,13 @@ public class LestimPanel: Gtk.Window {
     }
 
     private bool _reveal_bottom() {
-        int avance, w, h, lx, ly;
+        int x, y, w, h;
+        get_position(out x, out y);
         get_size(out w, out h);
-        get_position(out lx, out ly);
 
-        if (ly < DISPLAY_HEIGHT + h && ly != last_y) {
+        if (y - avance > DISPLAY_HEIGHT - h) {
             in_transition = true;
-            avance = (DISPLAY_HEIGHT - ly) / 2;
-            ly += avance;
-
-            if (ly <= DISPLAY_HEIGHT - h) {
-                move(DISPLAY_WIDTH / 2 - w / 2, ly);
-                last_y = ly;
-            } else {
-                move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT - h);
-                in_transition = false;
-                shown = true;
-                return false;
-            }
+            move(DISPLAY_WIDTH / 2 - w / 2, y - avance);
             return true;
         } else {
             move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT - h);
@@ -483,9 +508,6 @@ public class LestimPanel: Gtk.Window {
     }
 
     private void _reveal() {
-        last_x = null;
-        last_y = null;
-
         if (in_transition) {
             return;
         }
@@ -506,16 +528,13 @@ public class LestimPanel: Gtk.Window {
     }
 
     private bool _disreveal_left() {
-        int avance, w, h, lx, ly;
+        int w, h, x, y;
         get_size(out w, out h);
-        get_position(out lx, out ly);
+        get_position(out x, out y);
 
-        if (lx + w > 0 && lx != last_x) {
+        if (x + w - avance > 0) {
             in_transition = true;
-            avance = (lx - w) / 2;
-            lx += avance;
-            move(lx, DISPLAY_HEIGHT / 2 - h / 2);
-            last_x = lx;
+            move(x - avance, DISPLAY_HEIGHT / 2 - h / 2);
             return true;
         } else {
             move(-w, DISPLAY_HEIGHT / 2 - h / 2);
@@ -526,19 +545,16 @@ public class LestimPanel: Gtk.Window {
     }
 
     private bool _disreveal_top() {
-        int avance, w, h, lx, ly;
+        int w, h, x, y;
         get_size(out w, out h);
-        get_position(out lx, out ly);
+        get_position(out x, out y);
 
-        if (ly + h > 0 && ly != last_y) {
+        if (y + h - avance > 0) {
             in_transition = true;
-            avance = (ly - h) / 2;
-            ly += avance;
-            move(DISPLAY_WIDTH / 2 - w / 2, ly);
-            last_y = ly;
+            move(DISPLAY_WIDTH / 2 - w / 2, y - avance);
             return true;
         } else {
-            move(DISPLAY_WIDTH / 2 - w / 2, 0);
+            move(DISPLAY_WIDTH / 2 - w / 2, -h);
             in_transition = false;
             shown = false;
             return false;
@@ -546,15 +562,13 @@ public class LestimPanel: Gtk.Window {
     }
 
     private bool _disreveal_bottom() {
-        int w, h, lx, ly;
+        int w, h, x, y;
         get_size(out w, out h);
-        get_position(out lx, out ly);
-        if (ly + h < DISPLAY_HEIGHT) {
+        get_position(out x, out y);
+
+        if (y + avance < DISPLAY_HEIGHT) {
             in_transition = true;
-            ly += (DISPLAY_HEIGHT - ly) / 2;
-            stdout.printf("%d\n", ly);
-            move(DISPLAY_WIDTH / 2 - w / 2, ly);
-            last_y = ly;
+            move(DISPLAY_WIDTH / 2 - w / 2, y + avance);
             return true;
         } else {
             move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT);
@@ -565,9 +579,6 @@ public class LestimPanel: Gtk.Window {
     }
 
     private void _disreveal() {
-        last_x = null;
-        last_y = null;
-
         if (in_transition) {
             return;
         }

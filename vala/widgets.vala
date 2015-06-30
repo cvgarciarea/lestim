@@ -89,6 +89,7 @@ public class LestimWindow: Gtk.ApplicationWindow {
         panel.set_autohide(settings.get_boolean_member("panel-autohide"));
         panel.set_icon_size((int)settings.get_int_member("icon-size"));
         panel.set_expand(settings.get_boolean_member("panel-expand"));
+        panel.set_reserve_space(settings.get_boolean_member("panel-space-reserved"));
 
         if (settings.get_boolean_member("panel-autohide")) {
             mouse.start();
@@ -100,7 +101,6 @@ public class LestimWindow: Gtk.ApplicationWindow {
         if (panel.expand) {
             int w, h;
             panel.get_size(out w, out h);
-
             switch(panel.orientation) {
                 case "Left":
                     lateral_panel.set_size_request(300, DISPLAY_HEIGHT);
