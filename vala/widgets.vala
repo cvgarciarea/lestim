@@ -90,6 +90,7 @@ public class LestimWindow: Gtk.ApplicationWindow {
         panel.set_icon_size((int)settings.get_int_member("icon-size"));
         panel.set_expand(settings.get_boolean_member("panel-expand"));
         panel.set_reserve_space(settings.get_boolean_member("panel-space-reserved"));
+        panel.set_step_size((int)settings.get_int_member("panel-animation-step-size"));
 
         if (settings.get_boolean_member("panel-autohide")) {
             mouse.start();

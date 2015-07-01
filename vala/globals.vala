@@ -90,7 +90,14 @@ public void check_paths() {
     }
 
     if (!settings_path.query_exists()) {
-        string text = "{'icon-size': 48, 'panel-orientation': 'Left', 'panel-autohide': true, 'panel-expand': false, 'panel-space-reserved': false, 'favorites-apps': []}";
+        string text = "{'icon-size': 48,
+                        'panel-orientation': 'Left',
+                        'panel-autohide': true,
+                        'panel-expand': false,
+                        'panel-space-reserved': false,
+                        'panel-animation-step-size': 5;
+                        'favorites-apps': []
+                        }";
         try {
             GLib.FileUtils.set_contents(get_settings_path(), text);
         } catch {return;}

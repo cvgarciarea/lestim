@@ -1,4 +1,4 @@
-	/*
+/*
 Copyright (C) 2015, Cristian García <cristian99garcia@gmail.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -203,10 +203,16 @@ public class SettingsWindow: Gtk.Window {
         box4.pack_end(switch3, false, false, 0);
 
         var box5 = make_row(listbox, "Icon size");
-        Gtk.Adjustment adjustment = new Gtk.Adjustment(settings.get_int_member("icon-size"), 15, 200, 1, 10, 0);
-        Gtk.SpinButton spin = new Gtk.SpinButton(adjustment, 0, 0);
-        spin.value_changed.connect(icon_size_changed);
-        box5.pack_end(spin, false, false, 0);
+        Gtk.Adjustment adjustment1 = new Gtk.Adjustment(settings.get_int_member("icon-size"), 15, 200, 1, 10, 0);
+        Gtk.SpinButton spin1 = new Gtk.SpinButton(adjustment1, 0, 0);
+        spin1.value_changed.connect(icon_size_changed);
+        box5.pack_end(spin1, false, false, 0);
+
+        var box6 = make_row(listbox, "Animation step size(px)");
+        Gtk.Adjustment adjustment2 = new Gtk.Adjustment(settings.get_int_member("panel-animation-step-size"), 1, 50, 1, 10, 0);
+        Gtk.SpinButton spin2 = new Gtk.SpinButton(adjustment2, 0, 0);
+        spin2.value_changed.connect(step_size_changed);
+        box6.pack_end(spin2, false, false, 0);
 
         return box;
     }
@@ -268,6 +274,13 @@ public class SettingsWindow: Gtk.Window {
     private void icon_size_changed(Gtk.SpinButton spin) {
         Json.Object settings = get_config();
         settings.set_int_member("icon-size", (int64)spin.get_value());
+        set_config(settings);
+        settings_changed();
+    }
+
+    private void step_size_changed(Gtk.SpinButton spin) {
+        Json.Object settings = get_config();
+        settings.set_int_member("panel-animation-step-size", (int64)spin.get_value());
         set_config(settings);
         settings_changed();
     }

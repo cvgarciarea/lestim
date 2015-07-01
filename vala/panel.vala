@@ -387,6 +387,10 @@ public class LestimPanel: Gtk.Window {
     */
     }
 
+    public void set_step_size(int _avance) {
+        avance = _avance;
+    }
+
     public void set_icon_size(int size) {
         if (size != icon_size) {
             icon_size = size;
