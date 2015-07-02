@@ -41,14 +41,11 @@ public class SettingsWindow: Gtk.Window {
         hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
         add(hbox);
 
-        Gtk.ScrolledWindow scrolled = new Gtk.ScrolledWindow(null, null);
-        scrolled.set_size_request(200, -1);
-        hbox.pack_start(scrolled, false, false, 0);
-
         listbox = new Gtk.ListBox();
+        listbox.set_border_width(20);
         listbox.set_selection_mode(Gtk.SelectionMode.SINGLE);
         listbox.row_activated.connect(row_activated_cb);
-        scrolled.add(listbox);
+        hbox.pack_start(listbox, false, false, 0);
 
         box_switcher = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         hbox.pack_start(box_switcher, true, true, 5);
@@ -74,7 +71,7 @@ public class SettingsWindow: Gtk.Window {
         var image = get_image_from_name(icon);
 
         row.set_data("stack-child", child);
-        label.set_markup("<b>" + name + "</b>");
+        label.set_markup("<b><big>" + name + "</big></b>");
 
         box.pack_start(image, false, false, 2);
         box.pack_start(label, false, false, 0);
