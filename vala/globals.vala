@@ -178,11 +178,7 @@ public Gee.ArrayList get_backgrounds() {
             string path = Path.build_filename(get_system_backgrounds_dir(), name);
             list.add(path);
         }
-    }
-
-    catch {
-        return list;
-    }
+    } catch {}
 
     return list;
 }

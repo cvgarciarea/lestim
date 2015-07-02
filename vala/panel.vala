@@ -281,60 +281,8 @@ public class LestimPanel: Gtk.Window {
 
         expand = _expand;
         var settings = get_config();
-        int s = (int)settings.get_int_member("icon-size");
         int w, h;
         get_size(out w, out h);
-
-        if (expand) {
-            switch (orientation) {
-                case "Left":
-                    set_size_request(w, DISPLAY_HEIGHT);
-                    resize(w, DISPLAY_HEIGHT);
-                    move(0, 0);
-                    break;
-
-                case "Top":
-                    if (h == DISPLAY_WIDTH) {
-                        h = s;
-                    }
-
-                    set_size_request(DISPLAY_WIDTH, h);
-                    resize(DISPLAY_WIDTH, h);
-                    move(0, 0);
-                    break;
-
-                case "Bottom":
-                    if (h == DISPLAY_WIDTH) {
-                        h = s;
-                    }
-
-                    set_size_request(DISPLAY_WIDTH, h);
-                    resize(DISPLAY_WIDTH, h);
-                    get_size(out w, out h);
-                    move(DISPLAY_HEIGHT - h, 0);
-                    break;
-            }
-        } else {
-            switch (orientation) {
-                case "Left":
-                    set_size_request(s, 1);
-                    resize(s, 1);
-                    move(0, DISPLAY_HEIGHT / 2 - h / 2);
-                    break;
-
-                case "Top":
-                    set_size_request(1, s);
-                    resize(1, s);
-                    move(DISPLAY_WIDTH / 2 - w / 2, 0);
-                    break;
-
-                case "Bottom":
-                    set_size_request(1, s);
-                    resize(1, s);
-                    move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT - h);
-                    break;
-            }
-        }
         reset_pos();
     }
 
@@ -403,60 +351,84 @@ public class LestimPanel: Gtk.Window {
 
     public void reset_pos() {
         GLib.Idle.add(() => {
-
-        if (in_transition) {
-            return false;
-        }
-
-        var settings = get_config();
-        int s = (int)settings.get_int_member("icon-size");
-        int w, h;
-        get_size(out w, out h);
-        shown = true;
-
-        if (expand) {
-            switch (orientation) {
-                case "Left":
-                    set_size_request(s, DISPLAY_HEIGHT);
-                    resize(s, DISPLAY_HEIGHT);
-                    move(0, 0);
-                    break;
-
-                case "Top":
-                    set_size_request(DISPLAY_WIDTH, s);
-                    resize(DISPLAY_WIDTH, s);
-                    move(0, 0);
-                    break;
-
-                case "Bottom":
-                    set_size_request(DISPLAY_WIDTH, s);
-                    resize(DISPLAY_WIDTH, s);
-                    move(0, DISPLAY_HEIGHT - h);
-                    break;
+            if (in_transition) {
+                return false;
             }
-        } else {
-            switch (orientation) {
-                case "Left":
-                    set_size_request(s, 1);
-                    resize(s, 1);
-                    move(0, DISPLAY_HEIGHT / 2 - h / 2);
-                    break;
 
-                case "Top":
-                    set_size_request(1, s);
-                    resize(1, s);
-                    move(DISPLAY_WIDTH / 2 - w / 2, 0);
-                    break;
+            var settings = get_config();
+            int s = (int)settings.get_int_member("icon-size");
+            int w, h;
+            get_size(out w, out h);
+            shown = true;
 
-                case "Bottom":
-                    set_size_request(1, s);
-                    resize(1, s);
-                    move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT - h);
-                    break;
+            if (expand) {
+                switch (orientation) {
+                    case "Left":
+                        set_size_request(s, DISPLAY_HEIGHT);
+                        resize(s, DISPLAY_HEIGHT);
+                        break;
+
+                    case "Top":
+                        set_size_request(DISPLAY_WIDTH, s);
+                        resize(DISPLAY_WIDTH, s);
+                        break;
+
+                    case "Bottom":
+                        set_size_request(DISPLAY_WIDTH, s);
+                        resize(DISPLAY_WIDTH, s);
+                        break;
+                }
+            } else {
+                switch (orientation) {
+                    case "Left":
+                        set_size_request(s, 1);
+                        resize(s, 1);
+                        break;
+
+                    case "Top":
+                        set_size_request(1, s);
+                        resize(1, s);
+                        break;
+
+                    case "Bottom":
+                        set_size_request(1, s);
+                        resize(1, s);
+                        break;
+                }
             }
-        }
 
-        return true;
+            get_size(out w, out h);
+            if (shown) {
+                switch(orientation) {
+                    case "Left":
+                        move(0, !expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
+                        break;
+
+                    case "Top":
+                        move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, 0);
+                        break;
+
+                    case "Bottom":
+                        move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT - h);
+                        break;
+                }
+            } else {
+                switch(orientation) {
+                    case "Left":
+                        move(-w, !expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
+                        break;
+
+                    case "Top":
+                        move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, -h);
+                        break;
+
+                    case "Bottom":
+                        move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT);
+                        break;
+                }
+            }
+
+            return true;
         });
     }
 
