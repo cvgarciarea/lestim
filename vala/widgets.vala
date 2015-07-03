@@ -98,8 +98,7 @@ public class LestimWindow: Gtk.ApplicationWindow {
             mouse.stop();
         }
 
-
-        if (panel.expand) {
+        if (panel.expand && !panel.autohide) {
             int w, h;
             panel.get_size(out w, out h);
             switch(panel.orientation) {
@@ -124,6 +123,8 @@ public class LestimWindow: Gtk.ApplicationWindow {
                     lateral_panel.reveal(false);
                     break;
             }
+        } else {
+            lateral_panel.set_size_request(300, DISPLAY_HEIGHT);
         }
 
     }
