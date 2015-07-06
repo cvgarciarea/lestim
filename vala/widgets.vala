@@ -126,7 +126,6 @@ public class LestimWindow: Gtk.ApplicationWindow {
         } else {
             lateral_panel.set_size_request(300, DISPLAY_HEIGHT);
         }
-
     }
 
     public void settings_changed_cb(SettingsWindow window) {

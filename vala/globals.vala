@@ -148,7 +148,7 @@ public Gtk.Image get_image_from_name(string icon, int size=24) {
             pixbuf = pixbuf.scale_simple(size, size, Gdk.InterpType.BILINEAR);
         }
 
-        return new Gtk.Image.from_pixbuf(pixbuf);;
+        return new Gtk.Image.from_pixbuf(pixbuf);
     }
     catch (GLib.Error e) {
         return new Gtk.Image();
