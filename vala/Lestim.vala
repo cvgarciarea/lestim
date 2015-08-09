@@ -19,10 +19,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 class LestimApp: Gtk.Application {
 
     public LestimWindow background;
-    public GLib.Settings gsettings;
 
     public LestimApp() {
-        GLib.Object(application_id: "org.lestim");
+        GLib.Object(application_id: "org.desktop.lestim");
     }
 
     protected override void activate() {

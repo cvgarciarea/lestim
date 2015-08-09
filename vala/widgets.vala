@@ -19,10 +19,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 public class LestimWindow: Gtk.ApplicationWindow {
 
-    //bool panel_orientation;
-    //bool panel_autohide;
-    //bool panel_expand;
-    //bool panel_space_reserved;
+    public GLib.Settings gsettings;
 
     public Gtk.Box box;
     public LestimPanel panel;
@@ -37,6 +34,9 @@ public class LestimWindow: Gtk.ApplicationWindow {
         this.set_type_hint(Gdk.WindowTypeHint.DESKTOP);
         this.set_size_request(DISPLAY_WIDTH, DISPLAY_HEIGHT);
         this.move(0, 0);
+
+        this.gsettings = new GLib.Settings("org.lestim.panel");
+        this.gsettings.changed.connect(this.settings_changed_cb);
 
         this.box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         this.box.set_name("LestimCanvas");
@@ -55,16 +55,9 @@ public class LestimWindow: Gtk.ApplicationWindow {
         //apps_view.connect('favorited-app', self.update_favorited_buttons)
 
         this.settings_window = new SettingsWindow();
-        this.settings_window.settings_changed.connect(this.settings_changed_cb);
 
         this.mouse = new MouseDetector();
         this.mouse.pos_checked.connect(this.mouse_pos_checked);
-
-        this.realize.connect(this.realize_cb);
-    }
-
-    private void realize_cb(Gtk.Widget widget) {
-        this.load_settings();
     }
 
     public void show_apps(LestimPanel panel) {
@@ -83,57 +76,36 @@ public class LestimWindow: Gtk.ApplicationWindow {
         this.panel.set_reveal_state(visible);
     }
 
-    public void load_settings() {
-        Json.Object settings = get_config();
-        this.panel.set_orientation(settings.get_string_member("panel-orientation"));
-        this.panel.set_autohide(settings.get_boolean_member("panel-autohide"));
-        this.panel.set_icon_size((int)settings.get_int_member("icon-size"));
-        this.panel.set_expand(settings.get_boolean_member("panel-expand"));
-        this.panel.set_reserve_space(settings.get_boolean_member("panel-space-reserved"));
-        this.panel.set_step_size((int)settings.get_int_member("panel-animation-step-size"));
+    public void settings_changed_cb(GLib.Settings settings, string key) {
+        switch (key) {
+            case "icon-size":
+                this.panel.set_icon_size(this.gsettings.get_int("icon-size"));
+                break;
 
-        if (settings.get_boolean_member("panel-autohide")) {
-            this.mouse.start();
-        } else {
-            this.mouse.stop();
+            case "position":
+                this.panel.set_position(this.gsettings.get_string("position"));
+                break;
+
+            case "autohide":
+                this.panel.set_autohide(this.gsettings.get_boolean("autohide"));
+                break;
+
+            case "expand":
+                this.panel.set_expand(this.gsettings.get_boolean("expand"));
+                break;
+
+            case "space-reserved":
+                this.panel.set_reserve_space(this.gsettings.get_boolean("space-reserved"));
+                break;
+
+            case "animation-step-size":
+                this.panel.set_step_size(this.gsettings.get_int("animation-step-size"));
+                break;
         }
-
-        if (this.panel.expand && !this.panel.autohide) {
-            int w, h;
-            this.panel.get_size(out w, out h);
-            switch(this.panel.orientation) {
-                case "Left":
-                    this.lateral_panel.set_size_request(300, DISPLAY_HEIGHT);
-                    this.lateral_panel.resize(300, DISPLAY_HEIGHT);
-                    this.lateral_panel.current_y = 0;
-                    this.lateral_panel.reveal(false);
-                    break;
-
-                case "Top":
-                    this.lateral_panel.set_size_request(300, DISPLAY_HEIGHT - h);
-                    this.lateral_panel.resize(300, DISPLAY_HEIGHT - h);
-                    this.lateral_panel.current_y = h;
-                    this.lateral_panel.reveal(false);
-                    break;
-
-                case "Bottom":
-                    this.lateral_panel.set_size_request(300, DISPLAY_HEIGHT - h);
-                    this.lateral_panel.resize(300, DISPLAY_HEIGHT - h);
-                    this.lateral_panel.current_y = 0;
-                    this.lateral_panel.reveal(false);
-                    break;
-            }
-        } else {
-            this.lateral_panel.set_size_request(300, DISPLAY_HEIGHT);
-        }
-    }
-
-    public void settings_changed_cb(SettingsWindow window) {
-        this.load_settings();
     }
 
     public void mouse_pos_checked(MouseDetector mouse, int x1, int y1) {
-        if (!this.panel.autohide) {
+        if (!this.gsettings.get_boolean("autohide")) {
             this.mouse.stop();
             return;
         }
@@ -142,7 +114,7 @@ public class LestimWindow: Gtk.ApplicationWindow {
         this.panel.get_size(out w, out h);
         this.panel.get_position(out x2, out y2);
 
-        switch (this.panel.orientation) {
+        switch (this.gsettings.get_string("position")) {
             case "Left":
                 if ((x1 <= 10) && (y1 >= y2) && (y1 <= y2 + h) && !this.panel.shown) {
                     this.panel.reveal(true);

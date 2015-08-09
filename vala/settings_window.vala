@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 public class SettingsWindow: Gtk.Window {
 
-    public signal void settings_changed();
+    public GLib.Settings gsettings;
 
     public Gtk.HeaderBar headerbar;
     public Gtk.Box hbox;
@@ -26,12 +26,22 @@ public class SettingsWindow: Gtk.Window {
     public Gtk.Box box_switcher;
     public Gtk.Box current_child;
 
+    public Gtk.ComboBoxText combo_position;
+    public Gtk.Switch switch_autohide;
+    public Gtk.Switch switch_expand;
+    public Gtk.Switch switch_reserve;
+    public Gtk.SpinButton spin_icon;
+    public Gtk.SpinButton spin_step;
+
     public SettingsWindow() {
         this.set_name("SettingsWindow");
         this.set_title("Settings");
         this.set_icon_name("preferences-desktop");
         this.set_position(Gtk.WindowPosition.CENTER);
         this.resize(840, 580);
+
+        this.gsettings = new GLib.Settings("org.lestim.panel");
+        this.gsettings.changed.connect(this.settings_changed_cb);
 
         this.headerbar = new Gtk.HeaderBar();
         this.headerbar.set_title("Settings");
@@ -51,7 +61,7 @@ public class SettingsWindow: Gtk.Window {
         this.hbox.pack_start(this.box_switcher, true, true, 5);
 
         Gtk.Box child = make_panel_section();
-        current_child = child;
+        this.current_child = child;
         this.box_switcher.add(child);
         this.add_section("Panel", "user-home-symbolic", child);
         child.show_all();
@@ -84,7 +94,7 @@ public class SettingsWindow: Gtk.Window {
             return;
         }
 
-        this.box_switcher.remove(current_child);
+        this.box_switcher.remove(this.current_child);
         this.current_child = row.get_data("stack-child");
         this.box_switcher.add(row.get_data("stack-child"));
         this.show_all();
@@ -139,14 +149,14 @@ public class SettingsWindow: Gtk.Window {
     private Gtk.Box make_row(Gtk.ListBox listbox, string label) {
         Gtk.ListBoxRow row = new Gtk.ListBoxRow();
 
-        Gtk.Box hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
-        hbox.set_border_width(10);
-        hbox.pack_start(new Gtk.Label(label), false, false, 0);
-        row.add(hbox);
+        Gtk.Box box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+        box.set_border_width(10);
+        box.pack_start(new Gtk.Label(label), false, false, 0);
+        row.add(box);
 
-        this.listbox.add(row);
+        listbox.add(row);
 
-        return hbox;
+        return box;
     }
 
     private Gtk.Box make_panel_section() {
@@ -156,60 +166,42 @@ public class SettingsWindow: Gtk.Window {
         listbox.set_selection_mode(Gtk.SelectionMode.NONE);
         box.add(listbox);
 
-        Json.Object settings = get_config();
+        var box1 = this.make_row(listbox, "Orientation");
+        this.combo_position = new Gtk.ComboBoxText();
+        this.combo_position.append_text("Top");
+        this.combo_position.append_text("Bottom");
+        this.combo_position.append_text("Left");
+        this.combo_position.changed.connect(panel_position_changed);
+        box1.pack_end(this.combo_position, false, false, 0);
 
-        var box1 = make_row(listbox, "Orientation");
-        Gtk.ComboBoxText combo = new Gtk.ComboBoxText();
-        combo.append_text("Top");
-        combo.append_text("Bottom");
-        combo.append_text("Left");
-        combo.changed.connect(panel_orientation_changed);
-        box1.pack_end(combo, false, false, 0);
+        var box2 = this.make_row(listbox, "Autohide");
+        this.switch_autohide = new Gtk.Switch();
+        this.switch_autohide.notify["active"].connect(this.panel_autohide_changed);
+        box2.pack_end(this.switch_autohide, false, false, 0);
 
-        switch (settings.get_string_member("panel-orientation")) {
-            case "Top":
-                combo.set_active(0);
-                break;
-            case "Bottom":
-                combo.set_active(1);
-                break;
-            case "Left":
-                combo.set_active(2);
-                break;
-            default:
-                combo.set_active(2);
-                break;
-        }
+        var box3 = this.make_row(listbox, "Expand");
+        this.switch_expand = new Gtk.Switch();
+        this.switch_expand.notify["active"].connect(this.panel_expand_changed);
+        box3.pack_end(this.switch_expand, false, false, 0);
 
-        var box2 = make_row(listbox, "Autohide");
-        Gtk.Switch switch1 = new Gtk.Switch();
-        switch1.set_active(settings.get_boolean_member("panel-autohide"));
-        switch1.notify["active"].connect(panel_autohide_changed);
-        box2.pack_end(switch1, false, false, 0);
+        var box4 = this.make_row(listbox, "Reserve screen space");
+        this.switch_reserve = new Gtk.Switch();
+        this.switch_reserve.notify["active"].connect(this.panel_reserve_space_changed);
+        box4.pack_end(this.switch_reserve, false, false, 0);
 
-        var box3 = make_row(listbox, "Expand");
-        Gtk.Switch switch2 = new Gtk.Switch();
-        switch2.set_active(settings.get_boolean_member("panel-expand"));
-        switch2.notify["active"].connect(panel_expand_changed);
-        box3.pack_end(switch2, false, false, 0);
+        var box5 = this.make_row(listbox, "Icon size");
+        Gtk.Adjustment adj1 = new Gtk.Adjustment(15, 15, 200, 1, 10, 0);
+        this.spin_icon = new Gtk.SpinButton(adj1, 0, 0);
+        this.spin_icon.value_changed.connect(this.icon_size_changed);
+        box5.pack_end(this.spin_icon, false, false, 0);
 
-        var box4 = make_row(listbox, "Reserve screen space");
-        Gtk.Switch switch3 = new Gtk.Switch();
-        switch3.set_active(settings.get_boolean_member("panel-space-reserved"));
-        switch3.notify["active"].connect(panel_reserve_space_changed);
-        box4.pack_end(switch3, false, false, 0);
+        var box6 = this.make_row(listbox, "Animation step size(px)");
+        Gtk.Adjustment adj2 = new Gtk.Adjustment(1, 1, 50, 1, 10, 0);
+        this.spin_step = new Gtk.SpinButton(adj2, 0, 0);
+        this.spin_step.value_changed.connect(this.step_size_changed);
+        box6.pack_end(this.spin_step, false, false, 0);
 
-        var box5 = make_row(listbox, "Icon size");
-        Gtk.Adjustment adjustment1 = new Gtk.Adjustment(settings.get_int_member("icon-size"), 15, 200, 1, 10, 0);
-        Gtk.SpinButton spin1 = new Gtk.SpinButton(adjustment1, 0, 0);
-        spin1.value_changed.connect(icon_size_changed);
-        box5.pack_end(spin1, false, false, 0);
-
-        var box6 = make_row(listbox, "Animation step size(px)");
-        Gtk.Adjustment adjustment2 = new Gtk.Adjustment(settings.get_int_member("panel-animation-step-size"), 1, 50, 1, 10, 0);
-        Gtk.SpinButton spin2 = new Gtk.SpinButton(adjustment2, 0, 0);
-        spin2.value_changed.connect(step_size_changed);
-        box6.pack_end(spin2, false, false, 0);
+        this.update_widgets();
 
         return box;
     }
@@ -224,62 +216,128 @@ public class SettingsWindow: Gtk.Window {
         this.current_child.show_all();
     }
 
-    private void panel_orientation_changed(Gtk.ComboBox combo) {
-        string orientation;
-        Json.Object settings = get_config();
+    private void panel_position_changed(Gtk.ComboBox combo) {
+        string position;
         switch (combo.get_active()) {
             case 0:
-                orientation = "Top";
+                position = "Top";
                 break;
             case 1:
-                orientation = "Bottom";
+                position = "Bottom";
                 break;
             case 2:
-                orientation = "Left";
+                position = "Left";
                 break;
             default:
-                orientation = "Left";
+                position = "Left";
                 break;
         }
 
-        settings.set_string_member("panel-orientation", orientation);
-        set_config(settings);
-        this.settings_changed();
+        if (this.gsettings.get_string("position") != position) {
+            this.gsettings.set_string("position", position);
+        }
     }
 
     private void panel_autohide_changed(GLib.Object switcher, GLib.ParamSpec pspec) {
-        Json.Object settings = get_config();
-        settings.set_boolean_member("panel-autohide", (switcher as Gtk.Switch).get_active());
-        set_config(settings);
-        this.settings_changed();
+        bool active = this.switch_autohide.get_active();
+        if (this.gsettings.get_boolean("autohide") != active) {
+            this.gsettings.set_boolean("autohide", active);
+        }
     }
 
     private void panel_expand_changed(GLib.Object switcher, GLib.ParamSpec pspec) {
-        Json.Object settings = get_config();
-        settings.set_boolean_member("panel-expand", (switcher as Gtk.Switch).get_active());
-        set_config(settings);
-        this.settings_changed();
+        bool active = this.switch_expand.get_active();
+        if (this.gsettings.get_boolean("expand") != active) {
+            this.gsettings.set_boolean("expand", active);
+        }
     }
 
     private void panel_reserve_space_changed(GLib.Object switcher, GLib.ParamSpec pspec) {
-        Json.Object settings = get_config();
-        settings.set_boolean_member("panel-space-reserved", (switcher as Gtk.Switch).get_active());
-        set_config(settings);
-        this.settings_changed();
+        bool active = this.switch_expand.get_active();
+        if (this.gsettings.get_boolean("space-reserved") != active) {
+            this.gsettings.set_boolean("space-reserved", active);
+        }
     }
 
     private void icon_size_changed(Gtk.SpinButton spin) {
-        Json.Object settings = get_config();
-        settings.set_int_member("icon-size", (int64)spin.get_value());
-        set_config(settings);
-        this.settings_changed();
+        int size = (int)this.spin_icon.get_value();
+        if (this.gsettings.get_int("icon-size") != size) {
+            this.gsettings.set_int("icon-size", size);
+        }
     }
 
     private void step_size_changed(Gtk.SpinButton spin) {
-        Json.Object settings = get_config();
-        settings.set_int_member("panel-animation-step-size", (int64)spin.get_value());
-        set_config(settings);
-        this.settings_changed();
+        int size = (int)this.spin_step.get_value();
+        if (this.gsettings.get_int("animation-step-size") != size) {
+            this.gsettings.set_int("animation-step-size", size);
+        }
+    }
+
+    public void settings_changed_cb(GLib.Settings settings, string key) {
+        this.update_widgets(key);
+    }
+
+    public void update_widgets(string? key=null) {
+        if (key != null) {
+            switch (key) {
+                case "icon-size":
+                    this.spin_icon.set_value(this.gsettings.get_int("icon-size"));
+                    break;
+
+                case "position":
+                    switch (this.gsettings.get_string("position")) {
+                        case "Top":
+                            this.combo_position.set_active(0);
+                            break;
+                        case "Bottom":
+                            this.combo_position.set_active(1);
+                            break;
+                        case "Left":
+                            this.combo_position.set_active(2);
+                            break;
+                        default:
+                            this.combo_position.set_active(3);
+                            break;
+                    }
+                    break;
+
+                case "autohide":
+                    this.switch_autohide.set_active(this.gsettings.get_boolean("autohide"));
+                    break;
+
+                case "expand":
+                    this.switch_expand.set_active(this.gsettings.get_boolean("expand"));
+                    break;
+
+                case "space-reserved":
+                    this.switch_reserve.set_active(this.gsettings.get_boolean("space-reserved"));
+                    break;
+
+                case "animation-step-size":
+                    this.spin_step.set_value(this.gsettings.get_int("animation-step-size"));
+                    break;
+            }
+        } else {
+            this.spin_icon.set_value(this.gsettings.get_int("icon-size"));
+            this.switch_autohide.set_active(this.gsettings.get_boolean("autohide"));
+            this.switch_expand.set_active(this.gsettings.get_boolean("expand"));
+            this.switch_reserve.set_active(this.gsettings.get_boolean("space-reserved"));
+            this.spin_step.set_value(this.gsettings.get_int("animation-step-size"));
+            switch (this.gsettings.get_string("position")) {
+                case "Top":
+                    this.combo_position.set_active(0);
+                    break;
+                case "Bottom":
+                    this.combo_position.set_active(1);
+                    break;
+                case "Left":
+                    this.combo_position.set_active(2);
+                    break;
+                default:
+                    this.combo_position.set_active(3);
+                    break;
+            }
+        }
     }
 }
 

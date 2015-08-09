@@ -1,61 +1,53 @@
 <schemalist>
-  <schema id="org.lestim" path="/org/lestim" gettext-domain="/org/lestim">
-
-    <key name="panel-icon-size" type="i">
+  <schema id="org.lestim.panel" path="/org/lestim/panel/" gettext-domain="lestim-panel">
+    <key name="icon-size" type="i">
       <default>48</default>
       <summary>Icon size</summary>
       <description>
         Size of apps grid icons.
       </description>
     </key>
-
-    <key name="panel-position" type="s">
-      <default>Left</default>
-      <sumary>The panel position.</sumary>
+    <key name="position" type="s">
+      <default>'Left'</default>
+      <summary>The panel position.</summary>
       <description>
-        Set the panel position. Can be "Left", "Right", "Top" and "Down"
+        Set the panel position. Can be "Left", "Top" and "Down"
       </description>
     </key>
-
-    <key name="panel-autohide" type="b">
+    <key name="autohide" type="b">
       <default>true</default>
       <summary>Panel autohide</summary>
       <description>
         Set the panel behavior.
       </description>
     </key>
-
-    <key name="panel-expand" type="b">
+    <key name="expand" type="b">
       <default>false</default>
-      <sumary>Panel expand</sumary>
+      <summary>Panel expand</summary>
       <description>
         Panel expand to all screen width or height.
       </description>
     </key>
-
-    <key name="panel-space-reserved" type="b">
+    <key name="space-reserved" type="b">
       <default>false</default>
-      <sumary>Reserve screen space for the dock</sumary>
+      <summary>Reserve screen space for the dock</summary>
       <description>
         Reserve space in the screen for the panel. No application can be over the panel.
       </description>
     </key>
-
-    <key name="panel-animation-step-size" type="i">
+    <key name="animation-step-size" type="i">
       <default>5</default>
-      <sumary>Step size for the panel animation</sumary>
+      <summary>Step size for the panel animation</summary>
       <description>
 	The higher the step, the less time animation and vice versa.
       </description>
     </key>
-
-    <key name="favorites-apps" type="s">
+    <key name="favorites-apps" type="as">
       <default>[]</default>
-      <sumary>Favorite applications</sumary>
+      <summary>Favorite applications</summary>
       <description>
         The applications in the panel.
       </description>
     </key>
-
   </schema>
 </schemalist>

@@ -71,6 +71,8 @@ public class AppsView: Gtk.Window {
 
     public bool shown = false;
 
+    public GLib.Settings gsettings;
+
     public LestimWindow parent;
     public Gtk.Box vbox;
     public Gtk.Entry entry;
@@ -83,13 +85,14 @@ public class AppsView: Gtk.Window {
         //apps_manager = new GMenuManager();
 
         this.set_name("AppsView");
-
         this.set_transient_for(parent);
         //this.set_modal(true);
         this.set_can_focus(true);
         this.set_border_width(10);
         this.set_keep_above(true);
         this.set_decorated(false);
+
+        this.gsettings = new GLib.Settings("org.lestim.panel");
 
         this.vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         this.vbox.set_name("AppsBox");
@@ -129,18 +132,19 @@ public class AppsView: Gtk.Window {
         if (this.shown) {
             this.entry.set_text("");
 
+            string position = this.gsettings.get_string("position");
             int x, y, w, h;
             this.parent.panel.get_position(out x, out y);
             this.parent.panel.get_size(out w, out h);
 
-            if (this.parent.panel.orientation == "Left") {
+            if (position == "Left") {
                 this.move(w + 10, 0);
                 this.set_size_request(DISPLAY_WIDTH - w - 10, DISPLAY_HEIGHT);
                 this.resize(DISPLAY_WIDTH - w - 10, DISPLAY_HEIGHT);
             } else {
                 this.set_size_request(DISPLAY_WIDTH, DISPLAY_HEIGHT - h - 10);
                 this.resize(DISPLAY_WIDTH, DISPLAY_HEIGHT - h - 10);
-                if (this.parent.panel.orientation == "Top") {
+                if (position == "Top") {
                     this.move(0, h + 10);
                 } else {
                     this.move(0, 0);

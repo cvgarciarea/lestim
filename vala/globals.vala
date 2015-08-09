@@ -57,10 +57,6 @@ public string get_work_dir() {
     return Path.build_filename(GLib.Environment.get_user_config_dir(), "lestim");
 }
 
-public string get_settings_path() {
-    return Path.build_filename(get_work_dir(), "settings.json");
-}
-
 public string get_theme_path() {
     return Path.build_filename(get_work_dir(), "theme.css");
 }
@@ -79,27 +75,12 @@ public string get_system_apps_dir() {
 
 public void check_paths() {
     GLib.File work_dir = GLib.File.new_for_path(get_work_dir());
-    GLib.File settings_path = GLib.File.new_for_path(get_settings_path());
     GLib.File background_path = GLib.File.new_for_path(get_background_path());
     GLib.File theme_path = GLib.File.new_for_path(get_theme_path());
 
     if (!work_dir.query_exists()) {
         try {
             work_dir.make_directory_with_parents();
-        } catch {return;}
-    }
-
-    if (!settings_path.query_exists()) {
-        string text = "{'icon-size': 48,
-                        'panel-orientation': 'Left',
-                        'panel-autohide': true,
-                        'panel-expand': false,
-                        'panel-space-reserved': false,
-                        'panel-animation-step-size': 5;
-                        'favorites-apps': []
-                        }";
-        try {
-            GLib.FileUtils.set_contents(get_settings_path(), text);
         } catch {return;}
     }
 
@@ -116,26 +97,6 @@ public void check_paths() {
             file.copy(theme_path, FileCopyFlags.NONE);
         } catch (GLib.Error e) {}
     }
-}
-
-public Json.Object get_config() {
-    check_paths();
-    Json.Parser parser = new Json.Parser ();
-    try {
-    	parser.load_from_file(get_settings_path());
-    } catch {
-        return new Json.Object();
-    }
-
-	return parser.get_root().get_object();
-}
-
-public void set_config(Json.Object settings) {
-    var root_node = new Json.Node (Json.NodeType.OBJECT);
-    root_node.set_object(settings);
-
-    var generator = new Json.Generator(){pretty=true, root=root_node};
-    generator.to_file(get_settings_path());
 }
 
 public Gtk.Image get_image_from_name(string icon, int size=24) {

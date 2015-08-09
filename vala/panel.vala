@@ -155,12 +155,9 @@ public class LestimPanel: Gtk.Window {
     public signal void show_apps();
     public signal void show_lateral_panel(bool visible);
 
+    public GLib.Settings gsettings;
+
     public bool shown = true;
-    public string orientation = "Left";
-    public bool expand = false;
-    public bool autohide = false;
-    public bool reserve_space = false;
-    public int icon_size = 48;
     public bool panel_visible = false;
     public bool in_transition = false;
     public int avance = 10;
@@ -190,6 +187,8 @@ public class LestimPanel: Gtk.Window {
             app_button_target_list,
             Gdk.DragAction.COPY
         );
+
+        this.gsettings = new GLib.Settings("org.lestim.panel");
 
         this.box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         this.add(this.box);
@@ -231,7 +230,7 @@ public class LestimPanel: Gtk.Window {
     }
 
     private void realize_cb() {
-        this.reset_pos();
+        this.set_position(this.gsettings.get_string("position"));
     }
 
     private void show_lateral_panel_cb() {
@@ -251,13 +250,8 @@ public class LestimPanel: Gtk.Window {
         }
     }
 
-    public void set_orientation(string orientation) {
-        if (this.orientation == orientation) {
-            return;
-        }
-
-        this.orientation = orientation;
-        if (this.orientation == "Top" || this.orientation == "Bottom") {
+    public void set_position(string position) {
+        if (position == "Top" || position == "Bottom") {
             this.box.set_orientation(Gtk.Orientation.HORIZONTAL);
             this.favorite_area.set_orientation(Gtk.Orientation.HORIZONTAL);
         } else {
@@ -269,32 +263,20 @@ public class LestimPanel: Gtk.Window {
     }
 
     public void set_autohide(bool autohide) {
-        this.autohide = autohide;
-        this.reveal(!this.autohide);
+        this.reveal(!autohide);
     }
 
     public void set_expand(bool expand) {
-        if (this.expand == expand) {
-            return;
-        }
-
-        this.expand = expand;
-        var settings = get_config();
         int w, h;
         this.get_size(out w, out h);
         this.reset_pos();
     }
 
     public void set_reserve_space(bool reserve_space) {
-        if (this.reserve_space == reserve_space) {
-            return;
-        }
-
-        this.reserve_space = reserve_space;
-        this.reserve_screen_space();
+        this.reserve_screen_space(reserve_space);
     }
 
-    private void reserve_screen_space() {
+    private void reserve_screen_space(bool reserve) {
         if (!this.get_realized()) {
             return;
         }
@@ -306,7 +288,7 @@ public class LestimPanel: Gtk.Window {
         long struts[12];
 
         if (this.shown) {
-            switch (this.orientation) {
+            switch (this.gsettings.get_string("position")) {
                 case "Top":
                     struts = {0, 0, h, 0,
                               0, 0, 0, 0,
@@ -339,12 +321,8 @@ public class LestimPanel: Gtk.Window {
     }
 
     public void set_icon_size(int size) {
-        if (this.icon_size != size) {
-            this.icon_size = size;
-            this.show_apps_button.set_icon_size(this.icon_size);
-            this.lateral_panel_button.set_icon_size(this.icon_size);
-        }
-
+        this.show_apps_button.set_icon_size(size);
+        this.lateral_panel_button.set_icon_size(size);
         this.reset_pos();
     }
 
@@ -354,14 +332,14 @@ public class LestimPanel: Gtk.Window {
                 return false;
             }
 
-            var settings = get_config();
-            int s = (int)settings.get_int_member("icon-size");
+            int s = this.gsettings.get_int("icon-size");
             int w, h;
             this.get_size(out w, out h);
             this.shown = true;
+            bool expand = this.gsettings.get_boolean("expand");
 
-            if (this.expand) {
-                switch (this.orientation) {
+            if (expand) {
+                switch (this.gsettings.get_string("position")) {
                     case "Left":
                         this.set_size_request(s, DISPLAY_HEIGHT);
                         this.resize(s, DISPLAY_HEIGHT);
@@ -378,7 +356,7 @@ public class LestimPanel: Gtk.Window {
                         break;
                 }
             } else {
-                switch (this.orientation) {
+                switch (this.gsettings.get_string("position")) {
                     case "Left":
                         this.set_size_request(s, 1);
                         this.resize(s, 1);
@@ -398,31 +376,31 @@ public class LestimPanel: Gtk.Window {
 
             this.get_size(out w, out h);
             if (this.shown) {
-                switch(this.orientation) {
+                switch(this.gsettings.get_string("position")) {
                     case "Left":
-                        this.move(0, !this.expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
+                        this.move(0, !expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
                         break;
 
                     case "Top":
-                        this.move(!this.expand? DISPLAY_WIDTH / 2 - w / 2: 0, 0);
+                        this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, 0);
                         break;
 
                     case "Bottom":
-                        this.move(!this.expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT - h);
+                        this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT - h);
                         break;
                 }
             } else {
-                switch(this.orientation) {
+                switch(this.gsettings.get_string("position")) {
                     case "Left":
-                        this.move(-w, !this.expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
+                        this.move(-w, !expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
                         break;
 
                     case "Top":
-                        this.move(!this.expand? DISPLAY_WIDTH / 2 - w / 2: 0, -h);
+                        this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, -h);
                         break;
 
                     case "Bottom":
-                        this.move(!this.expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT);
+                        this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT);
                         break;
                 }
             }
@@ -486,7 +464,7 @@ public class LestimPanel: Gtk.Window {
             return;
         }
 
-        switch (this.orientation) {
+        switch (this.gsettings.get_string("position")) {
             case "Left":
                 GLib.Timeout.add(20, this._reveal_left);
                 break;
@@ -557,7 +535,7 @@ public class LestimPanel: Gtk.Window {
             return;
         }
 
-        switch (this.orientation) {
+        switch (this.gsettings.get_string("position")) {
             case "Left":
                 GLib.Timeout.add(20, this._disreveal_left);
                 break;
