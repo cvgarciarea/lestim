@@ -1,4 +1,0 @@
-#!/bin/bash
-
-mutter &
-python3 /usr/share/lestim/Lestim.py
