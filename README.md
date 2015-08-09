@@ -1,7 +1,7 @@
 Lestim
 ======
 
-#Test vala version:
+##Test vala version:
 **Copy xml file and install schema:**
 ```
 # cp vala/data/org.lestim.gschema.xml /usr/share/glib-2.0/schemas/
@@ -15,10 +15,20 @@ make
 ./lestim
 ```
 
-# Task list
+##Task list
 - [ ] Resize background size to screen size
 - [ ] Fix the style for themes with dark leter
 - [ ] Make installable
+- [ ] Add functionality to the lateral panel
+  - [ ] Calendar
+  - [ ] System icons
+  - [ ] Sound GtkScale
+  - [ ] Brightness GtkScale
+  - [ ] Down buttons
+    - [ ] Power off
+    - [ ] Reboot
+    - [ ] Log out
+    - [x] Preferences
 
 
 *Dependencies:*
@@ -31,6 +41,5 @@ make
  * libgnome-menu
  * gio-unix 2.0
 
-Author
-===
+**Author**
  * Cristian García <cristian99garcia@gmail.com>
