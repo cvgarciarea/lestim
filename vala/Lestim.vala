@@ -1,7 +1,4 @@
 /*
-Compile with:
-    valac --pkg gtk+-3.0 --pkg gdk-3.0 --pkg libwnck-3.0 --pkg json-glib-1.0 --pkg gee-0.8 --pkg gdk-pixbuf-2.0 --pkg libgnome-menu --pkg gio-unix-2.0 -X -lm Lestim.vala globals.vala panel.vala widgets.vala lateral_panel.vala settings_window.vala apps_view.vala -X "-DGMENU_I_KNOW_THIS_IS_UNSTABLE"
-
 Copyright (C) 2015, Cristian García <cristian99garcia@gmail.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -19,24 +16,25 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-using Gtk;
-
 class LestimApp: Gtk.Application {
-    public LestimWindow window;
+
+    public LestimWindow background;
+    public GLib.Settings gsettings;
+
+    public LestimApp() {
+        GLib.Object(application_id: "org.lestim");
+    }
 
     protected override void activate() {
         set_display_size();
         check_paths();
 
-        window = new LestimWindow();
-        window.set_application(this);
-        window.show();
-        set_theme();
-  }
+        this.background = new LestimWindow();
+        this.background.set_application(this);
+        this.background.show();
 
-    public LestimApp() {
-        Object(application_id: "org.lestim.session");
-  }
+        set_theme();
+    }
 }
 
 int main (string[] args) {

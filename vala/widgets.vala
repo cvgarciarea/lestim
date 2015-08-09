@@ -32,149 +32,149 @@ public class LestimWindow: Gtk.ApplicationWindow {
     public MouseDetector mouse;
 
     public LestimWindow() {
-        set_title("Lestim");
-        set_name("LestimWindow");
-        set_type_hint(Gdk.WindowTypeHint.DESKTOP);
-        set_size_request(DISPLAY_WIDTH, DISPLAY_HEIGHT);
-        move(0, 0);
+        this.set_title("Lestim");
+        this.set_name("LestimWindow");
+        this.set_type_hint(Gdk.WindowTypeHint.DESKTOP);
+        this.set_size_request(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+        this.move(0, 0);
 
-        box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        box.set_name("LestimCanvas");
-        add(box);
+        this.box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+        this.box.set_name("LestimCanvas");
+        this.add(this.box);
 
-        panel = new LestimPanel();
-        panel.show_apps.connect(show_apps);
-        panel.show_lateral_panel.connect(show_lateral_panel);
+        this.panel = new LestimPanel();
+        this.panel.show_apps.connect(show_apps);
+        this.panel.show_lateral_panel.connect(this.show_lateral_panel);
 
-        lateral_panel = new LateralPanel();
-        lateral_panel.show_settings.connect(show_settings);
-        lateral_panel.reveal_changed.connect(reveal_changed);
+        this.lateral_panel = new LateralPanel();
+        this.lateral_panel.show_settings.connect(this.show_settings);
+        this.lateral_panel.reveal_changed.connect(this.reveal_changed);
 
-        apps_view = new AppsView(this);
+        this.apps_view = new AppsView(this);
         //apps_view.connect('run-app', self.run_app)
         //apps_view.connect('favorited-app', self.update_favorited_buttons)
 
-        settings_window = new SettingsWindow();
-        settings_window.settings_changed.connect(settings_changed_cb);
+        this.settings_window = new SettingsWindow();
+        this.settings_window.settings_changed.connect(this.settings_changed_cb);
 
-        mouse = new MouseDetector();
-        mouse.pos_checked.connect(mouse_pos_checked);
+        this.mouse = new MouseDetector();
+        this.mouse.pos_checked.connect(this.mouse_pos_checked);
 
-        realize.connect(realize_cb);
+        this.realize.connect(this.realize_cb);
     }
 
     private void realize_cb(Gtk.Widget widget) {
-        load_settings();
+        this.load_settings();
     }
 
     public void show_apps(LestimPanel panel) {
-        apps_view.reveal(!apps_view.visible);
+        this.apps_view.reveal(!this.apps_view.visible);
     }
 
-    public void show_lateral_panel(LestimPanel _panel, bool visible) {
-        lateral_panel.reveal(visible);
+    public void show_lateral_panel(LestimPanel panel, bool visible) {
+        this.lateral_panel.reveal(visible);
     }
 
-    public void show_settings(LateralPanel _panel) {
-        settings_window.reveal();
+    public void show_settings(LateralPanel panel) {
+        this.settings_window.reveal();
     }
 
-    public void reveal_changed(LateralPanel _panel, bool visible) {
-        panel.set_reveal_state(visible);
+    public void reveal_changed(LateralPanel panel, bool visible) {
+        this.panel.set_reveal_state(visible);
     }
 
     public void load_settings() {
         Json.Object settings = get_config();
-        panel.set_orientation(settings.get_string_member("panel-orientation"));
-        panel.set_autohide(settings.get_boolean_member("panel-autohide"));
-        panel.set_icon_size((int)settings.get_int_member("icon-size"));
-        panel.set_expand(settings.get_boolean_member("panel-expand"));
-        panel.set_reserve_space(settings.get_boolean_member("panel-space-reserved"));
-        panel.set_step_size((int)settings.get_int_member("panel-animation-step-size"));
+        this.panel.set_orientation(settings.get_string_member("panel-orientation"));
+        this.panel.set_autohide(settings.get_boolean_member("panel-autohide"));
+        this.panel.set_icon_size((int)settings.get_int_member("icon-size"));
+        this.panel.set_expand(settings.get_boolean_member("panel-expand"));
+        this.panel.set_reserve_space(settings.get_boolean_member("panel-space-reserved"));
+        this.panel.set_step_size((int)settings.get_int_member("panel-animation-step-size"));
 
         if (settings.get_boolean_member("panel-autohide")) {
-            mouse.start();
+            this.mouse.start();
         } else {
-            mouse.stop();
+            this.mouse.stop();
         }
 
-        if (panel.expand && !panel.autohide) {
+        if (this.panel.expand && !this.panel.autohide) {
             int w, h;
-            panel.get_size(out w, out h);
-            switch(panel.orientation) {
+            this.panel.get_size(out w, out h);
+            switch(this.panel.orientation) {
                 case "Left":
-                    lateral_panel.set_size_request(300, DISPLAY_HEIGHT);
-                    lateral_panel.resize(300, DISPLAY_HEIGHT);
-                    lateral_panel.current_y = 0;
-                    lateral_panel.reveal(false);
+                    this.lateral_panel.set_size_request(300, DISPLAY_HEIGHT);
+                    this.lateral_panel.resize(300, DISPLAY_HEIGHT);
+                    this.lateral_panel.current_y = 0;
+                    this.lateral_panel.reveal(false);
                     break;
 
                 case "Top":
-                    lateral_panel.set_size_request(300, DISPLAY_HEIGHT - h);
-                    lateral_panel.resize(300, DISPLAY_HEIGHT - h);
-                    lateral_panel.current_y = h;
-                    lateral_panel.reveal(false);
+                    this.lateral_panel.set_size_request(300, DISPLAY_HEIGHT - h);
+                    this.lateral_panel.resize(300, DISPLAY_HEIGHT - h);
+                    this.lateral_panel.current_y = h;
+                    this.lateral_panel.reveal(false);
                     break;
 
                 case "Bottom":
-                    lateral_panel.set_size_request(300, DISPLAY_HEIGHT - h);
-                    lateral_panel.resize(300, DISPLAY_HEIGHT - h);
-                    lateral_panel.current_y = 0;
-                    lateral_panel.reveal(false);
+                    this.lateral_panel.set_size_request(300, DISPLAY_HEIGHT - h);
+                    this.lateral_panel.resize(300, DISPLAY_HEIGHT - h);
+                    this.lateral_panel.current_y = 0;
+                    this.lateral_panel.reveal(false);
                     break;
             }
         } else {
-            lateral_panel.set_size_request(300, DISPLAY_HEIGHT);
+            this.lateral_panel.set_size_request(300, DISPLAY_HEIGHT);
         }
     }
 
     public void settings_changed_cb(SettingsWindow window) {
-        load_settings();
+        this.load_settings();
     }
 
     public void mouse_pos_checked(MouseDetector mouse, int x1, int y1) {
-        if (!panel.autohide) {
-            mouse.stop();
+        if (!this.panel.autohide) {
+            this.mouse.stop();
             return;
         }
 
         int w, h, x2, y2;
-        panel.get_size(out w, out h);
-        panel.get_position(out x2, out y2);
+        this.panel.get_size(out w, out h);
+        this.panel.get_position(out x2, out y2);
 
-        switch (panel.orientation) {
+        switch (this.panel.orientation) {
             case "Left":
-                if ((x1 <= 10) && (y1 >= y2) && (y1 <= y2 + h) && !panel.shown) {
-                    panel.reveal(true);
+                if ((x1 <= 10) && (y1 >= y2) && (y1 <= y2 + h) && !this.panel.shown) {
+                    this.panel.reveal(true);
                 }
-                else if ((x1 >= w) || (y1 <= y2) || (y1 >= y2 + h) && panel.shown) {
+                else if ((x1 >= w) || (y1 <= y2) || (y1 >= y2 + h) && this.panel.shown) {
                     //panel.reveal(detector.panel_visible || apps_view.shown);
-                    panel.reveal(apps_view.shown);
+                    this.panel.reveal(this.apps_view.shown);
                 }
                 break;
 
             case "Top":
-                if ((y1 <= 10) && (x1 >= x2) && (x1 <= x2 + w) && !panel.shown) {
-                    panel.reveal(true);
+                if ((y1 <= 10) && (x1 >= x2) && (x1 <= x2 + w) && !this.panel.shown) {
+                    this.panel.reveal(true);
                 }
-                else if ((y1 >= h) || (x1 <= x2) || (x1 >= x2 + w) && panel.shown) {
+                else if ((y1 >= h) || (x1 <= x2) || (x1 >= x2 + w) && this.panel.shown) {
                     //panel.reveal(detector.panel_visible || apps_view.shown);
-                    panel.reveal(apps_view.shown);
+                    this.panel.reveal(this.apps_view.shown);
                 }
                 break;
 
             case "Bottom":
-                if ((y1 >= DISPLAY_HEIGHT - 10) && (x1 >= x2) && (x1 <= x2 + w) && !panel.shown) {
-                    panel.reveal(true);
+                if ((y1 >= DISPLAY_HEIGHT - 10) && (x1 >= x2) && (x1 <= x2 + w) && !this.panel.shown) {
+                    this.panel.reveal(true);
                 }
-                else if ((y1 <= DISPLAY_HEIGHT - h) || (x1 <= x2) || (x1 >= x2 + w) && panel.shown) {
+                else if ((y1 <= DISPLAY_HEIGHT - h) || (x1 <= x2) || (x1 >= x2 + w) && this.panel.shown) {
                     //panel.reveal(detector.panel_visible || apps_view.shown);
-                    panel.reveal(apps_view.shown);
+                    this.panel.reveal(this.apps_view.shown);
                 }
                 break;
 
             default:
-                panel.reveal(true);
+                this.panel.reveal(true);
                 break;
         }
     }
@@ -185,14 +185,14 @@ public class AppButton: Gtk.Button {
     public GLib.DesktopAppInfo app_info;
     public Gtk.Box vbox;
 
-    public AppButton(GLib.DesktopAppInfo _app_info, bool show_label=false) {
-        app_info = _app_info;
+    public AppButton(GLib.DesktopAppInfo app_info, bool show_label=false) {
+        this.app_info = app_info;
 
-        set_name("AppButton");
-        set_tooltip_text(app_info.get_description());
-        set_hexpand(false);
-        set_vexpand(false);
-        set_can_focus(true);
+        this.set_name("AppButton");
+        this.set_tooltip_text(app_info.get_description());
+        this.set_hexpand(false);
+        this.set_vexpand(false);
+        this.set_can_focus(true);
 
         Gtk.drag_source_set(
             this,
@@ -201,12 +201,12 @@ public class AppButton: Gtk.Button {
             Gdk.DragAction.COPY
         );
 
-        vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        vbox.set_hexpand(false);
-        add(vbox);
+        this.vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+        this.vbox.set_hexpand(false);
+        this.add(this.vbox);
 
         if (show_label) {
-            vbox.pack_end(new Gtk.Label(app_info.get_name()), false, false, 2);
+            this.vbox.pack_end(new Gtk.Label(this.app_info.get_name()), false, false, 2);
         }
 
         int icon_size = 64;  // get from settings;
@@ -223,7 +223,7 @@ public class AppButton: Gtk.Button {
             pixbuf = pixbuf.scale_simple(icon_size, icon_size, Gdk.InterpType.BILINEAR);
         }
 
-        vbox.pack_start(new Gtk.Image.from_pixbuf(pixbuf), false, false, 0);
+        this.vbox.pack_start(new Gtk.Image.from_pixbuf(pixbuf), false, false, 0);
     }
 }
 

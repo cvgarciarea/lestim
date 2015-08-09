@@ -203,9 +203,9 @@ public class MouseDetector: Object {
     }
 
     public void start() {
-        if (!checking) {
-            checking = true;
-            GLib.Timeout.add(100, check);
+        if (!this.checking) {
+            this.checking = true;
+            GLib.Timeout.add(100, this.check);
         }
     }
 
@@ -223,10 +223,10 @@ public class MouseDetector: Object {
             out event.xbutton.y_root, out event.xbutton.x,
             out event.xbutton.y, out event.xbutton.state);
 
-        x = event.xbutton.x_root;
-        y = event.xbutton.y_root;
+        this.x = event.xbutton.x_root;
+        this.y = event.xbutton.y_root;
 
-        pos_checked(x, y);
+        this.pos_checked(x, y);
 
         return checking;
     }
@@ -243,8 +243,8 @@ public class WindowPositionDetector: Object {
     public bool panel_visible = true;
     //public Wnck.Screen screen;
 
-    public WindowPositionDetector(LestimPanel p) {
-        panel = p;
+    public WindowPositionDetector(LestimPanel panel) {
+        this.panel = panel;
         //screen = Wnck.Screen.get_default();
     }
 }

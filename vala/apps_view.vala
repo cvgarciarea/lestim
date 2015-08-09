@@ -82,75 +82,75 @@ public class AppsView: Gtk.Window {
         parent = _parent;
         //apps_manager = new GMenuManager();
 
-        set_name("AppsView");
+        this.set_name("AppsView");
 
-        set_transient_for(parent);
-        //set_modal(true);
-        set_can_focus(true);
-        set_border_width(10);
-        set_keep_above(true);
-        set_decorated(false);
+        this.set_transient_for(parent);
+        //this.set_modal(true);
+        this.set_can_focus(true);
+        this.set_border_width(10);
+        this.set_keep_above(true);
+        this.set_decorated(false);
 
-        vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        vbox.set_name("AppsBox");
-        add(vbox);
+        this.vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+        this.vbox.set_name("AppsBox");
+        this.add(this.vbox);
 
-        entry = new AppsEntry();
-        entry.changed.connect(search_app);
-        vbox.pack_start(entry, false, false, 20);
+        this.entry = new AppsEntry();
+        this.entry.changed.connect(search_app);
+        this.vbox.pack_start(this.entry, false, false, 20);
 
         Gtk.ScrolledWindow scrolled = new Gtk.ScrolledWindow(null, null);
-        vbox.pack_start(scrolled, true, true, 0);
+        this.vbox.pack_start(scrolled, true, true, 0);
 
-        grid = new Gtk.FlowBox();
-        grid.set_name("AppsGrid");
-        grid.set_selection_mode(Gtk.SelectionMode.NONE);
-        grid.set_homogeneous(true);
-        scrolled.add(grid);
+        this.grid = new Gtk.FlowBox();
+        this.grid.set_name("AppsGrid");
+        this.grid.set_selection_mode(Gtk.SelectionMode.NONE);
+        this.grid.set_homogeneous(true);
+        scrolled.add(this.grid);
 
-        focus_out_event.connect(focus_out_event_cb);
+        this.focus_out_event.connect(this.focus_out_event_cb);
 
-        //show_apps();
-        hide();
+        //this.show_apps();
+        this.hide();
     }
 
     private bool focus_out_event_cb() {
-        reveal(false);
+        this.reveal(false);
         return true;
     }
 
     public void reveal(bool _visible) {
-        if (_visible == shown) {
+        if (_visible == this.shown) {
             return;
         }
 
-        shown = _visible;
+        this.shown = _visible;
 
-        if (shown) {
-            entry.set_text("");
+        if (this.shown) {
+            this.entry.set_text("");
 
             int x, y, w, h;
-            parent.panel.get_position(out x, out y);
-            parent.panel.get_size(out w, out h);
+            this.parent.panel.get_position(out x, out y);
+            this.parent.panel.get_size(out w, out h);
 
-            if (parent.panel.orientation == "Left") {
-                move(w + 10, 0);
-                set_size_request(DISPLAY_WIDTH - w - 10, DISPLAY_HEIGHT);
-                resize(DISPLAY_WIDTH - w - 10, DISPLAY_HEIGHT);
+            if (this.parent.panel.orientation == "Left") {
+                this.move(w + 10, 0);
+                this.set_size_request(DISPLAY_WIDTH - w - 10, DISPLAY_HEIGHT);
+                this.resize(DISPLAY_WIDTH - w - 10, DISPLAY_HEIGHT);
             } else {
-                set_size_request(DISPLAY_WIDTH, DISPLAY_HEIGHT - h - 10);
-                resize(DISPLAY_WIDTH, DISPLAY_HEIGHT - h - 10);
-                if (parent.panel.orientation == "Top") {
-                    move(0, h + 10);
+                this.set_size_request(DISPLAY_WIDTH, DISPLAY_HEIGHT - h - 10);
+                this.resize(DISPLAY_WIDTH, DISPLAY_HEIGHT - h - 10);
+                if (this.parent.panel.orientation == "Top") {
+                    this.move(0, h + 10);
                 } else {
-                    move(0, 0);
+                    this.move(0, 0);
                 }
             }
 
-            show_all();
-            entry.grab_focus();
+            this.show_all();
+            this.entry.grab_focus();
         } else {
-            hide();
+            this.hide();
         }
     }
 
@@ -185,7 +185,7 @@ public class AppsView: Gtk.Window {
     */
     }
 
-    private void search_app(Gtk.Editable _entry) {
-        show_apps(entry.get_text());
+    private void search_app(Gtk.Editable entry) {
+        this.show_apps(this.entry.get_text());
     }
 }

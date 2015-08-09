@@ -27,41 +27,41 @@ public class SettingsWindow: Gtk.Window {
     public Gtk.Box current_child;
 
     public SettingsWindow() {
-        set_name("SettingsWindow");
-        set_title("Settings");
-        set_icon_name("preferences-desktop");
-        set_position(Gtk.WindowPosition.CENTER);
-        resize(840, 580);
+        this.set_name("SettingsWindow");
+        this.set_title("Settings");
+        this.set_icon_name("preferences-desktop");
+        this.set_position(Gtk.WindowPosition.CENTER);
+        this.resize(840, 580);
 
-        headerbar = new Gtk.HeaderBar();
-        headerbar.set_title("Settings");
-        headerbar.set_show_close_button(true);
-        set_titlebar(headerbar);
+        this.headerbar = new Gtk.HeaderBar();
+        this.headerbar.set_title("Settings");
+        this.headerbar.set_show_close_button(true);
+        this.set_titlebar(this.headerbar);
 
-        hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
-        add(hbox);
+        this.hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+        this.add(this.hbox);
 
-        listbox = new Gtk.ListBox();
-        listbox.set_border_width(20);
-        listbox.set_selection_mode(Gtk.SelectionMode.SINGLE);
-        listbox.row_activated.connect(row_activated_cb);
-        hbox.pack_start(listbox, false, false, 0);
+        this.listbox = new Gtk.ListBox();
+        this.listbox.set_border_width(20);
+        this.listbox.set_selection_mode(Gtk.SelectionMode.SINGLE);
+        this.listbox.row_activated.connect(row_activated_cb);
+        this.hbox.pack_start(this.listbox, false, false, 0);
 
-        box_switcher = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        hbox.pack_start(box_switcher, true, true, 5);
+        this.box_switcher = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+        this.hbox.pack_start(this.box_switcher, true, true, 5);
 
         Gtk.Box child = make_panel_section();
         current_child = child;
-        box_switcher.add(child);
-        add_section("Panel", "user-home-symbolic", child);
+        this.box_switcher.add(child);
+        this.add_section("Panel", "user-home-symbolic", child);
         child.show_all();
 
         child = make_backgrounds_section();
-        add_section("Background", "preferences-desktop-wallpaper-symbolic", child);
+        this.add_section("Background", "preferences-desktop-wallpaper-symbolic", child);
 
-        delete_event.connect(delete_event_cb);
+        this.delete_event.connect(delete_event_cb);
 
-        hide();
+        this.hide();
     }
 
     public void add_section(string name, string icon, Gtk.Box child) {
@@ -76,7 +76,7 @@ public class SettingsWindow: Gtk.Window {
         box.pack_start(image, false, false, 2);
         box.pack_start(label, false, false, 0);
         row.add(box);
-        listbox.add(row);
+        this.listbox.add(row);
     }
 
     private void row_activated_cb(Gtk.ListBox listbox, Gtk.ListBoxRow row) {
@@ -84,10 +84,10 @@ public class SettingsWindow: Gtk.Window {
             return;
         }
 
-        box_switcher.remove(current_child);
-        current_child = row.get_data("stack-child");
-        box_switcher.add(row.get_data("stack-child"));
-        show_all();
+        this.box_switcher.remove(current_child);
+        this.current_child = row.get_data("stack-child");
+        this.box_switcher.add(row.get_data("stack-child"));
+        this.show_all();
     }
 
     private void background_changed(Gtk.FlowBox fbox, Gtk.FlowBoxChild child) {
@@ -144,7 +144,7 @@ public class SettingsWindow: Gtk.Window {
         hbox.pack_start(new Gtk.Label(label), false, false, 0);
         row.add(hbox);
 
-        listbox.add(row);
+        this.listbox.add(row);
 
         return hbox;
     }
@@ -215,13 +215,13 @@ public class SettingsWindow: Gtk.Window {
     }
 
     public bool delete_event_cb() {
-        hide();
+        this.hide();
         return true;
     }
 
     public void reveal() {
-        show_all();
-        current_child.show_all();
+        this.show_all();
+        this.current_child.show_all();
     }
 
     private void panel_orientation_changed(Gtk.ComboBox combo) {
@@ -244,42 +244,42 @@ public class SettingsWindow: Gtk.Window {
 
         settings.set_string_member("panel-orientation", orientation);
         set_config(settings);
-        settings_changed();
+        this.settings_changed();
     }
 
     private void panel_autohide_changed(GLib.Object switcher, GLib.ParamSpec pspec) {
         Json.Object settings = get_config();
         settings.set_boolean_member("panel-autohide", (switcher as Gtk.Switch).get_active());
         set_config(settings);
-        settings_changed();
+        this.settings_changed();
     }
 
     private void panel_expand_changed(GLib.Object switcher, GLib.ParamSpec pspec) {
         Json.Object settings = get_config();
         settings.set_boolean_member("panel-expand", (switcher as Gtk.Switch).get_active());
         set_config(settings);
-        settings_changed();
+        this.settings_changed();
     }
 
     private void panel_reserve_space_changed(GLib.Object switcher, GLib.ParamSpec pspec) {
         Json.Object settings = get_config();
         settings.set_boolean_member("panel-space-reserved", (switcher as Gtk.Switch).get_active());
         set_config(settings);
-        settings_changed();
+        this.settings_changed();
     }
 
     private void icon_size_changed(Gtk.SpinButton spin) {
         Json.Object settings = get_config();
         settings.set_int_member("icon-size", (int64)spin.get_value());
         set_config(settings);
-        settings_changed();
+        this.settings_changed();
     }
 
     private void step_size_changed(Gtk.SpinButton spin) {
         Json.Object settings = get_config();
         settings.set_int_member("panel-animation-step-size", (int64)spin.get_value());
         set_config(settings);
-        settings_changed();
+        this.settings_changed();
     }
 }
 

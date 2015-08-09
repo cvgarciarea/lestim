@@ -30,82 +30,82 @@ class PanelButton: Gtk.EventBox {
     public string? icon_name;
 
     public PanelButton() {
-        box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        add(box);
+        this.box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+        this.add(this.box);
 
-        image = new Gtk.Image();
-        box.add(image);
+        this.image = new Gtk.Image();
+        this.box.add(this.image);
 
-        label = new Gtk.Label(null);
-        box.pack_end(label, true, true, 0);
+        this.label = new Gtk.Label(null);
+        this.box.pack_end(this.label, true, true, 0);
 
-        button_release_event.connect(button_release_event_cb);
+        this.button_release_event.connect(this.button_release_event_cb);
     }
 
     private bool button_release_event_cb(Gtk.Widget self, Gdk.EventButton event) {
         if (event.button == 1) {
-            left_click();
+            this.left_click();
         } else if (event.button == 3) {
-            right_click();
+            this.right_click();
         }
 
         return true;
     }
 
     public void set_image_from_string(string name) {
-        icon_name = name;
-        box.remove(image);
+        this.icon_name = name;
+        this.box.remove(this.image);
 
-        image = get_image_from_name(icon_name, icon_size);
-        box.add(image);
-        show_all();
+        this.image = get_image_from_name(this.icon_name, this.icon_size);
+        this.box.add(this.image);
+        this.show_all();
     }
 
-    public void set_image_from_widget(Gtk.Image _image) {
-        icon_name = null;
-        box.remove(image);
+    public void set_image_from_widget(Gtk.Image image) {
+        this.icon_name = null;
+        this.box.remove(this.image);
 
-        image = _image;
-        box.add(image);
-        show_all();
+        this.image = image;
+        this.box.add(this.image);
+        this.show_all();
     }
 
     public void set_image_from_pixbuf(Gdk.Pixbuf pixbuf) {
-        icon_name = null;
-        box.remove(image);
+        this.icon_name = null;
+        this.box.remove(this.image);
 
-        image = new Gtk.Image.from_pixbuf(pixbuf);
-        box.add(image);
-        show_all();
+        this.image = new Gtk.Image.from_pixbuf(pixbuf);
+        this.box.add(this.image);
+        this.show_all();
     }
 
     public void set_icon_size(int size) {
-        if (size == icon_size) {
+        if (size == this.icon_size) {
             return;
         }
 
-        icon_size = size;
+        this.icon_size = size;
 
-        if (icon_name != null) {
-            set_image_from_string(icon_name);
+        if (this.icon_name != null) {
+            this.set_image_from_string(this.icon_name);
         } else {
-            Gdk.Pixbuf pixbuf = image.get_pixbuf();
-            pixbuf = pixbuf.scale_simple(icon_size, icon_size, Gdk.InterpType.TILES);
-            set_image_from_pixbuf(pixbuf);
+            Gdk.Pixbuf pixbuf = this.image.get_pixbuf();
+            pixbuf = pixbuf.scale_simple(this.icon_size, this.icon_size, Gdk.InterpType.TILES);
+            this.set_image_from_pixbuf(pixbuf);
         }
     }
 
     public void set_label(string text) {
-        label.set_label(text);
+        this.label.set_label(text);
     }
 
     public void set_show_label(bool show) {
-        if (show != show_label) {
-            show_label = show;
-            if (show_label) {
-                box.pack_end(label, true, true, 0);
+        if (show != this.show_label) {
+            this.show_label = show;
+            if (this.show_label) {
+                this.box.pack_end(this.label, true, true, 0);
             } else {
-                box.remove(label);
+                this.box.remove(this.label);
             }
         }
     }
@@ -118,17 +118,17 @@ class OpenedAppButton: PanelButton {
 
     public OpenedAppButton(Wnck.Window _window) {
         window = _window;
-        set_image_from_pixbuf(window.get_icon());
-        set_tooltip_text(window.get_name());
+        this.set_image_from_pixbuf(window.get_icon());
+        this.set_tooltip_text(window.get_name());
 
-        left_click.connect(left_click_cb);
+        this.left_click.connect(this.left_click_cb);
     }
 
     private void left_click_cb() {
-        if (!window.is_active()) {
-            window.active(0);
+        if (!this.window.is_active()) {
+            this.window.active(0);
         } else {
-            window.minimize();
+            this.window.minimize();
         }
     }
     */
@@ -136,17 +136,17 @@ class OpenedAppButton: PanelButton {
 
 private class ShowAppsButton: PanelButton {
     public ShowAppsButton() {
-        set_name("PanelAppsButton");
-        set_image_from_string("view-grid-symbolic");
-        set_show_label(false);
+        this.set_name("PanelAppsButton");
+        this.set_image_from_string("view-grid-symbolic");
+        this.set_show_label(false);
     }
 }
 
 private class LateralPanelButton: PanelButton {
     public LateralPanelButton() {
-        set_name("ShowPanelButton");
-        set_image_from_string("go-previous-symbolic");
-        set_show_label(false);
+        this.set_name("ShowPanelButton");
+        this.set_image_from_string("go-previous-symbolic");
+        this.set_show_label(false);
     }
 }
 
@@ -172,17 +172,17 @@ public class LestimPanel: Gtk.Window {
     private LateralPanelButton lateral_panel_button;
 
     public LestimPanel() {
-        set_name("LestimPanel");
-        set_keep_above(true);
-        set_decorated(false);
-        set_type_hint(Gdk.WindowTypeHint.DOCK);
-        set_gravity(Gdk.Gravity.STATIC);
-        resize(48, 400);
-        set_border_width(2);
-        move(0, DISPLAY_HEIGHT / 2 - 200);
-        set_skip_taskbar_hint(true);
-        set_skip_pager_hint(true);
-        set_urgency_hint(true);
+        this.set_name("LestimPanel");
+        this.set_keep_above(true);
+        this.set_decorated(false);
+        this.set_type_hint(Gdk.WindowTypeHint.DOCK);
+        this.set_gravity(Gdk.Gravity.STATIC);
+        this.resize(48, 400);
+        this.set_border_width(2);
+        this.move(0, DISPLAY_HEIGHT / 2 - 200);
+        this.set_skip_taskbar_hint(true);
+        this.set_skip_pager_hint(true);
+        this.set_urgency_hint(true);
 
         Gtk.drag_dest_set (
             this,
@@ -191,28 +191,28 @@ public class LestimPanel: Gtk.Window {
             Gdk.DragAction.COPY
         );
 
-        box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        add(box);
+        this.box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+        this.add(this.box);
 
-        show_apps_button = new ShowAppsButton();
-        show_apps_button.left_click.connect(show_apps_cb);
-        box.pack_start(show_apps_button, false, false, 0);
+        this.show_apps_button = new ShowAppsButton();
+        this.show_apps_button.left_click.connect(show_apps_cb);
+        this.box.pack_start(this.show_apps_button, false, false, 0);
 
-        favorite_area = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        box.pack_start(favorite_area, false, false, 5);
+        this.favorite_area = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+        this.box.pack_start(this.favorite_area, false, false, 5);
 
         //Wnck.Tasklist opened_apps_area = new Wnck.Tasklist();
-        //opened_apps_area = new Wnck.Tasklist();
-        //box.pack_start(opened_apps_area, false, false, 0);
+        //this.opened_apps_area = new Wnck.Tasklist();
+        //this.box.pack_start(this.opened_apps_area, false, false, 0);
 
-        lateral_panel_button = new LateralPanelButton();
-        lateral_panel_button.left_click.connect(show_lateral_panel_cb);
-        box.pack_end(lateral_panel_button, false, false, 1);
+        this.lateral_panel_button = new LateralPanelButton();
+        this.lateral_panel_button.left_click.connect(this.show_lateral_panel_cb);
+        this.box.pack_end(this.lateral_panel_button, false, false, 1);
 
-        drag_data_received.connect(drag_data_received_cb);
-        realize.connect(realize_cb);
+        this.drag_data_received.connect(this.drag_data_received_cb);
+        this.realize.connect(this.realize_cb);
 
-        show_all();
+        this.show_all();
     }
 
     private void drag_data_received_cb(Gtk.Widget widget, Gdk.DragContext context, int x, int y, Gtk.SelectionData selection_data, uint target_type, uint time) {
@@ -231,83 +231,82 @@ public class LestimPanel: Gtk.Window {
     }
 
     private void realize_cb() {
-        reset_pos();
+        this.reset_pos();
     }
 
     private void show_lateral_panel_cb() {
-        panel_visible = !(panel_visible);
-        show_lateral_panel(panel_visible);
+        this.show_lateral_panel(!this.panel_visible);
     }
 
     private void show_apps_cb() {
-        show_apps();
+        this.show_apps();
     }
 
     public void set_reveal_state(bool visible) {
-        panel_visible = visible;
-        if (!visible) {
-            lateral_panel_button.set_image_from_string("go-previous-symbolic");
+        this.panel_visible = visible;
+        if (!this.panel_visible) {
+            this.lateral_panel_button.set_image_from_string("go-previous-symbolic");
         } else {
-            lateral_panel_button.set_image_from_string("go-next-symbolic");
+            this.lateral_panel_button.set_image_from_string("go-next-symbolic");
         }
     }
 
-    public void set_orientation(string _orientation) {
-        if (orientation == _orientation) {
+    public void set_orientation(string orientation) {
+        if (this.orientation == orientation) {
             return;
         }
 
-        orientation = _orientation;
-        if (orientation == "Top" || orientation == "Bottom") {
-            box.set_orientation(Gtk.Orientation.HORIZONTAL);
-            favorite_area.set_orientation(Gtk.Orientation.HORIZONTAL);
+        this.orientation = orientation;
+        if (this.orientation == "Top" || this.orientation == "Bottom") {
+            this.box.set_orientation(Gtk.Orientation.HORIZONTAL);
+            this.favorite_area.set_orientation(Gtk.Orientation.HORIZONTAL);
         } else {
-            box.set_orientation(Gtk.Orientation.VERTICAL);
-            favorite_area.set_orientation(Gtk.Orientation.VERTICAL);
+            this.box.set_orientation(Gtk.Orientation.VERTICAL);
+            this.favorite_area.set_orientation(Gtk.Orientation.VERTICAL);
         }
 
-        reset_pos();
+        this.reset_pos();
     }
 
-    public void set_autohide(bool _autohide) {
-        autohide = _autohide;
-        reveal(!autohide);
+    public void set_autohide(bool autohide) {
+        this.autohide = autohide;
+        this.reveal(!this.autohide);
     }
 
-    public void set_expand(bool _expand) {
-        if (expand == _expand) {
+    public void set_expand(bool expand) {
+        if (this.expand == expand) {
             return;
         }
 
-        expand = _expand;
+        this.expand = expand;
         var settings = get_config();
         int w, h;
-        get_size(out w, out h);
-        reset_pos();
+        this.get_size(out w, out h);
+        this.reset_pos();
     }
 
-    public void set_reserve_space(bool _reserve_space) {
-        if (reserve_space == _reserve_space) {
+    public void set_reserve_space(bool reserve_space) {
+        if (this.reserve_space == reserve_space) {
             return;
         }
 
-        reserve_space = _reserve_space;
-        reserve_screen_space();
+        this.reserve_space = reserve_space;
+        this.reserve_screen_space();
     }
 
     private void reserve_screen_space() {
-        if (!get_realized()) {
+        if (!this.get_realized()) {
             return;
         }
         /*
         int w, h;
-        get_size(out w, out h);
+        this.get_size(out w, out h);
 
         Gdk.Atom atom;
         long struts[12];
 
-        if (shown) {
-            switch (orientation) {
+        if (this.shown) {
+            switch (this.orientation) {
                 case "Top":
                     struts = {0, 0, h, 0,
                               0, 0, 0, 0,
@@ -330,260 +329,259 @@ public class LestimPanel: Gtk.Window {
         }
 
         atom = Gdk.Atom.intern("_NET_WM_STRUT_PARTIAL", false);
-        Gdk.property_change(get_window(), atom, Gdk.Atom.intern("CARDINAL", false),
+        Gdk.property_change(this.get_window(), atom, Gdk.Atom.intern("CARDINAL", false),
             32, Gdk.PropMode.REPLACE, (uint8[])struts, 12);
     */
     }
 
-    public void set_step_size(int _avance) {
-        avance = _avance;
+    public void set_step_size(int avance) {
+        this.avance = avance;
     }
 
     public void set_icon_size(int size) {
-        if (size != icon_size) {
-            icon_size = size;
-            show_apps_button.set_icon_size(icon_size);
-            lateral_panel_button.set_icon_size(icon_size);
+        if (this.icon_size != size) {
+            this.icon_size = size;
+            this.show_apps_button.set_icon_size(this.icon_size);
+            this.lateral_panel_button.set_icon_size(this.icon_size);
         }
 
-        reset_pos();
+        this.reset_pos();
     }
 
     public void reset_pos() {
         GLib.Idle.add(() => {
-            if (in_transition) {
+            if (this.in_transition) {
                 return false;
             }
 
             var settings = get_config();
             int s = (int)settings.get_int_member("icon-size");
             int w, h;
-            get_size(out w, out h);
-            shown = true;
+            this.get_size(out w, out h);
+            this.shown = true;
 
-            if (expand) {
-                switch (orientation) {
+            if (this.expand) {
+                switch (this.orientation) {
                     case "Left":
-                        set_size_request(s, DISPLAY_HEIGHT);
-                        resize(s, DISPLAY_HEIGHT);
+                        this.set_size_request(s, DISPLAY_HEIGHT);
+                        this.resize(s, DISPLAY_HEIGHT);
                         break;
 
                     case "Top":
-                        set_size_request(DISPLAY_WIDTH, s);
-                        resize(DISPLAY_WIDTH, s);
+                        this.set_size_request(DISPLAY_WIDTH, s);
+                        this.resize(DISPLAY_WIDTH, s);
                         break;
 
                     case "Bottom":
-                        set_size_request(DISPLAY_WIDTH, s);
-                        resize(DISPLAY_WIDTH, s);
+                        this.set_size_request(DISPLAY_WIDTH, s);
+                        this.resize(DISPLAY_WIDTH, s);
                         break;
                 }
             } else {
-                switch (orientation) {
+                switch (this.orientation) {
                     case "Left":
-                        set_size_request(s, 1);
-                        resize(s, 1);
+                        this.set_size_request(s, 1);
+                        this.resize(s, 1);
                         break;
 
                     case "Top":
-                        set_size_request(1, s);
-                        resize(1, s);
+                        this.set_size_request(1, s);
+                        this.resize(1, s);
                         break;
 
                     case "Bottom":
-                        set_size_request(1, s);
-                        resize(1, s);
+                        this.set_size_request(1, s);
+                        this.resize(1, s);
                         break;
                 }
             }
 
-            get_size(out w, out h);
-            if (shown) {
-                switch(orientation) {
+            this.get_size(out w, out h);
+            if (this.shown) {
+                switch(this.orientation) {
                     case "Left":
-                        move(0, !expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
+                        this.move(0, !this.expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
                         break;
 
                     case "Top":
-                        move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, 0);
+                        this.move(!this.expand? DISPLAY_WIDTH / 2 - w / 2: 0, 0);
                         break;
 
                     case "Bottom":
-                        move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT - h);
+                        this.move(!this.expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT - h);
                         break;
                 }
             } else {
-                switch(orientation) {
+                switch(this.orientation) {
                     case "Left":
-                        move(-w, !expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
+                        this.move(-w, !this.expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
                         break;
 
                     case "Top":
-                        move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, -h);
+                        this.move(!this.expand? DISPLAY_WIDTH / 2 - w / 2: 0, -h);
                         break;
 
                     case "Bottom":
-                        move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT);
+                        this.move(!this.expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT);
                         break;
                 }
             }
-
             return true;
         });
     }
 
     private bool _reveal_left() {
         int x, y, w, h;
-        get_position(out x, out y);
-        get_size(out w, out h);
+        this.get_position(out x, out y);
+        this.get_size(out w, out h);
 
         if (x + avance < 0) {
-            in_transition = true;
-            move(x + avance, DISPLAY_HEIGHT / 2 - h / 2);
+            this.in_transition = true;
+            this.move(x + avance, DISPLAY_HEIGHT / 2 - h / 2);
             return true;
         } else {
-            move(0, DISPLAY_HEIGHT / 2 - h / 2);
-            in_transition = false;
-            shown = true;
+            this.move(0, DISPLAY_HEIGHT / 2 - h / 2);
+            this.in_transition = false;
+            this.shown = true;
             return false;
         }
     }
 
     private bool _reveal_top() {
         int x, y, w, h;
-        get_position(out x, out y);
-        get_size(out w, out h);
+        this.get_position(out x, out y);
+        this.get_size(out w, out h);
 
         if (y + avance < 0) {
-            in_transition = true;
-            move(DISPLAY_WIDTH / 2 - w / 2, y + avance);
+            this.in_transition = true;
+            this.move(DISPLAY_WIDTH / 2 - w / 2, y + avance);
             return true;
         } else {
-            move(DISPLAY_WIDTH / 2 - w / 2, 0);
-            in_transition = false;
-            shown = true;
+            this.move(DISPLAY_WIDTH / 2 - w / 2, 0);
+            this.in_transition = false;
+            this.shown = true;
             return false;
         }
     }
 
     private bool _reveal_bottom() {
         int x, y, w, h;
-        get_position(out x, out y);
-        get_size(out w, out h);
+        this.get_position(out x, out y);
+        this.get_size(out w, out h);
 
         if (y - avance > DISPLAY_HEIGHT - h) {
-            in_transition = true;
-            move(DISPLAY_WIDTH / 2 - w / 2, y - avance);
+            this.in_transition = true;
+            this.move(DISPLAY_WIDTH / 2 - w / 2, y - avance);
             return true;
         } else {
-            move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT - h);
-            in_transition = false;
-            shown = true;
+            this.move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT - h);
+            this.in_transition = false;
+            this.shown = true;
             return false;
         }
     }
 
     private void _reveal() {
-        if (in_transition) {
+        if (this.in_transition) {
             return;
         }
 
-        switch (orientation) {
+        switch (this.orientation) {
             case "Left":
-                GLib.Timeout.add(20, _reveal_left);
+                GLib.Timeout.add(20, this._reveal_left);
                 break;
 
             case "Top":
-                GLib.Timeout.add(20, _reveal_top);
+                GLib.Timeout.add(20, this._reveal_top);
                 break;
 
             case "Bottom":
-                GLib.Timeout.add(20, _reveal_bottom);
+                GLib.Timeout.add(20, this._reveal_bottom);
                 break;
         }
     }
 
     private bool _disreveal_left() {
         int w, h, x, y;
-        get_size(out w, out h);
-        get_position(out x, out y);
+        this.get_size(out w, out h);
+        this.get_position(out x, out y);
 
         if (x + w - avance > 0) {
-            in_transition = true;
-            move(x - avance, DISPLAY_HEIGHT / 2 - h / 2);
+            this.in_transition = true;
+            this.move(x - avance, DISPLAY_HEIGHT / 2 - h / 2);
             return true;
         } else {
-            move(-w, DISPLAY_HEIGHT / 2 - h / 2);
-            in_transition = false;
-            shown = false;
+            this.move(-w, DISPLAY_HEIGHT / 2 - h / 2);
+            this.in_transition = false;
+            this.shown = false;
             return false;
         }
     }
 
     private bool _disreveal_top() {
         int w, h, x, y;
-        get_size(out w, out h);
-        get_position(out x, out y);
+        this.get_size(out w, out h);
+        this.get_position(out x, out y);
 
         if (y + h - avance > 0) {
-            in_transition = true;
-            move(DISPLAY_WIDTH / 2 - w / 2, y - avance);
+            this.in_transition = true;
+            this.move(DISPLAY_WIDTH / 2 - w / 2, y - avance);
             return true;
         } else {
-            move(DISPLAY_WIDTH / 2 - w / 2, -h);
-            in_transition = false;
-            shown = false;
+            this.move(DISPLAY_WIDTH / 2 - w / 2, -h);
+            this.in_transition = false;
+            this.shown = false;
             return false;
         }
     }
 
     private bool _disreveal_bottom() {
         int w, h, x, y;
-        get_size(out w, out h);
-        get_position(out x, out y);
+        this.get_size(out w, out h);
+        this.get_position(out x, out y);
 
         if (y + avance < DISPLAY_HEIGHT) {
-            in_transition = true;
-            move(DISPLAY_WIDTH / 2 - w / 2, y + avance);
+            this.in_transition = true;
+            this.move(DISPLAY_WIDTH / 2 - w / 2, y + avance);
             return true;
         } else {
-            move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT);
-            in_transition = false;
-            shown = false;
+            this.move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT);
+            this.in_transition = false;
+            this.shown = false;
             return false;
         }
     }
 
     private void _disreveal() {
-        if (in_transition) {
+        if (this.in_transition) {
             return;
         }
 
-        switch (orientation) {
+        switch (this.orientation) {
             case "Left":
-                GLib.Timeout.add(20, _disreveal_left);
+                GLib.Timeout.add(20, this._disreveal_left);
                 break;
 
             case "Top":
-                GLib.Timeout.add(20, _disreveal_top);
+                GLib.Timeout.add(20, this._disreveal_top);
                 break;
 
             case "Bottom":
-                GLib.Timeout.add(20, _disreveal_bottom);
+                GLib.Timeout.add(20, this._disreveal_bottom);
                 break;
         }
     }
 
-    public void reveal(bool _shown) {
-        if (_shown == shown) {
+    public void reveal(bool shown) {
+        if (this.shown == shown) {
             return;
         }
 
-        shown = _shown;
-        if (shown) {
-            _reveal();
+        this.shown = shown;
+        if (this.shown) {
+            this._reveal();
         } else {
-            _disreveal();
+            this._disreveal();
         }
     }
 }
