@@ -18,6 +18,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 public class SettingsWindow: Gtk.Window {
 
+    public signal void change_wallpaper(string path);
+
     public GLib.Settings gsettings;
 
     public Gtk.HeaderBar headerbar;
@@ -106,7 +108,7 @@ public class SettingsWindow: Gtk.Window {
         }
 
         var image = child.get_child();
-        set_wallpaper(image.get_data("image-path"));
+        this.change_wallpaper(image.get_data("image-path"));
     }
 
     private Gtk.Box make_backgrounds_section() {

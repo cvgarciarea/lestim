@@ -114,15 +114,15 @@ class PanelButton: Gtk.EventBox {
 class OpenedAppButton: PanelButton {
 
     public OpenedAppButton() {}
-    /*public Wnck.Window window;
+    /*
+    public Wnck.Window window;
 
-    public OpenedAppButton(Wnck.Window _window) {
-        window = _window;
-        this.set_image_from_pixbuf(window.get_icon());
-        this.set_tooltip_text(window.get_name());
+    public OpenedAppButton(Wnck.Window window) {
+        this.window = window;
+        this.set_image_from_pixbuf(this.window.get_icon());
+        this.set_tooltip_text(this.window.get_name());
 
         this.left_click.connect(this.left_click_cb);
-    }
 
     private void left_click_cb() {
         if (!this.window.is_active()) {

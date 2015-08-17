@@ -9,16 +9,17 @@ Based on: Numix Frost Dark
 @define-color selected_bg_color #1a80b6;
 @define-color selected_fg_color #F9F9F9;
 
-
+/*
 LestimWindow {
     background-image: url('./background');
     background-repeat: no-repeat;
 }
+*/
 
-LestimCanvas {
+/*LestimCanvas {
     background-color: transparent;
 }
-
+*/
 LestimPanel {
     background-color: @bg_color;
     border-width: 1px;

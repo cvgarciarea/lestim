@@ -54,15 +54,15 @@ public string get_desktop_dir() {
 }
 
 public string get_work_dir() {
-    return Path.build_filename(GLib.Environment.get_user_config_dir(), "lestim");
+    return GLib.Path.build_filename(GLib.Environment.get_user_config_dir(), "lestim");
 }
 
 public string get_theme_path() {
-    return Path.build_filename(get_work_dir(), "theme.css");
+    return GLib.Path.build_filename(get_work_dir(), "theme.css");
 }
 
 public string get_background_path() {
-    return Path.build_filename(get_work_dir(), "background");
+    return GLib.Path.build_filename(get_work_dir(), "background");
 }
 
 public string get_system_backgrounds_dir() {
@@ -131,25 +131,33 @@ public void set_theme() {
 
 public Gee.ArrayList get_backgrounds() {
     Gee.ArrayList<string> list = new Gee.ArrayList<string>();
-    string? name = null;
+    GLib.File file = GLib.File.new_for_path(get_system_backgrounds_dir());
+    GLib.Cancellable cancellable = new GLib.Cancellable();
 
-    try {
-        GLib.Dir dir = GLib.Dir.open(get_system_backgrounds_dir(), 0);
-        while ((name = dir.read_name()) != null) {
-            string path = Path.build_filename(get_system_backgrounds_dir(), name);
-            list.add(path);
-        }
-    } catch {}
-
-    return list;
+    return list_children(list, file, cancellable);
 }
 
-public void set_wallpaper(string path) {
-    File file = File.new_for_path(get_background_path());
-    file.delete();
+private Gee.ArrayList<string> list_children(Gee.ArrayList<string> list, GLib.File file, GLib.Cancellable cancellable) {
+	GLib.FileEnumerator enumerator = file.enumerate_children (
+		"standard::*",
+		GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
+		cancellable);
 
-	file.make_symbolic_link(path);
-	set_theme();
+	GLib.FileInfo info = null;
+	while (!cancellable.is_cancelled() && ((info = enumerator.next_file(cancellable)) != null)) {
+		if (info.get_file_type() == GLib.FileType.DIRECTORY) {
+			GLib.File subdir = file.resolve_relative_path (info.get_name());
+			list_children(list, subdir, cancellable);
+		} else {
+		    string path = GLib.Path.build_filename(file.get_path(), info.get_name());
+		    GLib.File new_file = GLib.File.new_for_path(path);
+		    string mime = new_file.query_info("*", GLib.FileQueryInfoFlags.NONE).get_content_type();
+		    if ("image" in mime) {
+                list.add(path);
+            }
+		}
+	}
+	return list;
 }
 
 public class MouseDetector: Object {

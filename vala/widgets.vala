@@ -16,12 +16,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 public class LestimWindow: Gtk.ApplicationWindow {
 
     public GLib.Settings gsettings;
 
     public Gtk.Box box;
+    public IconView icon_view;
     public LestimPanel panel;
     public LateralPanel lateral_panel;
     public SettingsWindow settings_window;
@@ -42,6 +42,9 @@ public class LestimWindow: Gtk.ApplicationWindow {
         this.box.set_name("LestimCanvas");
         this.add(this.box);
 
+        this.icon_view = new IconView();
+        this.box.pack_start(this.icon_view, true, true, 0);
+
         this.panel = new LestimPanel();
         this.panel.show_apps.connect(show_apps);
         this.panel.show_lateral_panel.connect(this.show_lateral_panel);
@@ -55,9 +58,12 @@ public class LestimWindow: Gtk.ApplicationWindow {
         //apps_view.connect('favorited-app', self.update_favorited_buttons)
 
         this.settings_window = new SettingsWindow();
+        this.settings_window.change_wallpaper.connect(this.set_wallpaper);
 
         this.mouse = new MouseDetector();
         this.mouse.pos_checked.connect(this.mouse_pos_checked);
+
+        this.icon_view.reload_background();
     }
 
     public void show_apps(LestimPanel panel) {
@@ -149,6 +155,15 @@ public class LestimWindow: Gtk.ApplicationWindow {
                 this.panel.reveal(true);
                 break;
         }
+    }
+
+    public void set_wallpaper(SettingsWindow win, string path) {
+        GLib.File file1 = GLib.File.new_for_path(get_background_path());
+
+	    GLib.File file2 = GLib.File.new_for_path(path);
+	    file2.copy(file1, GLib.FileCopyFlags.OVERWRITE);
+
+        this.icon_view.reload_background();
     }
 }
 
