@@ -4,7 +4,8 @@ Lestim
 ##Test vala version:
 **Copy xml file and install schema:**
 ```
-# cp vala/data/org.lestim.gschema.xml /usr/share/glib-2.0/schemas/
+# cp vala/data/org.lestim.dock.gschema.xml /usr/share/glib-2.0/schemas/
+# cp vala/data/org.lestim.panel.gschema.xml /usr/share/glib-2.0/schemas/
 # glib-compile-schemas /usr/share/glib-2.0/schemas/
 ```
 
@@ -24,12 +25,13 @@ make
   - [ ] System icons
   - [ ] Sound GtkScale
   - [ ] Brightness GtkScale
+  - [ ] Add system notifications
   - [ ] Down buttons
     - [ ] Power off
     - [ ] Reboot
     - [ ] Log out
     - [x] Preferences
-
+- [ ] Add Wnck functionality(manage applications windows)
 
 *Dependencies:*
 
