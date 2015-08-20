@@ -20,7 +20,8 @@ public class SettingsWindow: Gtk.Window {
 
     public signal void change_wallpaper(string path);
 
-    public GLib.Settings gsettings;
+    public GLib.Settings dock_settings;
+    public GLib.Settings panel_settings;
 
     public Gtk.HeaderBar headerbar;
     public Gtk.Box hbox;
@@ -32,6 +33,7 @@ public class SettingsWindow: Gtk.Window {
     public Gtk.Switch switch_autohide;
     public Gtk.Switch switch_expand;
     public Gtk.Switch switch_reserve;
+    public Gtk.SpinButton spin_transp;
     public Gtk.SpinButton spin_icon;
     public Gtk.SpinButton spin_step;
 
@@ -42,8 +44,11 @@ public class SettingsWindow: Gtk.Window {
         this.set_position(Gtk.WindowPosition.CENTER);
         this.resize(840, 580);
 
-        this.gsettings = new GLib.Settings("org.lestim.panel");
-        this.gsettings.changed.connect(this.settings_changed_cb);
+        this.dock_settings = new GLib.Settings("org.lestim.dock");
+        this.dock_settings.changed.connect(this.dock_settings_changed);
+
+        this.panel_settings = new GLib.Settings("org.lestim.panel");
+        this.panel_settings.changed.connect(this.panel_settings_changed);
 
         this.headerbar = new Gtk.HeaderBar();
         this.headerbar.set_title("Settings");
@@ -62,18 +67,31 @@ public class SettingsWindow: Gtk.Window {
         this.box_switcher = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         this.hbox.pack_start(this.box_switcher, true, true, 5);
 
-        Gtk.Box child = make_panel_section();
+        Gtk.Box child = make_dock_section();
         this.current_child = child;
         this.box_switcher.add(child);
-        this.add_section("Panel", "user-home-symbolic", child);
-        child.show_all();
+        this.add_section("Dock", "user-home-symbolic", child);
+
+        child = make_panel_section();
+        this.add_section("Panel", "go-last-symbolic", child);  // Temporary icon
 
         child = make_backgrounds_section();
         this.add_section("Background", "preferences-desktop-wallpaper-symbolic", child);
 
-        this.delete_event.connect(delete_event_cb);
+        this.realize.connect(this.realize_cb);
+        this.delete_event.connect(this.delete_event_cb);
 
+        this.current_child.show_all();
         this.hide();
+    }
+
+    public void realize_cb(Gtk.Widget self) {
+        this.update_panel_widgets();
+    }
+
+    public bool delete_event_cb() {
+        this.hide();
+        return true;
     }
 
     public void add_section(string name, string icon, Gtk.Box child) {
@@ -163,6 +181,22 @@ public class SettingsWindow: Gtk.Window {
 
     private Gtk.Box make_panel_section() {
         Gtk.Box box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+        
+        Gtk.ListBox listbox = new Gtk.ListBox();
+        listbox.set_selection_mode(Gtk.SelectionMode.NONE);
+        box.add(listbox);
+        
+        var box1 = this.make_row(listbox, "Transparency");
+        Gtk.Adjustment adj1 = new Gtk.Adjustment(1, 0, 9, 1, 2, 0);
+        this.spin_transp = new Gtk.SpinButton(adj1, 0, 0);
+        this.spin_transp.value_changed.connect(this.transp_level_changed);
+        box1.pack_end(this.spin_transp, false, false, 0);
+
+        return box;
+    }
+
+    private Gtk.Box make_dock_section() {
+        Gtk.Box box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
 
         Gtk.ListBox listbox = new Gtk.ListBox();
         listbox.set_selection_mode(Gtk.SelectionMode.NONE);
@@ -203,19 +237,16 @@ public class SettingsWindow: Gtk.Window {
         this.spin_step.value_changed.connect(this.step_size_changed);
         box6.pack_end(this.spin_step, false, false, 0);
 
-        this.update_widgets();
-
         return box;
-    }
-
-    public bool delete_event_cb() {
-        this.hide();
-        return true;
     }
 
     public void reveal() {
         this.show_all();
         this.current_child.show_all();
+    }
+
+    public void transp_level_changed(Gtk.SpinButton spin) {
+        this.panel_settings.set_int("background-transparency", (int)this.spin_transp.get_value());
     }
 
     private void panel_position_changed(Gtk.ComboBox combo) {
@@ -235,59 +266,63 @@ public class SettingsWindow: Gtk.Window {
                 break;
         }
 
-        if (this.gsettings.get_string("position") != position) {
-            this.gsettings.set_string("position", position);
+        if (this.dock_settings.get_string("position") != position) {
+            this.dock_settings.set_string("position", position);
         }
     }
 
     private void panel_autohide_changed(GLib.Object switcher, GLib.ParamSpec pspec) {
         bool active = this.switch_autohide.get_active();
-        if (this.gsettings.get_boolean("autohide") != active) {
-            this.gsettings.set_boolean("autohide", active);
+        if (this.dock_settings.get_boolean("autohide") != active) {
+            this.dock_settings.set_boolean("autohide", active);
         }
     }
 
     private void panel_expand_changed(GLib.Object switcher, GLib.ParamSpec pspec) {
         bool active = this.switch_expand.get_active();
-        if (this.gsettings.get_boolean("expand") != active) {
-            this.gsettings.set_boolean("expand", active);
+        if (this.dock_settings.get_boolean("expand") != active) {
+            this.dock_settings.set_boolean("expand", active);
         }
     }
 
     private void panel_reserve_space_changed(GLib.Object switcher, GLib.ParamSpec pspec) {
         bool active = this.switch_expand.get_active();
-        if (this.gsettings.get_boolean("space-reserved") != active) {
-            this.gsettings.set_boolean("space-reserved", active);
+        if (this.dock_settings.get_boolean("space-reserved") != active) {
+            this.dock_settings.set_boolean("space-reserved", active);
         }
     }
 
     private void icon_size_changed(Gtk.SpinButton spin) {
         int size = (int)this.spin_icon.get_value();
-        if (this.gsettings.get_int("icon-size") != size) {
-            this.gsettings.set_int("icon-size", size);
+        if (this.dock_settings.get_int("icon-size") != size) {
+            this.dock_settings.set_int("icon-size", size);
         }
     }
 
     private void step_size_changed(Gtk.SpinButton spin) {
         int size = (int)this.spin_step.get_value();
-        if (this.gsettings.get_int("animation-step-size") != size) {
-            this.gsettings.set_int("animation-step-size", size);
+        if (this.dock_settings.get_int("animation-step-size") != size) {
+            this.dock_settings.set_int("animation-step-size", size);
         }
     }
 
-    public void settings_changed_cb(GLib.Settings settings, string key) {
-        this.update_widgets(key);
+    public void dock_settings_changed(GLib.Settings settings, string key) {
+        this.update_dock_widgets(key);
     }
 
-    public void update_widgets(string? key=null) {
+    public void panel_settings_changed(GLib.Settings settings, string key) {
+        this.update_panel_widgets(key);
+    }
+
+    public void update_dock_widgets(string? key=null) {
         if (key != null) {
             switch (key) {
                 case "icon-size":
-                    this.spin_icon.set_value(this.gsettings.get_int("icon-size"));
+                    this.spin_icon.set_value(this.dock_settings.get_int("icon-size"));
                     break;
 
                 case "position":
-                    switch (this.gsettings.get_string("position")) {
+                    switch (this.dock_settings.get_string("position")) {
                         case "Top":
                             this.combo_position.set_active(0);
                             break;
@@ -304,28 +339,28 @@ public class SettingsWindow: Gtk.Window {
                     break;
 
                 case "autohide":
-                    this.switch_autohide.set_active(this.gsettings.get_boolean("autohide"));
+                    this.switch_autohide.set_active(this.dock_settings.get_boolean("autohide"));
                     break;
 
                 case "expand":
-                    this.switch_expand.set_active(this.gsettings.get_boolean("expand"));
+                    this.switch_expand.set_active(this.dock_settings.get_boolean("expand"));
                     break;
 
                 case "space-reserved":
-                    this.switch_reserve.set_active(this.gsettings.get_boolean("space-reserved"));
+                    this.switch_reserve.set_active(this.dock_settings.get_boolean("space-reserved"));
                     break;
 
                 case "animation-step-size":
-                    this.spin_step.set_value(this.gsettings.get_int("animation-step-size"));
+                    this.spin_step.set_value(this.dock_settings.get_int("animation-step-size"));
                     break;
             }
         } else {
-            this.spin_icon.set_value(this.gsettings.get_int("icon-size"));
-            this.switch_autohide.set_active(this.gsettings.get_boolean("autohide"));
-            this.switch_expand.set_active(this.gsettings.get_boolean("expand"));
-            this.switch_reserve.set_active(this.gsettings.get_boolean("space-reserved"));
-            this.spin_step.set_value(this.gsettings.get_int("animation-step-size"));
-            switch (this.gsettings.get_string("position")) {
+            this.spin_icon.set_value(this.dock_settings.get_int("icon-size"));
+            this.switch_autohide.set_active(this.dock_settings.get_boolean("autohide"));
+            this.switch_expand.set_active(this.dock_settings.get_boolean("expand"));
+            this.switch_reserve.set_active(this.dock_settings.get_boolean("space-reserved"));
+            this.spin_step.set_value(this.dock_settings.get_int("animation-step-size"));
+            switch (this.dock_settings.get_string("position")) {
                 case "Top":
                     this.combo_position.set_active(0);
                     break;
@@ -339,6 +374,18 @@ public class SettingsWindow: Gtk.Window {
                     this.combo_position.set_active(3);
                     break;
             }
+        }
+    }
+    
+    public void update_panel_widgets(string? key=null) {
+        if (key != null) {
+            switch (key) {
+                case "background-transparency":
+                    this.spin_transp.set_value(this.panel_settings.get_int("background-transparency"));
+                    break;
+            }
+        } else {
+            this.spin_transp.set_value(this.panel_settings.get_int("background-transparency"));
         }
     }
 }

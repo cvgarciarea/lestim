@@ -23,7 +23,7 @@ public int CURRENT_MONITOR = 0;
 public int DISPLAY_WIDTH = 0;
 public int DISPLAY_HEIGHT = 0;
 
-public void set_display_size(int? monitor_id = null) {
+public void get_display_size(int? monitor_id = null) {
     Gdk.Screen screen = Gdk.Screen.get_default();
     Gdk.Rectangle rect;
 

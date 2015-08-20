@@ -73,26 +73,25 @@ public class AppsView: Gtk.Window {
 
     public GLib.Settings gsettings;
 
-    public LestimWindow parent;
+    public LestimDock dock;
     public Gtk.Box vbox;
     public Gtk.Entry entry;
     public Gtk.FlowBox grid;
 
     //public GMenuManager apps_manager;
 
-    public AppsView(LestimWindow _parent) {
-        parent = _parent;
-        //apps_manager = new GMenuManager();
-
+    public AppsView(LestimDock dock) {
         this.set_name("AppsView");
-        this.set_transient_for(parent);
         //this.set_modal(true);
         this.set_can_focus(true);
         this.set_border_width(10);
         this.set_keep_above(true);
         this.set_decorated(false);
 
-        this.gsettings = new GLib.Settings("org.lestim.panel");
+        this.dock = dock;
+        this.gsettings = new GLib.Settings("org.lestim.dock");
+
+        //this.apps_manager = new GMenuManager();
 
         this.vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         this.vbox.set_name("AppsBox");
@@ -122,20 +121,20 @@ public class AppsView: Gtk.Window {
         return true;
     }
 
-    public void reveal(bool _visible) {
-        if (_visible == this.shown) {
+    public void reveal(bool visible) {
+        if (this.shown == visible) {
             return;
         }
 
-        this.shown = _visible;
+        this.shown = visible;
 
         if (this.shown) {
             this.entry.set_text("");
 
             string position = this.gsettings.get_string("position");
             int x, y, w, h;
-            this.parent.panel.get_position(out x, out y);
-            this.parent.panel.get_size(out w, out h);
+            this.dock.get_position(out x, out y);
+            this.dock.get_size(out w, out h);
 
             if (position == "Left") {
                 this.move(w + 10, 0);

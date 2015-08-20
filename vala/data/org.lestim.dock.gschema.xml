@@ -1,5 +1,5 @@
 <schemalist>
-  <schema id="org.lestim.panel" path="/org/lestim/panel/" gettext-domain="lestim-panel">
+  <schema id="org.lestim.dock" path="/org/lestim/dock/" gettext-domain="lestim-dock">
     <key name="icon-size" type="i">
       <default>48</default>
       <summary>Icon size</summary>

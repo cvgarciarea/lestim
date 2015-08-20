@@ -1,0 +1,11 @@
+<schemalist>
+  <schema id="org.lestim.panel" path="/org/lestim/panel/" gettext-domain="lestim-panel">
+    <key name="background-transparency" type="i">
+      <default>2</default>
+      <summary>The lateral panel transparency.</summary>
+      <description>
+        Must be a value between 0 and 9.
+      </description>
+    </key>
+  </schema>
+</schemalist>

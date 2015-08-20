@@ -8,13 +8,14 @@ VALAPKG = --pkg gtk+-3.0 \
           --pkg gio-unix-2.0
 
 SRC = Lestim.vala \
-      globals.vala \
-      panel.vala \
+      wallpaper_window.vala \
+      dock.vala \
       widgets.vala \
-      lateral_panel.vala \
+      panel.vala \
       settings_window.vala \
       apps_view.vala \
-      icon_view.vala
+      icon_view.vala \
+      globals.vala
 
 OPTIONS = -X "-DGMENU_I_KNOW_THIS_IS_UNSTABLE"
 BIN = lestim

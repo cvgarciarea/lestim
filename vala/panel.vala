@@ -16,550 +16,426 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-class PanelButton: Gtk.EventBox {
+private class Calendar: Gtk.Calendar {
+    public Calendar() {
+        this.set_name("LateralCalendar");
+    }
+}
 
-    public signal void right_click();
-    public signal void left_click();
+private class CalendarItem: Gtk.Box {
 
-    public Gtk.Box box;
-    public Gtk.Image image;
-    public Gtk.Label label;
+    private Gtk.Label time_label;
+    private Gtk.Label day_label;
+    private Gtk.Revealer revealer;
+    private Calendar calendar;
 
-    public int icon_size = 48;
-    public bool show_label = true;
-    public string? icon_name;
+    private DateTime time;
 
-    public PanelButton() {
-        this.box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        this.add(this.box);
+    public bool show_seconds = false;
 
-        this.image = new Gtk.Image();
-        this.box.add(this.image);
+    public CalendarItem() {
+        this.set_orientation(Gtk.Orientation.VERTICAL);
+        this.set_name("CalendarItem");
 
-        this.label = new Gtk.Label(null);
-        this.box.pack_end(this.label, true, true, 0);
+        Gtk.EventBox box1 = new Gtk.EventBox();
+        box1.button_release_event.connect(this.show_calendar);
+        this.pack_start(box1, false, false, 0);
 
-        this.button_release_event.connect(this.button_release_event_cb);
+        this.time_label = new Gtk.Label("");
+        this.time_label.set_name("TimeLabel");
+        box1.add(this.time_label);
+
+        Gtk.EventBox box2 = new Gtk.EventBox();
+        box2.button_release_event.connect(this.show_calendar);
+        pack_start(box2, false, false, 0);
+
+        this.day_label = new Gtk.Label("");
+        this.day_label.set_name("DayLabel");
+        box2.add(this.day_label);
+
+        this.revealer = new Gtk.Revealer();
+        this.revealer.set_reveal_child(false);
+        this.pack_start(this.revealer, false, false, 0);
+
+        this.calendar = new Calendar();
+        this.revealer.add(this.calendar);
+
+        this.time = new DateTime.now_local();
+
+        GLib.Timeout.add(1000, this.update_clock);
     }
 
-    private bool button_release_event_cb(Gtk.Widget self, Gdk.EventButton event) {
-        if (event.button == 1) {
-            this.left_click();
-        } else if (event.button == 3) {
-            this.right_click();
-        }
-
+    public bool show_calendar(Gtk.Widget box, Gdk.EventButton event) {
+        this.revealer.set_reveal_child(!this.revealer.get_child_revealed());
         return true;
     }
 
-    public void set_image_from_string(string name) {
-        this.icon_name = name;
-        this.box.remove(this.image);
+    private bool update_clock() {
+        this.time = new DateTime.now_local();
+        int current_day = this.time.get_day_of_month();
+        int current_month = this.time.get_month();
+        int current_year = this.time.get_year();
+        string format = "%H:%M";
+        string date = "%d/%d/%d".printf(current_day, current_month, current_year);
+        string time_markup = "<b><big><big><big><big><big><big><big>%s</big></big></big></big></big></big></big></b>".printf(time.format(format + (show_seconds ? ":%S": "")));
 
-        this.image = get_image_from_name(this.icon_name, this.icon_size);
-        this.box.add(this.image);
+        this.time_label.set_markup(time_markup);
+        this.day_label.set_markup("<big><big>" + date + "</big></big>");
+
+        return true;
+    }
+}
+
+private class MonitorItem: Gtk.Box {
+
+    public Gtk.Image icon;
+    public Gtk.Label label;
+
+    public MonitorItem() {
+        this.label = new Gtk.Label(null);
+        this.icon = new Gtk.Image();
+
+        this.set_orientation(Gtk.Orientation.VERTICAL);
+        this.pack_start(this.icon, true, true, 0);
+        this.pack_end(this.label, false, false, 0);
+
         this.show_all();
     }
 
-    public void set_image_from_widget(Gtk.Image image) {
-        this.icon_name = null;
-        this.box.remove(this.image);
+    public void set_icon(string icon_name) {
+        this.remove(this.icon);
 
-        this.image = image;
-        this.box.add(this.image);
+        this.icon = get_image_from_name(icon_name);
+        this.pack_start(this.icon, true, true, 0);
         this.show_all();
-    }
-
-    public void set_image_from_pixbuf(Gdk.Pixbuf pixbuf) {
-        this.icon_name = null;
-        this.box.remove(this.image);
-
-        this.image = new Gtk.Image.from_pixbuf(pixbuf);
-        this.box.add(this.image);
-        this.show_all();
-    }
-
-    public void set_icon_size(int size) {
-        if (size == this.icon_size) {
-            return;
-        }
-
-        this.icon_size = size;
-
-        if (this.icon_name != null) {
-            this.set_image_from_string(this.icon_name);
-        } else {
-            Gdk.Pixbuf pixbuf = this.image.get_pixbuf();
-            pixbuf = pixbuf.scale_simple(this.icon_size, this.icon_size, Gdk.InterpType.TILES);
-            this.set_image_from_pixbuf(pixbuf);
-        }
     }
 
     public void set_label(string text) {
         this.label.set_label(text);
     }
+}
 
-    public void set_show_label(bool show) {
-        if (show != this.show_label) {
-            this.show_label = show;
-            if (this.show_label) {
-                this.box.pack_end(this.label, true, true, 0);
-            } else {
-                this.box.remove(this.label);
+private class BatteryItem: MonitorItem {
+
+    public string state = "";
+    public int percentage = 0;
+    public string battery_path;
+
+    public BatteryItem(string path) {
+        this.set_label("100%");
+        this.set_icon("battery-symbolic");
+
+        this.battery_path = path;
+
+        GLib.Timeout.add(1000, this.check);
+    }
+
+    private bool check() {
+        GLib.File file = GLib.File.new_for_path(this.battery_path);
+        if (!file.query_exists()) {
+            return false;
+        }
+
+        this.check_battery_state();
+        this.check_battery_percentage();
+        return true;
+    }
+
+    private void check_battery_state() {
+        string status;
+        try {
+            GLib.FileUtils.get_contents(this.battery_path, out status);
+            status = status.replace("\n", "");
+            if (status != state && status != "Unknown") {
+                state = status;
+                this.set_label(state);
             }
+        } catch {}
+    }
+
+    private void check_battery_percentage() {
+        int percentage = 0;
+
+        if (this.percentage != percentage) {
+            this.percentage = percentage;
+            this.set_label(percentage.to_string() + "%");
         }
     }
 }
 
-class OpenedAppButton: PanelButton {
+private class NetworkItem: MonitorItem {
+    public NetworkItem() {
+        this.set_label("Network");
+        this.set_icon("network-wireless-signal-excellent-symbolic");
+    }
+}
 
-    public OpenedAppButton() {}
-    /*
-    public Wnck.Window window;
+private class MonitorsItem: Gtk.Box {
 
-    public OpenedAppButton(Wnck.Window window) {
-        this.window = window;
-        this.set_image_from_pixbuf(this.window.get_icon());
-        this.set_tooltip_text(this.window.get_name());
+    private string battery_path = "/sys/class/power_supply/BAT1/status";
 
-        this.left_click.connect(this.left_click_cb);
+    public BatteryItem battery_item;
+    public NetworkItem network_item;
 
-    private void left_click_cb() {
-        if (!this.window.is_active()) {
-            this.window.active(0);
-        } else {
-            this.window.minimize();
+    public MonitorsItem() {
+        this.set_orientation(Gtk.Orientation.HORIZONTAL);
+
+        GLib.File file = GLib.File.new_for_path(battery_path);
+        if (file.query_exists()) {
+            this.battery_item = new BatteryItem(battery_path);
+            this.pack_start(this.battery_item, true, true, 0);
         }
-    }
-    */
-}
 
-private class ShowAppsButton: PanelButton {
-    public ShowAppsButton() {
-        this.set_name("PanelAppsButton");
-        this.set_image_from_string("view-grid-symbolic");
-        this.set_show_label(false);
+        this.network_item = new NetworkItem();
+        this.pack_start(this.network_item, true, true, 0);
     }
 }
 
-private class LateralPanelButton: PanelButton {
-    public LateralPanelButton() {
-        this.set_name("ShowPanelButton");
-        this.set_image_from_string("go-previous-symbolic");
-        this.set_show_label(false);
+private class PowerButton: Gtk.Button {
+
+    public string? icon_name = null;
+    public Gtk.Image? image = null;
+
+    public PowerButton() {
+        this.set_name("PowerButton");
+        this.set_image_from_string("image-x-generic-symbolic");
+        this.show_all();
+    }
+
+    public void set_image_from_string(string icon_name) {
+        this.image = get_image_from_name(icon_name, 48);
+        this.set_image(this.image);
+        this.show_all();
+    }
+}
+
+private class ShutdownButton: PowerButton {
+    public ShutdownButton() {
+        this.set_name("ShutdownButton");
+        this.set_tooltip_text("Shutdown");
+        this.set_image_from_string("system-shutdown-symbolic");
+    }
+}
+
+private class RebootButton: PowerButton {
+    public RebootButton() {
+        this.set_name("RebootButton");
+        this.set_tooltip_text("Reboot");
+        this.set_image_from_string("view-refresh-symbolic");
+    }
+}
+
+private class LockButton: PowerButton {
+    public LockButton() {
+        this.set_name("LockButton");
+        this.set_tooltip_text("Lock");
+        this.set_image_from_string("system-lock-screen-symbolic");
+    }
+}
+
+private class SettingsButton: PowerButton {
+    public SettingsButton() {
+        this.set_name("SettingsButton");
+        this.set_tooltip_text("Settings");
+        this.set_image_from_string("preferences-system-symbolic");
     }
 }
 
 public class LestimPanel: Gtk.Window {
 
-    public signal void show_apps();
-    public signal void show_lateral_panel(bool visible);
+    public signal void reveal_changed(bool visible);
+    public signal void power_off();
+    public signal void reboot();
+    public signal void lock_screen();
+    public signal void show_settings();
 
     public GLib.Settings gsettings;
 
-    public bool shown = true;
-    public bool panel_visible = false;
-    public bool in_transition = false;
-    public int avance = 10;
+    public bool shown = false;
+    public int last_position = DISPLAY_WIDTH;
+    public int volume = 0;
+    public int brightness = 0;
+    public int current_y = 0;
 
-    public Gtk.Box box;
-    public Gtk.Box favorite_area;
-    //public Wnck.Tasklist opened_apps_area;
-    private ShowAppsButton show_apps_button;
-    private LateralPanelButton lateral_panel_button;
+    public Gtk.Box vbox;
+    public Gtk.Box monitors;
+    public Gtk.Box hbox_volume;
+    public Gtk.Box hbox_brightness;
+    public Gtk.Image volume_icon;
 
     public LestimPanel() {
         this.set_name("LestimPanel");
+        this.set_can_focus(false);
         this.set_keep_above(true);
-        this.set_decorated(false);
+        this.set_size_request(300, DISPLAY_HEIGHT);
         this.set_type_hint(Gdk.WindowTypeHint.DOCK);
-        this.set_gravity(Gdk.Gravity.STATIC);
-        this.resize(48, 400);
-        this.set_border_width(2);
-        this.move(0, DISPLAY_HEIGHT / 2 - 200);
-        this.set_skip_taskbar_hint(true);
-        this.set_skip_pager_hint(true);
-        this.set_urgency_hint(true);
-
-        Gtk.drag_dest_set (
-            this,
-            Gtk.DestDefaults.MOTION | Gtk.DestDefaults.HIGHLIGHT,
-            app_button_target_list,
-            Gdk.DragAction.COPY
-        );
+        this.move(DISPLAY_WIDTH, 0);
 
         this.gsettings = new GLib.Settings("org.lestim.panel");
+        this.gsettings.changed.connect(this.settings_changed_cb);
 
-        this.box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        this.add(this.box);
+        this.vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 5);
+        this.add(this.vbox);
 
-        this.show_apps_button = new ShowAppsButton();
-        this.show_apps_button.left_click.connect(show_apps_cb);
-        this.box.pack_start(this.show_apps_button, false, false, 0);
+        CalendarItem calendar = new CalendarItem();
+        this.vbox.pack_start(calendar, false, false, 10);
 
-        this.favorite_area = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        this.box.pack_start(this.favorite_area, false, false, 5);
+        this.monitors = new MonitorsItem();
+        this.vbox.pack_start(this.monitors, false, false, 0);
 
-        //Wnck.Tasklist opened_apps_area = new Wnck.Tasklist();
-        //this.opened_apps_area = new Wnck.Tasklist();
-        //this.box.pack_start(this.opened_apps_area, false, false, 0);
+        Gtk.Scale scale_v = new Gtk.Scale.with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 10);
+        scale_v.set_name("VolumeScale");
+        scale_v.set_value(this.volume);
+        scale_v.set_draw_value(false);
 
-        this.lateral_panel_button = new LateralPanelButton();
-        this.lateral_panel_button.left_click.connect(this.show_lateral_panel_cb);
-        this.box.pack_end(this.lateral_panel_button, false, false, 1);
+        this.hbox_volume = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 10);
+        this.hbox_volume.set_margin_left(2);
+        this.hbox_volume.pack_start(get_image_from_name("audio-volume-high-symbolic", 24), false, false, 1);
+        this.hbox_volume.pack_end(scale_v, true, true, 0);
+        this.vbox.pack_start(this.hbox_volume, false, false, 1);
 
-        this.drag_data_received.connect(this.drag_data_received_cb);
+        Gtk.Scale scale_b = new Gtk.Scale.with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 10);
+        scale_b.set_name("BrightnessScale");
+        scale_b.set_value(this.brightness);
+        scale_b.set_draw_value(false);
+        //scale.connect('value-changed', self.__brightness_changed)
+
+        this.hbox_brightness = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 10);
+        this.hbox_brightness.set_margin_left(2);
+        this.hbox_brightness.pack_start(get_image_from_name("display-brightness-symbolic", 24), false, false, 1);
+        this.hbox_brightness.pack_end(scale_b, true, true, 0);
+        this.vbox.pack_start(this.hbox_brightness, false, false, 1);
+
+        Gtk.Box hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+        this.vbox.pack_end(hbox, false, false, 10);
+
+        ShutdownButton shutdown_button = new ShutdownButton();
+        shutdown_button.clicked.connect(this.shutdown_request);
+        hbox.pack_start(shutdown_button, true, true, 10);
+
+        RebootButton reboot_button = new RebootButton();
+        reboot_button.clicked.connect(this.reboot_request);
+        hbox.pack_start(reboot_button, true, true, 10);
+
+        LockButton lock_button = new LockButton();
+        lock_button.clicked.connect(this.lock_screen_request);
+        hbox.pack_start(lock_button, true, true, 10);
+
+        SettingsButton settings_button = new SettingsButton();
+        settings_button.clicked.connect(this.show_settings_request);
+        hbox.pack_start(settings_button, true, true, 10);
+        
         this.realize.connect(this.realize_cb);
-
-        this.show_all();
     }
 
-    private void drag_data_received_cb(Gtk.Widget widget, Gdk.DragContext context, int x, int y, Gtk.SelectionData selection_data, uint target_type, uint time) {
-        if ((selection_data == null) || !(selection_data.get_length() >= 0)) {
-            return;
-        }
+    public void realize_cb(Gtk.Widget self) {
+        this.reload_transparency();
+    }
 
-        switch (target_type) {
-            case Target.STRING:
-                stdout.printf((string)selection_data.get_data() + "\n");
-                break;
-            default:
-                stdout.printf("Anything\n");
+    public void settings_changed_cb(GLib.Settings gsettings, string key) {
+        switch (key) {
+            case "background-transparency":
+                this.reload_transparency();
                 break;
         }
     }
 
-    private void realize_cb() {
-        this.set_position(this.gsettings.get_string("position"));
+    public void reload_transparency() {
+        double transp = 1.0 - (double)(this.gsettings.get_int("background-transparency")) / 10.0;
+        var window = this.get_window();
+        window.set_opacity(transp);
     }
 
-    private void show_lateral_panel_cb() {
-        this.show_lateral_panel(!this.panel_visible);
-    }
-
-    private void show_apps_cb() {
-        this.show_apps();
-    }
-
-    public void set_reveal_state(bool visible) {
-        this.panel_visible = visible;
-        if (!this.panel_visible) {
-            this.lateral_panel_button.set_image_from_string("go-previous-symbolic");
-        } else {
-            this.lateral_panel_button.set_image_from_string("go-next-symbolic");
-        }
-    }
-
-    public void set_position(string position) {
-        if (position == "Top" || position == "Bottom") {
-            this.box.set_orientation(Gtk.Orientation.HORIZONTAL);
-            this.favorite_area.set_orientation(Gtk.Orientation.HORIZONTAL);
-        } else {
-            this.box.set_orientation(Gtk.Orientation.VERTICAL);
-            this.favorite_area.set_orientation(Gtk.Orientation.VERTICAL);
-        }
-
-        this.reset_pos();
-    }
-
-    public void set_autohide(bool autohide) {
-        this.reveal(!autohide);
-    }
-
-    public void set_expand(bool expand) {
-        int w, h;
-        this.get_size(out w, out h);
-        this.reset_pos();
-    }
-
-    public void set_reserve_space(bool reserve_space) {
-        this.reserve_screen_space(reserve_space);
-    }
-
-    private void reserve_screen_space(bool reserve) {
-        if (!this.get_realized()) {
-            return;
-        }
-        /*
-        int w, h;
-        this.get_size(out w, out h);
-
-        Gdk.Atom atom;
-        long struts[12];
-
-        if (this.shown) {
-            switch (this.gsettings.get_string("position")) {
-                case "Top":
-                    struts = {0, 0, h, 0,
-                              0, 0, 0, 0,
-                              0, DISPLAY_WIDTH, 0, 0};
-                    break;
-                case "Left":
-                    struts = {w, 0, 0, 0,
-                              0, DISPLAY_HEIGHT,
-                              0, 0, 0, 0, 0, 0};
-                    break;
-                case "Bottom":
-                    struts = {0, 0, 0,
-                              DISPLAY_HEIGHT - h,
-                              0, 0, 0, 0, 0, 0,
-                              0, w};
-                    break;
-            }
-        } else {
-            struts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        }
-
-        atom = Gdk.Atom.intern("_NET_WM_STRUT_PARTIAL", false);
-        Gdk.property_change(this.get_window(), atom, Gdk.Atom.intern("CARDINAL", false),
-            32, Gdk.PropMode.REPLACE, (uint8[])struts, 12);
-    */
-    }
-
-    public void set_step_size(int avance) {
-        this.avance = avance;
-    }
-
-    public void set_icon_size(int size) {
-        this.show_apps_button.set_icon_size(size);
-        this.lateral_panel_button.set_icon_size(size);
-        this.reset_pos();
-    }
-
-    public void reset_pos() {
-        GLib.Idle.add(() => {
-            if (this.in_transition) {
-                return false;
-            }
-
-            int s = this.gsettings.get_int("icon-size");
-            int w, h;
-            this.get_size(out w, out h);
-            this.shown = true;
-            bool expand = this.gsettings.get_boolean("expand");
-
-            if (expand) {
-                switch (this.gsettings.get_string("position")) {
-                    case "Left":
-                        this.set_size_request(s, DISPLAY_HEIGHT);
-                        this.resize(s, DISPLAY_HEIGHT);
-                        break;
-
-                    case "Top":
-                        this.set_size_request(DISPLAY_WIDTH, s);
-                        this.resize(DISPLAY_WIDTH, s);
-                        break;
-
-                    case "Bottom":
-                        this.set_size_request(DISPLAY_WIDTH, s);
-                        this.resize(DISPLAY_WIDTH, s);
-                        break;
-                }
-            } else {
-                switch (this.gsettings.get_string("position")) {
-                    case "Left":
-                        this.set_size_request(s, 1);
-                        this.resize(s, 1);
-                        break;
-
-                    case "Top":
-                        this.set_size_request(1, s);
-                        this.resize(1, s);
-                        break;
-
-                    case "Bottom":
-                        this.set_size_request(1, s);
-                        this.resize(1, s);
-                        break;
-                }
-            }
-
-            this.get_size(out w, out h);
+    public void reveal(bool visible) {
+        if (this.shown != visible) {
+            this.shown = visible;
             if (this.shown) {
-                switch(this.gsettings.get_string("position")) {
-                    case "Left":
-                        this.move(0, !expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
-                        break;
-
-                    case "Top":
-                        this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, 0);
-                        break;
-
-                    case "Bottom":
-                        this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT - h);
-                        break;
-                }
-            } else {
-                switch(this.gsettings.get_string("position")) {
-                    case "Left":
-                        this.move(-w, !expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
-                        break;
-
-                    case "Top":
-                        this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, -h);
-                        break;
-
-                    case "Bottom":
-                        this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT);
-                        break;
-                }
+                this._reveal();
             }
-            return true;
-        });
-    }
 
-    private bool _reveal_left() {
-        int x, y, w, h;
-        this.get_position(out x, out y);
-        this.get_size(out w, out h);
-
-        if (x + avance < 0) {
-            this.in_transition = true;
-            this.move(x + avance, DISPLAY_HEIGHT / 2 - h / 2);
-            return true;
-        } else {
-            this.move(0, DISPLAY_HEIGHT / 2 - h / 2);
-            this.in_transition = false;
-            this.shown = true;
-            return false;
-        }
-    }
-
-    private bool _reveal_top() {
-        int x, y, w, h;
-        this.get_position(out x, out y);
-        this.get_size(out w, out h);
-
-        if (y + avance < 0) {
-            this.in_transition = true;
-            this.move(DISPLAY_WIDTH / 2 - w / 2, y + avance);
-            return true;
-        } else {
-            this.move(DISPLAY_WIDTH / 2 - w / 2, 0);
-            this.in_transition = false;
-            this.shown = true;
-            return false;
-        }
-    }
-
-    private bool _reveal_bottom() {
-        int x, y, w, h;
-        this.get_position(out x, out y);
-        this.get_size(out w, out h);
-
-        if (y - avance > DISPLAY_HEIGHT - h) {
-            this.in_transition = true;
-            this.move(DISPLAY_WIDTH / 2 - w / 2, y - avance);
-            return true;
-        } else {
-            this.move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT - h);
-            this.in_transition = false;
-            this.shown = true;
-            return false;
+            else {
+                this._disreveal();
+            }
         }
     }
 
     private void _reveal() {
-        if (this.in_transition) {
-            return;
-        }
+        this.show_all();
+        this.reveal_changed(true);
 
-        switch (this.gsettings.get_string("position")) {
-            case "Left":
-                GLib.Timeout.add(20, this._reveal_left);
-                break;
-
-            case "Top":
-                GLib.Timeout.add(20, this._reveal_top);
-                break;
-
-            case "Bottom":
-                GLib.Timeout.add(20, this._reveal_bottom);
-                break;
-        }
-    }
-
-    private bool _disreveal_left() {
-        int w, h, x, y;
+        int w; int h;
         this.get_size(out w, out h);
+
+        int x; int y;
         this.get_position(out x, out y);
 
-        if (x + w - avance > 0) {
-            this.in_transition = true;
-            this.move(x - avance, DISPLAY_HEIGHT / 2 - h / 2);
-            return true;
-        } else {
-            this.move(-w, DISPLAY_HEIGHT / 2 - h / 2);
-            this.in_transition = false;
-            this.shown = false;
-            return false;
-        }
-    }
+        GLib.Timeout.add(20, () => {
+            bool t = x > DISPLAY_WIDTH - w;
+            if (x == last_position || !t) {
+                this.move(DISPLAY_WIDTH - w, current_y);
+                this.last_position = 0;
+                return false;
+            }
 
-    private bool _disreveal_top() {
-        int w, h, x, y;
-        this.get_size(out w, out h);
-        this.get_position(out x, out y);
-
-        if (y + h - avance > 0) {
-            this.in_transition = true;
-            this.move(DISPLAY_WIDTH / 2 - w / 2, y - avance);
-            return true;
-        } else {
-            this.move(DISPLAY_WIDTH / 2 - w / 2, -h);
-            this.in_transition = false;
-            this.shown = false;
-            return false;
-        }
-    }
-
-    private bool _disreveal_bottom() {
-        int w, h, x, y;
-        this.get_size(out w, out h);
-        this.get_position(out x, out y);
-
-        if (y + avance < DISPLAY_HEIGHT) {
-            this.in_transition = true;
-            this.move(DISPLAY_WIDTH / 2 - w / 2, y + avance);
-            return true;
-        } else {
-            this.move(DISPLAY_WIDTH / 2 - w / 2, DISPLAY_HEIGHT);
-            this.in_transition = false;
-            this.shown = false;
-            return false;
-        }
+            else {
+                int avance = (x - (DISPLAY_WIDTH - w)) / 2;
+                x -= avance;
+                this.move(x, current_y);
+                this.last_position = x;
+                return true;
+            }
+        });
     }
 
     private void _disreveal() {
-        if (this.in_transition) {
-            return;
-        }
+        this.reveal_changed(false);
 
-        switch (this.gsettings.get_string("position")) {
-            case "Left":
-                GLib.Timeout.add(20, this._disreveal_left);
-                break;
+        int w; int h;
+        this.get_size(out w, out h);
 
-            case "Top":
-                GLib.Timeout.add(20, this._disreveal_top);
-                break;
+        int x; int y;
+        this.get_position(out x, out y);
 
-            case "Bottom":
-                GLib.Timeout.add(20, this._disreveal_bottom);
-                break;
-        }
+        GLib.Timeout.add(20, () => {
+            if (x == this.last_position || x > DISPLAY_WIDTH) {
+                this.move(DISPLAY_WIDTH, this.current_y);
+                this.last_position = 0;
+                this.hide();
+                return false;
+            }
+
+            else {
+                int avance = (DISPLAY_WIDTH - x) / 2;
+                x += avance;
+                last_position = x;
+                this.move(x, this.current_y);
+                return true;
+            }
+        });
     }
 
-    public void reveal(bool shown) {
-        if (this.shown == shown) {
-            return;
-        }
+    private bool focus_out_event_cb(Gtk.Widget self, Gdk.EventFocus event) {
+        this.reveal(false);
+        return true;
+    }
 
-        this.shown = shown;
-        if (this.shown) {
-            this._reveal();
-        } else {
-            this._disreveal();
-        }
+    private void shutdown_request(Gtk.Button button) {
+        this.reveal(false);
+        this.power_off();
+    }
+
+    private void reboot_request(Gtk.Button button) {
+        this.reveal(false);
+        this.reboot();
+    }
+
+    private void lock_screen_request(Gtk.Button button) {
+        this.reveal(false);
+        this.lock_screen();
+    }
+
+    private void show_settings_request(Gtk.Button button) {
+        this.reveal(false);
+        this.show_settings();
     }
 }
