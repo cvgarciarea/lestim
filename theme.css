@@ -3,33 +3,142 @@ Created by Cristian García <cristian99garcia@gmail.com>
 Based on: Numix Frost Dark
 */
 
+@define-color bg_color #161616;
+@define-color focus_color #242424;
+@define-color text_color #DEDEDE;
+@define-color selected_bg_color #1a80b6;
+@define-color selected_fg_color #F9F9F9;
+
+/*
 LestimWindow {
     background-image: url('./background');
     background-repeat: no-repeat;
 }
+*/
 
-Canvas, GtkIconView, AppsBox, AppsGrid {
+/*LestimCanvas {
     background-color: transparent;
 }
-
-GtkIconView.view.cell:selected,
-GtkIconView.view.cell:selected:focused {
-    border-style: solid;
-    border-radius: 10px;
-    border-width: 3px;
-    border-color: #D3D7CF;
+*/
+LestimPanel {
+    background-color: @bg_color;
+    border-width: 1px;
+    border-radius: 2px;
 }
 
+PanelButton {
+    background-color: @bg_color;
+    border-color: @bg_color;
+}
+
+PanelButton:focus {
+    border-color: @selected_bg_color;
+}
+
+AppsView {
+    background-color: @bg_color;
+}
+
+AppButton {
+    background-color: @bg_color;
+    border-width: 2px;
+    border-radius: 2px;
+    border-style: solid;
+}
+
+AppsEntry {
+    padding: 4px 3px;
+
+    background-color: @bg_color;
+    background-image: none;
+    color: @text_color;
+
+    border-style: solid;
+    border-color: @bg_color;
+    border-radius: 2px;
+    border-width: 1px;
+
+    font-size: 22px;
+}
+
+AppsEntry:focus, AppsEntry:active {
+    border-color: shade(@bg_color, 0.7);
+}
+
+AppsEntry:selected, AppsEntry:selected:focus {
+    background-color: @theme_selected_bg_color;
+    color: @selected_fg_color;
+}
+
+LateralPanel {
+    background-color: @bg_color;
+}
+
+CalendarItem {
+    background-color: @bg_color;
+}
+
+CalendarItem:focus {
+    background-color: @focus_color;
+}
+
+GtkCalendar {
+    padding: 4px;
+    outline-offset: -1px;
+}
+
+GtkCalendar:inconsistent {
+    color: mix(@theme_fg_color, @theme_bg_color, 0.5);
+}
+
+Calendar.view,
+Calendar.header,
+Calendar.button,
+Calendar.button:hover,
+Calendar.button:insensitive {
+    border-width: 0;
+    background-color: transparent;
+    background-image: none;
+}
+
+.highlight,
+Calendar.highlight {
+    border-width: 0;
+    background-color: transparent;
+    color: @selected_bg_color;
+}
+
+VolumeScale {
+}
+
+VolumeScale.slider {
+}
+
+BrightnessScale {
+}
+
+PowerButton {
+    border-width: 1px;
+    border-radius: 2px;
+
+    background-color: @bg_color;
+    background: @bg_color;
+    border-color: shade(@bg_color, 0.7);
+}
+
+PowerButton:active {
+    background-color: shade(@bg_color, 0.7);
+}
+
+/*
 GtkPopover {
     margin: 10px;
     padding: 2px;
     border-radius: 2px;
-    border-color: #161616;
     border-width: 1px;
     border-style: solid;
     background-clip: border-box;
     background-image: none;
-    background-color: #161616;
     color: #212121;
     box-shadow: 0 2px 3px alpha(black, 0.5);
 }
@@ -61,105 +170,4 @@ GtkPopover .separator {
     font-size: 80%;
     font-weight: bold;
 }
-
-WorkArea:backdrop:selected {
-    background-color: #D3D7CF;
-    color: #D3D7CF;
-    outline-color: #D3D7CF;
-}
-
-LateralPanel > GtkVBox, LestimPanel, IndicatorsArea, AppsView {
-    background-color: #161616;
-}
-
-AppsView {
-    border-radius: 4px;
-}
-
-ShutdownButton, RebootButton, LockButton, SettingsButton {
-    background-color: #101010;
-    border-radius: 10px;
-    border-color: #080808;
-}
-
-ShutdownButton:hover, RebootButton:hover, LockButton:hover, SettingsButton:hover {
-    background-color: #080808;
-}
-
-AppButton, PanelAppsButton, OpenedAppButton, GtkButton#ShowPanelButton {
-    background-color: alpha(#000000, 0.25);
-    border-radius: 2px;
-    border-color: #212121;
-}
-
-AppButton, PanelAppsButton, OpenedAppButton, ShutdownButton, RebootButton,
-LockButton, SettingsButton, GtkButton#ShowPanelButton {
-    border-image: none;
-    background-image: none;
-}
-
-AppButton:hover, PanelAppsButton:hover, OpenedAppButton:hover, GtkButton#ShowPanelButton:hover {
-    background-color: alpha(#000000, 0.40);
-}
-
-GtkLabel#AppButtonLabel {
-    color: #BBBBBB;
-}
-
-AppsEntry {
-    background-color: alpha(#202020, 0.30);
-    background-image: none;
-    border-radius: 4px;
-    border-width: 0px;
-    border-style: none;
-    font-size: 20px;
-    color: #BBBBBB;
-}
-
-CalendarItem, CalendarItem > GtkEventBox {
-    background-color: #161616;
-}
-
-GtkLabel#TimeLabel, GtkLabel#DayLabel {
-    color: #BBBBBB;
-}
-
-GtkLabel#TimeLabel {
-    font: Bold 40;
-}
-
-GtkLabel#DayLabel {
-    font-size: 15px;
-}
-
-GtkCalendar {
-    padding: 4px;
-    outline-offset: -1px;
-}
-
-GtkCalendar:inconsistent {
-    color: mix(#DCDCDC, #2D2D2D, 0.5);
-}
-
-GtkCalendar.view,
-GtkCalendar.header,
-GtkCalendar.button,
-GtkCalendar.button:hover,
-GtkCalendar.button:insensitive {
-    border-width: 0;
-    background-color: transparent;
-    background-image: none;
-}
-
-.highlight,
-GtkCalendar.highlight {
-    border-width: 0;
-    background-color: transparent;
-    color: #1A80B6;
-}
-
-GtkCalendar.button {
-    border-style: none;
-    background-color: transparent;
-    background-image: none;
-}
+*/

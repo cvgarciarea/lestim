@@ -78,14 +78,15 @@ public class SettingsWindow: Gtk.Window {
         child = make_backgrounds_section();
         this.add_section("Background", "preferences-desktop-wallpaper-symbolic", child);
 
-        this.realize.connect(this.realize_cb);
+        this.show.connect(this.show_cb);
         this.delete_event.connect(this.delete_event_cb);
 
         this.current_child.show_all();
         this.hide();
     }
 
-    public void realize_cb(Gtk.Widget self) {
+    public void show_cb(Gtk.Widget self) {
+        this.update_dock_widgets();
         this.update_panel_widgets();
     }
 
@@ -181,11 +182,11 @@ public class SettingsWindow: Gtk.Window {
 
     private Gtk.Box make_panel_section() {
         Gtk.Box box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        
+
         Gtk.ListBox listbox = new Gtk.ListBox();
         listbox.set_selection_mode(Gtk.SelectionMode.NONE);
         box.add(listbox);
-        
+
         var box1 = this.make_row(listbox, "Transparency");
         Gtk.Adjustment adj1 = new Gtk.Adjustment(1, 0, 9, 1, 2, 0);
         this.spin_transp = new Gtk.SpinButton(adj1, 0, 0);
@@ -251,7 +252,7 @@ public class SettingsWindow: Gtk.Window {
 
     private void panel_position_changed(Gtk.ComboBox combo) {
         string position;
-        switch (combo.get_active()) {
+        switch (this.combo_position.get_active()) {
             case 0:
                 position = "Top";
                 break;
@@ -371,12 +372,12 @@ public class SettingsWindow: Gtk.Window {
                     this.combo_position.set_active(2);
                     break;
                 default:
-                    this.combo_position.set_active(3);
+                    this.combo_position.set_active(1);
                     break;
             }
         }
     }
-    
+
     public void update_panel_widgets(string? key=null) {
         if (key != null) {
             switch (key) {

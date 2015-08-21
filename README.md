@@ -4,14 +4,13 @@ Lestim
 ##Test vala version:
 **Copy xml file and install schema:**
 ```
-# cp vala/data/org.lestim.dock.gschema.xml /usr/share/glib-2.0/schemas/
-# cp vala/data/org.lestim.panel.gschema.xml /usr/share/glib-2.0/schemas/
+# cp data/org.lestim.dock.gschema.xml /usr/share/glib-2.0/schemas/
+# cp data/org.lestim.panel.gschema.xml /usr/share/glib-2.0/schemas/
 # glib-compile-schemas /usr/share/glib-2.0/schemas/
 ```
 
 **Compile and run:**
 ```
-cd vala
 make
 ./lestim
 ```
@@ -32,6 +31,8 @@ make
     - [ ] Log out
     - [x] Preferences
 - [ ] Add Wnck functionality(manage applications windows)
+- [ ] Save log in a file
+- [ ] Add option transparency to the dock
 
 *Dependencies:*
 

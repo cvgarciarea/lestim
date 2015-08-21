@@ -204,8 +204,8 @@ public class MouseDetector: Object {
 public class WindowPositionDetector: Object {
 
     //__gsignals__ = {
-    //    'show-panel': (GObject.SIGNAL_RUN_FIRST, None, []),
-    //    'hide-panel': (GObject.SIGNAL_RUN_FIRST, None, [])
+    //    "show-panel": (GObject.SIGNAL_RUN_FIRST, None, []),
+    //    "hide-panel": (GObject.SIGNAL_RUN_FIRST, None, [])
     //}
 
     public LestimPanel panel;
@@ -217,3 +217,81 @@ public class WindowPositionDetector: Object {
         //screen = Wnck.Screen.get_default();
     }
 }
+/*
+public class SoundControl: GLib.Object {
+
+    private Gvc.MixerControl mixer;
+    private Gvc.MixerStream stream;
+
+    public SoundControl() {
+        this.mixer = new Gvc.MixerControl("Lestim Volume Control");
+        this.mixer.state_changed.connect(this.state_changed_cb);
+        this.mixer.open();
+    }
+
+    protected void state_changed_cb(Gvc.MixerControl mixer, uint new_state) {
+        if (new_state == Gvc.MixerControlState.READY) {
+            this.stream = this.mixer.get_default_sink();
+            this.stream.notify.connect((s, p)=> {
+                if (p.name == "volume" || p.name == "is-muted") {
+                    this.update_volume();
+                }
+            });
+            this.update_volume();
+        }
+    }
+
+    protected void update_volume() {
+        var vol_norm = this.mixer.get_vol_max_norm();
+        var vol = this.stream.get_volume();
+
+        int n = (int) Math.floor(3*vol/vol_norm)+1;
+        string image_name;
+
+        // Work out an icon
+        if (stream.get_is_muted() || vol <= 0) {
+            image_name = "audio-volume-muted-symbolic";
+        } else {
+            switch (n) {
+                case 1:
+                    image_name = "audio-volume-low-symbolic";
+                    break;
+                case 2:
+                    image_name = "audio-volume-medium-symbolic";
+                    break;
+                default:
+                    image_name = "audio-volume-high-symbolic";
+                    break;
+            }
+        }
+        //widget.set_from_icon_name(image_name, Gtk.IconSize.INVALID);
+        //status_image.set_from_icon_name(image_name, Gtk.IconSize.INVALID);
+
+        var vol_max = this.mixer.get_vol_max_amplified();
+
+        stdout.printf(vol_max.to_string() + "\n");
+        stdout.printf(image_name + "\n");
+        // Each scroll increments by 5%, much better than units..
+        //step_size = vol_max / 20;
+        //GLib.SignalHandler.block(status_widget, change_id);
+        //status_widget.set_range(0, vol_max);
+        //status_widget.set_value(vol);
+        //status_widget.set_increments(step_size, step_size);
+        //if (vol_norm < vol_max) {
+        //    status_widget.add_mark(vol_norm, Gtk.PositionType.TOP, null);
+        //} else {
+        //    status_widget.clear_marks();
+        //}
+        //SignalHandler.unblock(status_widget, change_id);
+
+        // This usually goes up to about 150% (152.2% on mine though.)
+        //var pct = ((float)vol / (float)vol_norm)*100;
+        //var ipct = (uint)pct;
+        //widget.set_tooltip_text(@"$ipct%");
+
+        // Gtk 3.12 issue, ensure we show all..
+        //show_all();
+        //queue_draw();
+    }
+}
+*/

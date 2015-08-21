@@ -311,19 +311,19 @@ public class LestimPanel: Gtk.Window {
 
         ShutdownButton shutdown_button = new ShutdownButton();
         shutdown_button.clicked.connect(this.shutdown_request);
-        hbox.pack_start(shutdown_button, true, true, 10);
+        hbox.pack_start(shutdown_button, true, true, 2);
 
         RebootButton reboot_button = new RebootButton();
         reboot_button.clicked.connect(this.reboot_request);
-        hbox.pack_start(reboot_button, true, true, 10);
+        hbox.pack_start(reboot_button, true, true, 2);
 
         LockButton lock_button = new LockButton();
         lock_button.clicked.connect(this.lock_screen_request);
-        hbox.pack_start(lock_button, true, true, 10);
+        hbox.pack_start(lock_button, true, true, 2);
 
         SettingsButton settings_button = new SettingsButton();
         settings_button.clicked.connect(this.show_settings_request);
-        hbox.pack_start(settings_button, true, true, 10);
+        hbox.pack_start(settings_button, true, true, 2);
         
         this.realize.connect(this.realize_cb);
     }
