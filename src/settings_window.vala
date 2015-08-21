@@ -29,7 +29,9 @@ public class SettingsWindow: Gtk.Window {
     public Gtk.Box box_switcher;
     public Gtk.Box current_child;
 
-    public Gtk.ComboBoxText combo_position;
+    public Gtk.RadioButton l_rbutton;
+    public Gtk.RadioButton b_rbutton;
+    public Gtk.RadioButton t_rbutton;
     public Gtk.Switch switch_autohide;
     public Gtk.Switch switch_expand;
     public Gtk.Switch switch_reserve;
@@ -203,13 +205,22 @@ public class SettingsWindow: Gtk.Window {
         listbox.set_selection_mode(Gtk.SelectionMode.NONE);
         box.add(listbox);
 
-        var box1 = this.make_row(listbox, "Orientation");
-        this.combo_position = new Gtk.ComboBoxText();
-        this.combo_position.append_text("Top");
-        this.combo_position.append_text("Bottom");
-        this.combo_position.append_text("Left");
-        this.combo_position.changed.connect(panel_position_changed);
-        box1.pack_end(this.combo_position, false, false, 0);
+        var box1 = this.make_row(listbox, "Position");
+        Gtk.ButtonBox bbox = new Gtk.ButtonBox(Gtk.Orientation.HORIZONTAL);
+        bbox.set_layout(Gtk.ButtonBoxStyle.SPREAD);
+        box1.pack_end(bbox, true, true, 0);
+
+        this.l_rbutton = new Gtk.RadioButton.with_label_from_widget(null, "Left");
+        this.l_rbutton.toggled.connect(this.panel_position_changed);
+        bbox.add(this.l_rbutton);
+
+        this.t_rbutton = new Gtk.RadioButton.with_label_from_widget(l_rbutton, "Top");
+        this.t_rbutton.toggled.connect(this.panel_position_changed);
+        bbox.add(this.t_rbutton);
+
+        this.b_rbutton = new Gtk.RadioButton.with_label_from_widget(l_rbutton, "Bottom");
+        this.b_rbutton.toggled.connect(this.panel_position_changed);
+        bbox.add(this.b_rbutton);
 
         var box2 = this.make_row(listbox, "Autohide");
         this.switch_autohide = new Gtk.Switch();
@@ -250,23 +261,8 @@ public class SettingsWindow: Gtk.Window {
         this.panel_settings.set_int("background-transparency", (int)this.spin_transp.get_value());
     }
 
-    private void panel_position_changed(Gtk.ComboBox combo) {
-        string position;
-        switch (this.combo_position.get_active()) {
-            case 0:
-                position = "Top";
-                break;
-            case 1:
-                position = "Bottom";
-                break;
-            case 2:
-                position = "Left";
-                break;
-            default:
-                position = "Left";
-                break;
-        }
-
+    private void panel_position_changed(Gtk.ToggleButton rbutton) {
+        string position = rbutton.get_label();
         if (this.dock_settings.get_string("position") != position) {
             this.dock_settings.set_string("position", position);
         }
@@ -324,17 +320,20 @@ public class SettingsWindow: Gtk.Window {
 
                 case "position":
                     switch (this.dock_settings.get_string("position")) {
-                        case "Top":
-                            this.combo_position.set_active(0);
-                            break;
-                        case "Bottom":
-                            this.combo_position.set_active(1);
-                            break;
                         case "Left":
-                            this.combo_position.set_active(2);
+                            this.l_rbutton.set_active(true);
                             break;
+
+                        case "Bottom":
+                            this.b_rbutton.set_active(true);
+                            break;
+
+                        case "Top":
+                            this.t_rbutton.set_active(true);
+                            break;
+
                         default:
-                            this.combo_position.set_active(3);
+                            this.l_rbutton.set_active(true);
                             break;
                     }
                     break;
@@ -362,17 +361,20 @@ public class SettingsWindow: Gtk.Window {
             this.switch_reserve.set_active(this.dock_settings.get_boolean("space-reserved"));
             this.spin_step.set_value(this.dock_settings.get_int("animation-step-size"));
             switch (this.dock_settings.get_string("position")) {
-                case "Top":
-                    this.combo_position.set_active(0);
-                    break;
-                case "Bottom":
-                    this.combo_position.set_active(1);
-                    break;
                 case "Left":
-                    this.combo_position.set_active(2);
+                    this.l_rbutton.set_active(true);
                     break;
+
+                case "Bottom":
+                    this.b_rbutton.set_active(true);
+                    break;
+
+                case "Top":
+                    this.t_rbutton.set_active(true);
+                    break;
+
                 default:
-                    this.combo_position.set_active(1);
+                    this.l_rbutton.set_active(true);
                     break;
             }
         }
