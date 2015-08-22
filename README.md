@@ -32,7 +32,7 @@ make
     - [x] Preferences
 - [ ] Add Wnck functionality(manage applications windows)
 - [ ] Save log in a file
-- [ ] Add option transparency to the dock
+- [x] Add option transparency to the dock
 
 *Dependencies:*
 
