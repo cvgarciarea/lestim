@@ -89,8 +89,11 @@ public class SettingsWindow: Gtk.Window {
     }
 
     public void show_cb(Gtk.Widget self) {
-        this.update_dock_widgets();
-        this.update_panel_widgets();
+        GLib.Idle.add(() => {
+            this.update_dock_widgets();
+            this.update_panel_widgets();
+            return true;
+        }, GLib.Priority.LOW);
     }
 
     public bool delete_event_cb() {
@@ -294,7 +297,7 @@ public class SettingsWindow: Gtk.Window {
     }
 
     private void panel_reserve_space_changed(GLib.Object switcher, GLib.ParamSpec pspec) {
-        bool active = this.switch_expand.get_active();
+        bool active = this.switch_reserve.get_active();
         if (this.dock_settings.get_boolean("space-reserved") != active) {
             this.dock_settings.set_boolean("space-reserved", active);
         }

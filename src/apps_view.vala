@@ -59,7 +59,6 @@ public class GMenuManager {
         return new DesktopAppInfo.from_filename(entry.get_desktop_file_path());
     }
 
-    /* Launch an application described in DesktopAppInfo *//*
     public void launch_desktop_app_info(DesktopAppInfo info) {
         try {
             info.launch(null, new AppLaunchContext());

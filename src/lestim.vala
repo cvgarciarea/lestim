@@ -38,9 +38,6 @@ class Lestim: Gtk.Application {
         this.window = new BackgroundWindow();
         this.window.show();
 
-        this.gsettings = new GLib.Settings("org.lestim.dock");
-        this.gsettings.changed.connect(this.settings_changed_cb);
-
         this.dock = new LestimDock();
         this.dock.show_apps.connect(this.show_apps);
         this.dock.show_panel.connect(this.show_panel);
@@ -64,34 +61,6 @@ class Lestim: Gtk.Application {
 
     public void reload_background(SettingsWindow win, string path) {
         this.window.set_background(path);
-    }
-
-    public void settings_changed_cb(GLib.Settings settings, string key) {
-        switch (key) {
-            case "icon-size":
-                this.dock.set_icon_size(this.gsettings.get_int("icon-size"));
-                break;
-
-            case "position":
-                this.dock.set_screen_position(this.gsettings.get_string("position"));
-                break;
-
-            case "autohide":
-                this.dock.set_autohide(this.gsettings.get_boolean("autohide"));
-                break;
-
-            case "expand":
-                this.dock.set_expand(this.gsettings.get_boolean("expand"));
-                break;
-
-            case "space-reserved":
-                this.dock.set_reserve_space(this.gsettings.get_boolean("space-reserved"));
-                break;
-
-            case "animation-step-size":
-                this.dock.set_step_size(this.gsettings.get_int("animation-step-size"));
-                break;
-        }
     }
 
     public void show_apps(LestimDock dock) {

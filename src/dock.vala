@@ -160,7 +160,6 @@ public class LestimDock: Gtk.Window {
     public bool shown = true;
     public bool panel_visible = false;
     public bool in_transition = false;
-    public int avance = 10;
 
     public Gtk.Box box;
     public Gtk.Box favorite_area;
@@ -231,12 +230,35 @@ public class LestimDock: Gtk.Window {
     }
 
     private void realize_cb() {
-        this.set_screen_position(this.gsettings.get_string("position"));
+        this.reload_position();
         this.reload_transparency();
     }
 
     public void settings_changed_cb(GLib.Settings gsettings, string key) {
         switch (key) {
+            case "icon-size":
+                this.reload_icon_size();
+                break;
+
+            case "position":
+                this.reload_position();
+                break;
+
+            case "autohide":
+                this.reveal(!this.gsettings.get_boolean("autohide"));
+                break;
+
+            case "expand":
+                this.reset_pos();
+                break;
+
+            case "space-reserved":
+                this.reload_space_reserved();
+                break;
+
+            case "animation-step-size":
+                break;
+
             case "background-transparency":
                 this.reload_transparency();
                 break;
@@ -266,7 +288,8 @@ public class LestimDock: Gtk.Window {
         }
     }
 
-    public void set_screen_position(string position) {
+    public void reload_position() {
+        string position = this.gsettings.get_string("position");
         if (position == "Top" || position == "Bottom") {
             this.box.set_orientation(Gtk.Orientation.HORIZONTAL);
             this.favorite_area.set_orientation(Gtk.Orientation.HORIZONTAL);
@@ -278,65 +301,56 @@ public class LestimDock: Gtk.Window {
         this.reset_pos();
     }
 
-    public void set_autohide(bool autohide) {
-        this.reveal(!autohide);
-    }
-
-    public void set_expand(bool expand) {
-        int w, h;
-        this.get_size(out w, out h);
-        this.reset_pos();
-    }
-
-    public void set_reserve_space(bool reserve_space) {
-        this.reserve_screen_space(reserve_space);
-    }
-
-    private void reserve_screen_space(bool reserve) {
+    private void reload_space_reserved() {
         if (!this.get_realized()) {
             return;
         }
-        /*
+
+        bool reserve = this.gsettings.get_boolean("space-reserved");
+        string position = this.gsettings.get_string("position");
+
         int w, h;
         this.get_size(out w, out h);
 
         Gdk.Atom atom;
+        atom = Gdk.Atom.intern("_NET_WM_STRUT_PARTIAL", false);
+
+        var window = this.get_window();
+        this.reset_pos();
+
         long struts[12];
 
-        if (this.shown) {
-            switch (this.gsettings.get_string("position")) {
+        if (this.shown && reserve) {
+            switch (position) {
                 case "Top":
-                    struts = {0, 0, h, 0,
-                              0, 0, 0, 0,
-                              0, DISPLAY_WIDTH, 0, 0};
+                    struts = { 0, 0, h, 0,
+                               0, 0, 0, 0,
+                               0, DISPLAY_WIDTH,
+                               0, 0 };
                     break;
                 case "Left":
-                    struts = {w, 0, 0, 0,
-                              0, DISPLAY_HEIGHT,
-                              0, 0, 0, 0, 0, 0};
+                    struts = { w, 0, 0, 0,
+                        0, DISPLAY_HEIGHT,
+                        0, 0, 0, 0, 0, 0 };
                     break;
-                case "Bottom":
-                    struts = {0, 0, 0,
-                              DISPLAY_HEIGHT - h,
-                              0, 0, 0, 0, 0, 0,
-                              0, w};
+
+                case "Bottom":  // For some reason, it does not work properly
+                    struts = { 0, 0, 0,
+                        DISPLAY_HEIGHT - h,
+                        0, 0, 0, 0, 0, 0,
+                        0, DISPLAY_WIDTH };
                     break;
             }
         } else {
             struts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         }
 
-        atom = Gdk.Atom.intern("_NET_WM_STRUT_PARTIAL", false);
-        Gdk.property_change(this.get_window(), atom, Gdk.Atom.intern("CARDINAL", false),
+        Gdk.property_change(window, atom, Gdk.Atom.intern("CARDINAL", false),
             32, Gdk.PropMode.REPLACE, (uint8[])struts, 12);
-    */
     }
 
-    public void set_step_size(int avance) {
-        this.avance = avance;
-    }
-
-    public void set_icon_size(int size) {
+    public void reload_icon_size() {
+        int size = this.gsettings.get_int("icon-size");
         this.show_apps_button.set_icon_size(size);
         this.lateral_panel_button.set_icon_size(size);
         this.reset_pos();
@@ -429,6 +443,8 @@ public class LestimDock: Gtk.Window {
         this.get_position(out x, out y);
         this.get_size(out w, out h);
 
+        int avance = this.gsettings.get_int("step-size");
+
         if (x + avance < 0) {
             this.in_transition = true;
             this.move(x + avance, DISPLAY_HEIGHT / 2 - h / 2);
@@ -446,6 +462,8 @@ public class LestimDock: Gtk.Window {
         this.get_position(out x, out y);
         this.get_size(out w, out h);
 
+        int avance = this.gsettings.get_int("step-size");
+
         if (y + avance < 0) {
             this.in_transition = true;
             this.move(DISPLAY_WIDTH / 2 - w / 2, y + avance);
@@ -462,6 +480,8 @@ public class LestimDock: Gtk.Window {
         int x, y, w, h;
         this.get_position(out x, out y);
         this.get_size(out w, out h);
+
+        int avance = this.gsettings.get_int("step-size");
 
         if (y - avance > DISPLAY_HEIGHT - h) {
             this.in_transition = true;
@@ -500,6 +520,8 @@ public class LestimDock: Gtk.Window {
         this.get_size(out w, out h);
         this.get_position(out x, out y);
 
+        int avance = this.gsettings.get_int("step-size");
+
         if (x + w - avance > 0) {
             this.in_transition = true;
             this.move(x - avance, DISPLAY_HEIGHT / 2 - h / 2);
@@ -517,6 +539,8 @@ public class LestimDock: Gtk.Window {
         this.get_size(out w, out h);
         this.get_position(out x, out y);
 
+        int avance = this.gsettings.get_int("step-size");
+
         if (y + h - avance > 0) {
             this.in_transition = true;
             this.move(DISPLAY_WIDTH / 2 - w / 2, y - avance);
@@ -533,6 +557,8 @@ public class LestimDock: Gtk.Window {
         int w, h, x, y;
         this.get_size(out w, out h);
         this.get_position(out x, out y);
+
+        int avance = this.gsettings.get_int("step-size");
 
         if (y + avance < DISPLAY_HEIGHT) {
             this.in_transition = true;
