@@ -20,7 +20,7 @@ class Lestim: Gtk.Application {
 
     public GLib.Settings gsettings;
 
-    public WallpaperWindow window;
+    public BackgroundWindow window;
     public LestimDock dock;
     public LestimPanel panel;
     public SettingsWindow settings_window;
@@ -35,7 +35,7 @@ class Lestim: Gtk.Application {
         get_display_size();
         check_paths();
 
-        this.window = new WallpaperWindow();
+        this.window = new BackgroundWindow();
         this.window.show();
 
         this.gsettings = new GLib.Settings("org.lestim.dock");
@@ -54,12 +54,16 @@ class Lestim: Gtk.Application {
         this.panel.reveal_changed.connect(this.reveal_changed);
 
         this.settings_window = new SettingsWindow();
-        //this.settings_window.change_wallpaper.connect(this.set_wallpaper);
+        this.settings_window.change_background.connect(this.reload_background);
 
         this.mouse = new MouseDetector();
         //this.mouse.pos_checked.connect(this.mouse_pos_checked);
 
-        set_theme();
+        //set_theme();
+    }
+
+    public void reload_background(SettingsWindow win, string path) {
+        this.window.set_background(path);
     }
 
     public void settings_changed_cb(GLib.Settings settings, string key) {
@@ -69,7 +73,7 @@ class Lestim: Gtk.Application {
                 break;
 
             case "position":
-                this.dock.set_position(this.gsettings.get_string("position"));
+                this.dock.set_screen_position(this.gsettings.get_string("position"));
                 break;
 
             case "autohide":

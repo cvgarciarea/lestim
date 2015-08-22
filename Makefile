@@ -8,13 +8,12 @@ VALAPKG = --pkg gtk+-3.0 \
           --pkg gio-unix-2.0
 
 SRC = src/lestim.vala \
-      src/wallpaper_window.vala \
+      src/background_window.vala \
       src/dock.vala \
       src/widgets.vala \
       src/panel.vala \
       src/settings_window.vala \
       src/apps_view.vala \
-      src/icon_view.vala \
       src/globals.vala
 
 OPTIONS = -X "-DGMENU_I_KNOW_THIS_IS_UNSTABLE"

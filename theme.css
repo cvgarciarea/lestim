@@ -2,45 +2,34 @@
 Created by Cristian García <cristian99garcia@gmail.com>
 Based on: Numix Frost Dark
 */
-
+/*
 @define-color bg_color #161616;
 @define-color focus_color #242424;
 @define-color text_color #DEDEDE;
 @define-color selected_bg_color #1a80b6;
 @define-color selected_fg_color #F9F9F9;
-
-/*
-LestimWindow {
-    background-image: url('./background');
-    background-repeat: no-repeat;
-}
-*/
-
-/*LestimCanvas {
-    background-color: transparent;
-}
 */
 LestimPanel {
-    background-color: @bg_color;
+    background-color: #161616;
     border-width: 1px;
     border-radius: 2px;
 }
 
 PanelButton {
-    background-color: @bg_color;
-    border-color: @bg_color;
+    background-color: #161616;
+    border-color: #161616;
 }
 
 PanelButton:focus {
-    border-color: @selected_bg_color;
+    border-color: #1a80b6;
 }
 
 AppsView {
-    background-color: @bg_color;
+    background-color: #161616;
 }
 
 AppButton {
-    background-color: @bg_color;
+    background-color: #161616;
     border-width: 2px;
     border-radius: 2px;
     border-style: solid;
@@ -49,12 +38,12 @@ AppButton {
 AppsEntry {
     padding: 4px 3px;
 
-    background-color: @bg_color;
+    background-color: #161616;
     background-image: none;
-    color: @text_color;
+    color: #DEDEDE;
 
     border-style: solid;
-    border-color: @bg_color;
+    border-color: #161616;
     border-radius: 2px;
     border-width: 1px;
 
@@ -62,24 +51,24 @@ AppsEntry {
 }
 
 AppsEntry:focus, AppsEntry:active {
-    border-color: shade(@bg_color, 0.7);
+    border-color: shade(#161616, 0.7);
 }
 
 AppsEntry:selected, AppsEntry:selected:focus {
-    background-color: @theme_selected_bg_color;
-    color: @selected_fg_color;
+    /*background-color: @theme_selected_bg_color;*/
+    color: #F9F9F9;
 }
 
 LateralPanel {
-    background-color: @bg_color;
+    background-color: #161616;
 }
 
 CalendarItem {
-    background-color: @bg_color;
+    background-color: #161616;
 }
 
 CalendarItem:focus {
-    background-color: @focus_color;
+    background-color: #242424;
 }
 
 GtkCalendar {
@@ -105,7 +94,7 @@ Calendar.button:insensitive {
 Calendar.highlight {
     border-width: 0;
     background-color: transparent;
-    color: @selected_bg_color;
+    color: #1a80b6;
 }
 
 VolumeScale {
@@ -117,57 +106,3 @@ VolumeScale.slider {
 BrightnessScale {
 }
 
-PowerButton {
-    border-width: 1px;
-    border-radius: 2px;
-
-    background-color: @bg_color;
-    background: @bg_color;
-    border-color: shade(@bg_color, 0.7);
-}
-
-PowerButton:active {
-    background-color: shade(@bg_color, 0.7);
-}
-
-/*
-GtkPopover {
-    margin: 10px;
-    padding: 2px;
-    border-radius: 2px;
-    border-width: 1px;
-    border-style: solid;
-    background-clip: border-box;
-    background-image: none;
-    color: #212121;
-    box-shadow: 0 2px 3px alpha(black, 0.5);
-}
-
-GtkPopover.background {
-    background-image: none;
-    background-color: #262626;
-}
-
-GtkPopover .list-row {
-    color: #2d2d2d;
-}
-
-GtkPopover .list-row:hover {
-    background-image: none;
-    background-color: #1A80B6;
-    color: #F9F9F9;
-}
-
-GtkPopover .frame {
-    border: 1px solid mix(#2d2d2d, #dcdcdc, 0.12);
-    border-radius: 2px;
-}
-
-GtkPopover .separator {
-    border: 0;
-    background-color: transparent;
-    color: alpha(currentColor, 0.1);
-    font-size: 80%;
-    font-weight: bold;
-}
-*/

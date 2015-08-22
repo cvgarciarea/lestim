@@ -230,7 +230,7 @@ public class LestimDock: Gtk.Window {
     }
 
     private void realize_cb() {
-        this.set_position(this.gsettings.get_string("position"));
+        this.set_screen_position(this.gsettings.get_string("position"));
     }
 
     private void show_panel_cb() {
@@ -250,7 +250,7 @@ public class LestimDock: Gtk.Window {
         }
     }
 
-    public void set_position(string position) {
+    public void set_screen_position(string position) {
         if (position == "Top" || position == "Bottom") {
             this.box.set_orientation(Gtk.Orientation.HORIZONTAL);
             this.favorite_area.set_orientation(Gtk.Orientation.HORIZONTAL);

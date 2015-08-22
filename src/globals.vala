@@ -138,26 +138,30 @@ public Gee.ArrayList get_backgrounds() {
 }
 
 private Gee.ArrayList<string> list_children(Gee.ArrayList<string> list, GLib.File file, GLib.Cancellable cancellable) {
-	GLib.FileEnumerator enumerator = file.enumerate_children (
-		"standard::*",
-		GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
-		cancellable);
+	try {
+	    GLib.FileEnumerator enumerator = file.enumerate_children (
+		    "standard::*",
+		    GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
+		    cancellable);
 
-	GLib.FileInfo info = null;
-	while (!cancellable.is_cancelled() && ((info = enumerator.next_file(cancellable)) != null)) {
-		if (info.get_file_type() == GLib.FileType.DIRECTORY) {
-			GLib.File subdir = file.resolve_relative_path (info.get_name());
-			list_children(list, subdir, cancellable);
-		} else {
-		    string path = GLib.Path.build_filename(file.get_path(), info.get_name());
-		    GLib.File new_file = GLib.File.new_for_path(path);
-		    string mime = new_file.query_info("*", GLib.FileQueryInfoFlags.NONE).get_content_type();
-		    if ("image" in mime) {
-                list.add(path);
-            }
-		}
-	}
-	return list;
+	    GLib.FileInfo info = null;
+	    while (!cancellable.is_cancelled() && ((info = enumerator.next_file(cancellable)) != null)) {
+		    if (info.get_file_type() == GLib.FileType.DIRECTORY) {
+			    GLib.File subdir = file.resolve_relative_path (info.get_name());
+			    list_children(list, subdir, cancellable);
+		    } else {
+		        string path = GLib.Path.build_filename(file.get_path(), info.get_name());
+		        GLib.File new_file = GLib.File.new_for_path(path);
+		        string mime = new_file.query_info("*", GLib.FileQueryInfoFlags.NONE).get_content_type();
+		        if ("image" in mime) {
+                    list.add(path);
+                }
+		    }
+	    }
+	    return list;
+    } catch (GLib.Error e) {
+        return list;
+    }
 }
 
 public class MouseDetector: Object {
