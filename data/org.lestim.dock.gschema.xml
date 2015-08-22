@@ -4,21 +4,21 @@
       <default>48</default>
       <summary>Icon size</summary>
       <description>
-        Size of apps grid icons.
+        Size of icons in the dock.
       </description>
     </key>
     <key name="position" type="s">
       <default>'Left'</default>
-      <summary>The panel position.</summary>
+      <summary>The dock position.</summary>
       <description>
-        Set the panel position. Can be "Left", "Top" and "Down"
+        Set the dock position. Can be "Left", "Top" and "Down"
       </description>
     </key>
     <key name="autohide" type="b">
       <default>true</default>
       <summary>Panel autohide</summary>
       <description>
-        Set the panel behavior.
+        Set the dock behavior.
       </description>
     </key>
     <key name="expand" type="b">
@@ -32,12 +32,12 @@
       <default>false</default>
       <summary>Reserve screen space for the dock</summary>
       <description>
-        Reserve space in the screen for the panel. No application can be over the panel.
+        Reserve space in the screen for the dock. No application can be over the dock.
       </description>
     </key>
     <key name="animation-step-size" type="i">
       <default>5</default>
-      <summary>Step size for the panel animation</summary>
+      <summary>Step size for the dock animation</summary>
       <description>
 	The higher the step, the less time animation and vice versa.
       </description>
@@ -46,7 +46,13 @@
       <default>[]</default>
       <summary>Favorite applications</summary>
       <description>
-        The applications in the panel.
+        The applications in the dock.
+      </description>
+    </key><key name="background-transparency" type="i">
+      <default>2</default>
+      <summary>The dock background transparency.</summary>
+      <description>
+        Must be a value between 0 and 9.
       </description>
     </key>
   </schema>

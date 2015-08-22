@@ -189,6 +189,7 @@ public class LestimDock: Gtk.Window {
         );
 
         this.gsettings = new GLib.Settings("org.lestim.dock");
+        this.gsettings.changed.connect(this.settings_changed_cb);
 
         this.box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         this.add(this.box);
@@ -231,6 +232,21 @@ public class LestimDock: Gtk.Window {
 
     private void realize_cb() {
         this.set_screen_position(this.gsettings.get_string("position"));
+        this.reload_transparency();
+    }
+
+    public void settings_changed_cb(GLib.Settings gsettings, string key) {
+        switch (key) {
+            case "background-transparency":
+                this.reload_transparency();
+                break;
+        }
+    }
+
+    public void reload_transparency() {
+        double transp = 1.0 - (double)(this.gsettings.get_int("background-transparency")) / 10.0;
+        var window = this.get_window();
+        window.set_opacity(transp);
     }
 
     private void show_panel_cb() {

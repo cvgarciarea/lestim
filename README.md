@@ -16,12 +16,12 @@ make
 ```
 
 ##Task list
-- [ ] Resize background size to screen size
+- [x] Resize background size to screen size
 - [ ] Fix the style for themes with dark leter
 - [ ] Make installable
 - [ ] Add functionality to the lateral panel
   - [ ] Calendar
-  - [ ] System icons
+  - [ ] System tray icons
   - [ ] Sound GtkScale
   - [ ] Brightness GtkScale
   - [ ] Add system notifications

@@ -35,9 +35,10 @@ public class SettingsWindow: Gtk.Window {
     public Gtk.Switch switch_autohide;
     public Gtk.Switch switch_expand;
     public Gtk.Switch switch_reserve;
-    public Gtk.SpinButton spin_transp;
     public Gtk.SpinButton spin_icon;
     public Gtk.SpinButton spin_step;
+    public Gtk.SpinButton spin_dock_transparency;
+    public Gtk.SpinButton spin_panel_transparency;
 
     public SettingsWindow() {
         this.set_name("SettingsWindow");
@@ -191,9 +192,9 @@ public class SettingsWindow: Gtk.Window {
 
         var box1 = this.make_row(listbox, "Transparency");
         Gtk.Adjustment adj1 = new Gtk.Adjustment(1, 0, 9, 1, 2, 0);
-        this.spin_transp = new Gtk.SpinButton(adj1, 0, 0);
-        this.spin_transp.value_changed.connect(this.transp_level_changed);
-        box1.pack_end(this.spin_transp, false, false, 0);
+        this.spin_panel_transparency = new Gtk.SpinButton(adj1, 0, 0);
+        this.spin_panel_transparency.value_changed.connect(this.transparency_panel_changed);
+        box1.pack_end(this.spin_panel_transparency, false, false, 0);
 
         return box;
     }
@@ -249,6 +250,12 @@ public class SettingsWindow: Gtk.Window {
         this.spin_step.value_changed.connect(this.step_size_changed);
         box6.pack_end(this.spin_step, false, false, 0);
 
+        var box7 = this.make_row(listbox, "Background transparency");
+        Gtk.Adjustment adj3 = new Gtk.Adjustment(0, 0, 9, 1, 2, 0);
+        this.spin_dock_transparency = new Gtk.SpinButton(adj3, 0, 0);
+        this.spin_dock_transparency.value_changed.connect(this.transparency_dock_changed);
+        box7.pack_end(this.spin_dock_transparency, false, false, 0);
+
         return box;
     }
 
@@ -257,8 +264,12 @@ public class SettingsWindow: Gtk.Window {
         this.current_child.show_all();
     }
 
-    public void transp_level_changed(Gtk.SpinButton spin) {
-        this.panel_settings.set_int("background-transparency", (int)this.spin_transp.get_value());
+    public void transparency_panel_changed(Gtk.SpinButton spin) {
+        this.panel_settings.set_int("background-transparency", (int)this.spin_panel_transparency.get_value());
+    }
+
+    public void transparency_dock_changed(Gtk.SpinButton spin) {
+        this.dock_settings.set_int("background-transparency", (int)this.spin_dock_transparency.get_value());
     }
 
     private void panel_position_changed(Gtk.ToggleButton rbutton) {
@@ -353,6 +364,10 @@ public class SettingsWindow: Gtk.Window {
                 case "animation-step-size":
                     this.spin_step.set_value(this.dock_settings.get_int("animation-step-size"));
                     break;
+
+                case "background-transparency":
+                    this.spin_dock_transparency.set_value(this.dock_settings.get_int("background-transparency"));
+                    break;
             }
         } else {
             this.spin_icon.set_value(this.dock_settings.get_int("icon-size"));
@@ -360,6 +375,7 @@ public class SettingsWindow: Gtk.Window {
             this.switch_expand.set_active(this.dock_settings.get_boolean("expand"));
             this.switch_reserve.set_active(this.dock_settings.get_boolean("space-reserved"));
             this.spin_step.set_value(this.dock_settings.get_int("animation-step-size"));
+            this.spin_dock_transparency.set_value(this.dock_settings.get_int("background-transparency"));
             switch (this.dock_settings.get_string("position")) {
                 case "Left":
                     this.l_rbutton.set_active(true);
@@ -384,11 +400,11 @@ public class SettingsWindow: Gtk.Window {
         if (key != null) {
             switch (key) {
                 case "background-transparency":
-                    this.spin_transp.set_value(this.panel_settings.get_int("background-transparency"));
+                    this.spin_panel_transparency.set_value(this.panel_settings.get_int("background-transparency"));
                     break;
             }
         } else {
-            this.spin_transp.set_value(this.panel_settings.get_int("background-transparency"));
+            this.spin_panel_transparency.set_value(this.panel_settings.get_int("background-transparency"));
         }
     }
 }
