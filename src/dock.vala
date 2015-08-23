@@ -210,8 +210,6 @@ public class LestimDock: Gtk.Window {
 
         this.drag_data_received.connect(this.drag_data_received_cb);
         this.realize.connect(this.realize_cb);
-
-        this.show_all();
     }
 
     private void drag_data_received_cb(Gtk.Widget widget, Gdk.DragContext context, int x, int y, Gtk.SelectionData selection_data, uint target_type, uint time) {
@@ -298,7 +296,11 @@ public class LestimDock: Gtk.Window {
             this.favorite_area.set_orientation(Gtk.Orientation.VERTICAL);
         }
 
-        this.reset_pos();
+        GLib.Idle.add(() => {
+            this.reset_pos();
+            this.reload_space_reserved();
+            return true;
+        }, GLib.Priority.LOW);
     }
 
     private void reload_space_reserved() {
@@ -316,7 +318,6 @@ public class LestimDock: Gtk.Window {
         atom = Gdk.Atom.intern("_NET_WM_STRUT_PARTIAL", false);
 
         var window = this.get_window();
-        this.reset_pos();
 
         long struts[12];
 
@@ -443,7 +444,7 @@ public class LestimDock: Gtk.Window {
         this.get_position(out x, out y);
         this.get_size(out w, out h);
 
-        int avance = this.gsettings.get_int("step-size");
+        int avance = this.gsettings.get_int("animation-step-size");
 
         if (x + avance < 0) {
             this.in_transition = true;
@@ -462,7 +463,7 @@ public class LestimDock: Gtk.Window {
         this.get_position(out x, out y);
         this.get_size(out w, out h);
 
-        int avance = this.gsettings.get_int("step-size");
+        int avance = this.gsettings.get_int("animation-step-size");
 
         if (y + avance < 0) {
             this.in_transition = true;
@@ -481,7 +482,7 @@ public class LestimDock: Gtk.Window {
         this.get_position(out x, out y);
         this.get_size(out w, out h);
 
-        int avance = this.gsettings.get_int("step-size");
+        int avance = this.gsettings.get_int("animation-step-size");
 
         if (y - avance > DISPLAY_HEIGHT - h) {
             this.in_transition = true;
@@ -520,7 +521,7 @@ public class LestimDock: Gtk.Window {
         this.get_size(out w, out h);
         this.get_position(out x, out y);
 
-        int avance = this.gsettings.get_int("step-size");
+        int avance = this.gsettings.get_int("animation-step-size");
 
         if (x + w - avance > 0) {
             this.in_transition = true;
@@ -539,7 +540,7 @@ public class LestimDock: Gtk.Window {
         this.get_size(out w, out h);
         this.get_position(out x, out y);
 
-        int avance = this.gsettings.get_int("step-size");
+        int avance = this.gsettings.get_int("animation-step-size");
 
         if (y + h - avance > 0) {
             this.in_transition = true;
@@ -558,7 +559,7 @@ public class LestimDock: Gtk.Window {
         this.get_size(out w, out h);
         this.get_position(out x, out y);
 
-        int avance = this.gsettings.get_int("step-size");
+        int avance = this.gsettings.get_int("animation-step-size");
 
         if (y + avance < DISPLAY_HEIGHT) {
             this.in_transition = true;

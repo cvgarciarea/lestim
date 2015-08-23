@@ -36,7 +36,6 @@ class Lestim: Gtk.Application {
         check_paths();
 
         this.window = new BackgroundWindow();
-        this.window.show();
 
         this.dock = new LestimDock();
         this.dock.show_apps.connect(this.show_apps);
@@ -57,6 +56,16 @@ class Lestim: Gtk.Application {
         //this.mouse.pos_checked.connect(this.mouse_pos_checked);
 
         //set_theme();
+
+        GLib.Idle.add(() => {
+            this.start();
+            return true;
+        }, GLib.Priority.LOW);
+    }
+
+    public void start() {
+        this.window.show_all();
+        this.dock.show_all();
     }
 
     public void reload_background(SettingsWindow win, string path) {

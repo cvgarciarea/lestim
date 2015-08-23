@@ -276,8 +276,13 @@ public class SettingsWindow: Gtk.Window {
     }
 
     private void panel_position_changed(Gtk.ToggleButton rbutton) {
+        if (!rbutton.get_active()) {
+            return;
+        }
+
         string position = rbutton.get_label();
-        if (this.dock_settings.get_string("position") != position) {
+        string actual = this.dock_settings.get_string("position");
+        if (actual != position) {
             this.dock_settings.set_string("position", position);
         }
     }
