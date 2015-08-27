@@ -7,6 +7,8 @@ VALAPKG = --pkg gtk+-3.0 \
           --pkg libgnome-menu \
           --pkg gio-unix-2.0
 
+LIBS_SRC = src/libs/pulse.vala
+
 SRC = src/lestim.vala \
       src/background_window.vala \
       src/dock.vala \
@@ -20,7 +22,7 @@ OPTIONS = -X "-DGMENU_I_KNOW_THIS_IS_UNSTABLE"
 BIN = lestim
 
 all:
-	$(VALAC) $(VAPIS) $(VALAPKG) $(SRC) $(OPTIONS) -o $(BIN)
+	$(VALAC) $(VAPIS) $(VALAPKG) $(LIBS_SRC) $(SRC) $(OPTIONS) -o $(BIN)
 
 clean:
 	rm -f $(BIN)

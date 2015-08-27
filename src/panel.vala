@@ -250,16 +250,18 @@ public class LestimPanel: Gtk.Window {
     public signal void show_settings();
 
     public GLib.Settings gsettings;
+    Pulse.Stream stream;
+    Pulse.StreamContainer stream_container;
 
     public bool shown = false;
     public int last_position = DISPLAY_WIDTH;
-    public int volume = 0;
     public int brightness = 0;
     public int current_y = 0;
 
     public Gtk.Box vbox;
     public Gtk.Box monitors;
     public Gtk.Box hbox_volume;
+    public Gtk.Image image_volume;
     public Gtk.Box hbox_brightness;
     public Gtk.Image volume_icon;
 
@@ -274,6 +276,9 @@ public class LestimPanel: Gtk.Window {
         this.gsettings = new GLib.Settings("org.lestim.panel");
         this.gsettings.changed.connect(this.settings_changed_cb);
 
+        this.stream = new Pulse.Stream();
+        this.stream_container = new Pulse.StreamContainer(Pulse.StreamType.SINK);
+
         this.vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 5);
         this.add(this.vbox);
 
@@ -283,16 +288,19 @@ public class LestimPanel: Gtk.Window {
         this.monitors = new MonitorsItem();
         this.vbox.pack_start(this.monitors, false, false, 0);
 
-        Gtk.Scale scale_v = new Gtk.Scale.with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 10);
-        scale_v.set_name("VolumeScale");
-        scale_v.set_value(this.volume);
-        scale_v.set_draw_value(false);
-
         this.hbox_volume = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 10);
         this.hbox_volume.set_margin_left(2);
-        this.hbox_volume.pack_start(get_image_from_name("audio-volume-high-symbolic", 24), false, false, 1);
-        this.hbox_volume.pack_end(scale_v, true, true, 0);
         this.vbox.pack_start(this.hbox_volume, false, false, 1);
+
+        this.image_volume = get_image_from_name("audio-volume-high-symbolic", 24);
+        this.hbox_volume.pack_start(this.image_volume, false, false, 1);
+
+        Gtk.Scale scale_v = new Gtk.Scale.with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 10);
+        scale_v.set_name("VolumeScale");
+        scale_v.set_value(this.stream.relative_volume);
+        scale_v.set_draw_value(false);
+        scale_v.value_changed.connect(this.volume_changed);
+        this.hbox_volume.pack_end(scale_v, true, true, 0);
 
         Gtk.Scale scale_b = new Gtk.Scale.with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 10);
         scale_b.set_name("BrightnessScale");
@@ -330,6 +338,29 @@ public class LestimPanel: Gtk.Window {
 
     public void realize_cb(Gtk.Widget self) {
         this.reload_transparency();
+    }
+
+    public void volume_changed(Gtk.Range scale) {
+        int volume = (int)scale.get_value();
+        this.stream_container.set_muted(this.stream, false);
+        this.stream_container.set_volume(this.stream, volume);
+
+        string name;
+        this.hbox_volume.remove(this.image_volume);
+
+        if (volume == 0) {
+            name = "audio-volume-muted-symbolic";
+        } else if (volume > 0 && volume <= 33) {
+            name = "audio-volume-low-symbolic";
+        } else if (volume > 33 && volume <= 66) {
+            name = "audio-volume-medium-symbolic";
+        } else {
+            name = "audio-volume-high-symbolic";
+        }
+
+        this.image_volume = get_image_from_name(name, 24);
+        this.hbox_volume.pack_start(this.image_volume, false, false, 1);
+        this.hbox_volume.show_all();
     }
 
     public void settings_changed_cb(GLib.Settings gsettings, string key) {
