@@ -22,7 +22,7 @@ make
 - [ ] Add functionality to the lateral panel
   - [ ] Calendar
   - [ ] System tray icons
-  - [ ] Sound GtkScale
+  - [x] Sound GtkScale
   - [ ] Brightness GtkScale
   - [ ] Add system notifications
   - [ ] Down buttons

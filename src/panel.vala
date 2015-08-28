@@ -16,20 +16,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-private class Calendar: Gtk.Calendar {
-    public Calendar() {
-        this.set_name("LateralCalendar");
-    }
-}
-
 private class CalendarItem: Gtk.Box {
 
     private Gtk.Label time_label;
     private Gtk.Label day_label;
     private Gtk.Revealer revealer;
-    private Calendar calendar;
-
-    private DateTime time;
+    private Ltk.Calendar calendar;
 
     public bool show_seconds = false;
 
@@ -41,7 +33,7 @@ private class CalendarItem: Gtk.Box {
         box1.button_release_event.connect(this.show_calendar);
         this.pack_start(box1, false, false, 0);
 
-        this.time_label = new Gtk.Label("");
+        this.time_label = new Gtk.Label(null);
         this.time_label.set_name("TimeLabel");
         box1.add(this.time_label);
 
@@ -49,7 +41,7 @@ private class CalendarItem: Gtk.Box {
         box2.button_release_event.connect(this.show_calendar);
         pack_start(box2, false, false, 0);
 
-        this.day_label = new Gtk.Label("");
+        this.day_label = new Gtk.Label(null);
         this.day_label.set_name("DayLabel");
         box2.add(this.day_label);
 
@@ -57,10 +49,8 @@ private class CalendarItem: Gtk.Box {
         this.revealer.set_reveal_child(false);
         this.pack_start(this.revealer, false, false, 0);
 
-        this.calendar = new Calendar();
+        this.calendar = new Ltk.Calendar();
         this.revealer.add(this.calendar);
-
-        this.time = new DateTime.now_local();
 
         GLib.Timeout.add(1000, this.update_clock);
     }
@@ -71,16 +61,16 @@ private class CalendarItem: Gtk.Box {
     }
 
     private bool update_clock() {
-        this.time = new DateTime.now_local();
-        int current_day = this.time.get_day_of_month();
-        int current_month = this.time.get_month();
-        int current_year = this.time.get_year();
-        string format = "%H:%M";
-        string date = "%d/%d/%d".printf(current_day, current_month, current_year);
-        string time_markup = "<b><big><big><big><big><big><big><big>%s</big></big></big></big></big></big></big></b>".printf(time.format(format + (show_seconds ? ":%S": "")));
+        string time;
+        string date;
+
+        get_current_time(show_seconds, out time, out date);
+
+        string time_markup = "<b><big><big><big><big><big><big><big>%s</big></big></big></big></big></big></big></b>".printf(time);
+        string date_marpup = "<big><big>%s</big></big>".printf(date);
 
         this.time_label.set_markup(time_markup);
-        this.day_label.set_markup("<big><big>" + date + "</big></big>");
+        this.day_label.set_markup(date_marpup);
 
         return true;
     }
@@ -127,7 +117,7 @@ private class BatteryItem: MonitorItem {
 
         this.battery_path = path;
 
-        GLib.Timeout.add(1000, this.check);
+        //GLib.Timeout.add(1000, this.check);
     }
 
     private bool check() {

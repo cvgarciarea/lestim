@@ -52,10 +52,10 @@ class Lestim: Gtk.Application {
         this.settings_window = new SettingsWindow();
         this.settings_window.change_background.connect(this.reload_background);
 
-        this.mouse = new MouseDetector();
+        //this.mouse = new MouseDetector();
         //this.mouse.pos_checked.connect(this.mouse_pos_checked);
 
-        //set_theme();
+        //set_theme();  This is not finished
 
         GLib.Idle.add(() => {
             this.start();
@@ -90,7 +90,7 @@ class Lestim: Gtk.Application {
 
     public void mouse_pos_checked(MouseDetector mouse, int x1, int y1) {
         if (!this.gsettings.get_boolean("autohide")) {
-            this.mouse.stop();
+            //this.mouse.stop();
             return;
         }
 

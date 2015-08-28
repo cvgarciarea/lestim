@@ -8,6 +8,7 @@ VALAPKG = --pkg gtk+-3.0 \
           --pkg gio-unix-2.0
 
 LIBS_SRC = src/libs/pulse.vala
+LTK_SRC = src/ltk/calendar.vala
 
 SRC = src/lestim.vala \
       src/background_window.vala \
@@ -18,11 +19,11 @@ SRC = src/lestim.vala \
       src/apps_view.vala \
       src/globals.vala
 
-OPTIONS = -X "-DGMENU_I_KNOW_THIS_IS_UNSTABLE"
+OPTIONS = -X "-DGMENU_I_KNOW_THIS_IS_UNSTABLE" #--disable-warnings
 BIN = lestim
 
 all:
-	$(VALAC) $(VAPIS) $(VALAPKG) $(LIBS_SRC) $(SRC) $(OPTIONS) -o $(BIN)
+	$(VALAC) $(VAPIS) $(VALAPKG) $(LIBS_SRC) $(LTK_SRC) $(SRC) $(OPTIONS) -o $(BIN)
 
 clean:
 	rm -f $(BIN)

@@ -16,9 +16,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-using Gtk;
-using Gdk;
-
 public int CURRENT_MONITOR = 0;
 public int DISPLAY_WIDTH = 0;
 public int DISPLAY_HEIGHT = 0;
@@ -41,7 +38,7 @@ enum Target {
     STRING,
 }
 
-const TargetEntry[] app_button_target_list = {
+const Gtk.TargetEntry[] app_button_target_list = {
     {"STRING", 0, Target.STRING},
 };
 
@@ -162,6 +159,16 @@ private Gee.ArrayList<string> list_children(Gee.ArrayList<string> list, GLib.Fil
     } catch (GLib.Error e) {
         return list;
     }
+}
+
+public void get_current_time(bool with_seconds, out string time, out string date) {
+    GLib.DateTime TIME = new GLib.DateTime.now_local();
+
+    string format_time = "%H:%M" + (with_seconds ? ":%S": "");
+    string format_date = "%d/%m/%Y";
+
+    time = TIME.format(format_time);
+    date = TIME.format(format_date);
 }
 
 public class MouseDetector: Object {

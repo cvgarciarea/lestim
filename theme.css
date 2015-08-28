@@ -106,3 +106,12 @@ VolumeScale.slider {
 BrightnessScale {
 }
 
+CalendarButton {
+  border-radius: 50px;
+  outline-radius: 50px;
+}
+
+CalendarButtonLabel {
+  font-size: 10px;
+}
+
