@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Lestim Desktop
+Comment=
+Exec=/usr/bin/lestim
+TryExec=/usr/bin/lestim
+Icon=
+Type=Application
+DesktopNames=GNOME

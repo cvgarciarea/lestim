@@ -25,7 +25,7 @@ class Lestim: Gtk.Application {
     public LestimPanel panel;
     public SettingsWindow settings_window;
     public AppsView apps_view;
-    public MouseDetector mouse;
+    //public MouseDetector mouse;
 
     public Lestim() {
         GLib.Object(application_id: "org.desktop.lestim");
@@ -57,10 +57,7 @@ class Lestim: Gtk.Application {
 
         //set_theme();  This is not finished
 
-        GLib.Idle.add(() => {
-            this.start();
-            return true;
-        }, GLib.Priority.LOW);
+        this.start();
     }
 
     public void start() {

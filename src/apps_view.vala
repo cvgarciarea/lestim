@@ -17,55 +17,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 private class AppsEntry: Gtk.Entry {
+
     public AppsEntry() {
         set_name("AppsEntry");
         set_placeholder_text("Search...");
         set("xalign", 0.015);
     }
 }
-/*
-public class GMenuManager {
 
-    public List<GMenu.TreeDirectory> get_categories() {
-        var tree = GMenu.Tree.lookup("applications.menu", GMenu.TreeFlags.INCLUDE_EXCLUDED);
-        var root = tree.get_root_directory();
-        var dirs = new List<GMenu.TreeDirectory>();
-
-        foreach (GMenu.TreeItem item in root.get_contents()) {
-            if (item.get_type() == GMenu.TreeItemType.DIRECTORY) {
-                dirs.append((GMenu.TreeDirectory) item);
-            }
-        }
-        return dirs;
-    }
-
-    public List<GMenu.TreeEntry> get_entries_flat(GMenu.TreeDirectory directory) {
-        var entries = new List<GMenu.TreeEntry>();
-
-        foreach (GMenu.TreeItem item in directory.get_contents()) {
-            switch (item.get_type()) {
-            case GMenu.TreeItemType.DIRECTORY:
-                entries.concat (get_entries_flat((GMenu.TreeDirectory) item));
-                break;
-            case GMenu.TreeItemType.ENTRY:
-                entries.append((GMenu.TreeEntry) item);
-                break;
-            }
-        }
-        return entries;
-    }
-
-    public DesktopAppInfo get_desktop_app_info(GMenu.TreeEntry entry) {
-        return new DesktopAppInfo.from_filename(entry.get_desktop_file_path());
-    }
-
-    public void launch_desktop_app_info(DesktopAppInfo info) {
-        try {
-            info.launch(null, new AppLaunchContext());
-        } catch (Error error) {}
-    }
-}
-*/
 public class AppsView: Gtk.Window {
 
     public bool shown = false;
@@ -111,7 +70,6 @@ public class AppsView: Gtk.Window {
 
         this.focus_out_event.connect(this.focus_out_event_cb);
 
-        //this.show_apps();
         this.hide();
     }
 
@@ -157,37 +115,12 @@ public class AppsView: Gtk.Window {
     }
 
     public void show_apps(string search="") {
-        /*foreach (var button in grid.get_children()) {
-            grid.remove(button);
-        }
-
-        var categories = apps_manager.get_categories();
-
-        foreach (var category in categories) {
-            var entries = apps_manager.get_entries_flat(category);
-            foreach (var entry in entries) {
-                var app_info = apps_manager.get_desktop_app_info(entry);
-                if (app_info != null) {
-                    if (app_info.get_icon() != null) {
-                        if (search == "" || search.down() in app_info.get_name().down()) {
-                            Gtk.Button button = new AppButton(app_info, true);
-                            grid.add(button);
-                        }
-                    }
-                }
-            }
-        }
-
-        foreach (var child in grid.get_children()) {
-            child.set_vexpand_set(true);
-            child.set_vexpand(false);
-        }
-
-        show_all();
-    */
+        // Get apps from GMenuManager
+        this.show_all();
     }
 
     private void search_app(Gtk.Editable entry) {
         this.show_apps(this.entry.get_text());
     }
 }
+
