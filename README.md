@@ -18,7 +18,7 @@ make
 ##Task list
 - [x] Resize background size to screen size
 - [ ] Fix the style for themes with dark leter
-- [ ] Make installable
+- [x] Make installable
 - [ ] Add functionality to the lateral panel
   - [ ] Calendar
   - [ ] System tray icons

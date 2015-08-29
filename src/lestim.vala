@@ -41,7 +41,7 @@ class Lestim: Gtk.Application {
         this.dock.show_apps.connect(this.show_apps);
         this.dock.show_panel.connect(this.show_panel);
 
-        this.apps_view = new AppsView(this.dock);
+        this.apps_view = new AppsView();
         //apps_view.connect('run-app', self.run_app)
         //apps_view.connect('favorited-app', self.update_favorited_buttons)
 
@@ -70,7 +70,9 @@ class Lestim: Gtk.Application {
     }
 
     public void show_apps(LestimDock dock) {
-        this.apps_view.reveal(!this.apps_view.visible);
+        this.apps_view.toggle_visibiliy();
+
+        //this.apps_view.reveal(!this.apps_view.visible);
     }
 
     public void show_panel(LestimDock dock, bool visible) {
@@ -102,7 +104,7 @@ class Lestim: Gtk.Application {
                 }
                 else if ((x1 >= w) || (y1 <= y2) || (y1 >= y2 + h) && this.panel.shown) {
                     //panel.reveal(detector.panel_visible || apps_view.shown);
-                    this.panel.reveal(this.apps_view.shown);
+                    this.panel.reveal(this.apps_view.get_visible());
                 }
                 break;
 
@@ -112,7 +114,7 @@ class Lestim: Gtk.Application {
                 }
                 else if ((y1 >= h) || (x1 <= x2) || (x1 >= x2 + w) && this.panel.shown) {
                     //panel.reveal(detector.panel_visible || apps_view.shown);
-                    this.panel.reveal(this.apps_view.shown);
+                    this.panel.reveal(this.apps_view.get_visible());
                 }
                 break;
 
@@ -122,7 +124,7 @@ class Lestim: Gtk.Application {
                 }
                 else if ((y1 <= DISPLAY_HEIGHT - h) || (x1 <= x2) || (x1 >= x2 + w) && this.panel.shown) {
                     //panel.reveal(detector.panel_visible || apps_view.shown);
-                    this.panel.reveal(this.apps_view.shown);
+                    this.panel.reveal(this.apps_view.get_visible());
                 }
                 break;
 

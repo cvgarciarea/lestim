@@ -8,7 +8,8 @@ VALAPKG = --pkg gtk+-3.0 \
           --pkg gio-unix-2.0
 
 LIBS_SRC = src/libs/pulse.vala
-LTK_SRC = src/ltk/calendar.vala
+LTK_SRC = src/ltk/calendar.vala \
+          src/ltk/apps_grid.vala
 
 SRC = src/lestim.vala \
       src/background_window.vala \
@@ -19,7 +20,7 @@ SRC = src/lestim.vala \
       src/apps_view.vala \
       src/globals.vala
 
-OPTIONS = -X "-DGMENU_I_KNOW_THIS_IS_UNSTABLE" #--disable-warnings
+OPTIONS = -X "-DGMENU_I_KNOW_THIS_IS_UNSTABLE" --target-glib 2.32 #--disable-warnings
 BIN = lestim
 
 BIN_DIR = /usr/share/lestim
@@ -35,6 +36,7 @@ all:
 clean:
 	rm -f $(BIN)
 
+# Falta copiar los schemas y compilar la ubicación
 install: all
 	mkdir $(BIN_DIR)
 	cp $(BIN) $(BIN_DESTINATION)
