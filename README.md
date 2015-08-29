@@ -1,18 +1,15 @@
 Lestim
 ======
 
-##Test vala version:
-**Copy xml file and install schema:**
-```
-# cp data/org.lestim.dock.gschema.xml /usr/share/glib-2.0/schemas/
-# cp data/org.lestim.panel.gschema.xml /usr/share/glib-2.0/schemas/
-# glib-compile-schemas /usr/share/glib-2.0/schemas/
-```
-
-**Compile and run:**
+##Compile and run:
 ```
 make
 ./lestim
+```
+
+##Install:
+```
+sudo make install
 ```
 
 ##Task list
