@@ -29,19 +29,28 @@ LOCAL_EXECUTABLE = data/lestim
 SYSTEM_EXECUTABLE = /usr/bin/lestim
 DESKTOP_FILE = data/lestim.desktop
 DESKTOP_FILE_DESTINATION = /usr/share/xsessions/lestim.desktop
+DOCK_GSCHEMA = data/org.lestim.dock.gschema.xml
+PANEL_GSCHEMA = data/org.lestim.panel.gschema.xml
+GSCHEMAS_DIR = /usr/share/glib-2.0/schemas/
 
 all:
+	echo "Starting compilation"
 	$(VALAC) $(VAPIS) $(VALAPKG) $(LIBS_SRC) $(LTK_SRC) $(SRC) $(OPTIONS) -o $(BIN)
+	echo "Compilation finished successfully"
 
 clean:
 	rm -f $(BIN)
 
-# Falta copiar los schemas y compilar la ubicación
 install: all
-	mkdir $(BIN_DIR)
+	echo "Starting the installation"
+	mkdir -p $(BIN_DIR)
 	cp $(BIN) $(BIN_DESTINATION)
 	chmod +x $(BIN_DESTINATION)
 	cp $(LOCAL_EXECUTABLE) $(SYSTEM_EXECUTABLE)
 	chmod +x $(SYSTEM_EXECUTABLE)
 	cp $(DESKTOP_FILE) $(DESKTOP_FILE_DESTINATION)
+	cp $(DOCK_GSCHEMA) $(GSCHEMAS_DIR)
+	cp $(PANEL_GSCHEMA) $(GSCHEMAS_DIR)
+	glib-compile-schemas $(GSCHEMAS_DIR)
+	echo "Installation finished successfully"
 
