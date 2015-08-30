@@ -1666,6 +1666,7 @@ namespace Ltk {
 
     public class App: GLib.Object {
 
+        private string? desktop_file = null;
         private string app_name;
         private string? app_generic_name = null;
         private string app_exec;
@@ -1696,6 +1697,10 @@ namespace Ltk {
             }
         }
 
+        public string get_desktop_file() {
+            return desktop_file;
+        }
+
         public string get_name() {
             return app_name;
         }
@@ -1722,6 +1727,7 @@ namespace Ltk {
 
         private void parse_desktopfile(string? path) {
             //Open KeyFile
+            this.desktop_file = path;
             GLib.KeyFile kf = new GLib.KeyFile();
             if (path == null) {
                 valid = false;
@@ -1904,6 +1910,35 @@ namespace Ltk {
             this.build_gui();
         }
 
+        private void drag_begin_cb(Gtk.Widget widget, Gdk.DragContext context) {
+            Gdk.Pixbuf pixbuf = new Gdk.Pixbuf.from_file_at_size(this.app.get_icon_path(), 48, 48);
+            Gtk.drag_set_icon_pixbuf(context, pixbuf, 24, 24);
+        }
+
+        private void drag_data_get_cb(Gtk.Widget widget, Gdk.DragContext context,
+                                      Gtk.SelectionData selection_data,
+                                      uint target_type, uint time) {
+
+            string? data = this.app.get_desktop_file();
+            if (target_type == Target.STRING && data != null) {
+                selection_data.set(
+                    selection_data.get_target(),
+                    BYTE_BITS,
+                    (uchar[])data.to_utf8());
+
+            } else {
+                GLib.assert_not_reached();
+            }
+        }
+
+        private void convert_long_to_bytes(long number, out uchar [] buffer) {
+            buffer = new uchar[sizeof(long)];
+            for (int i=0; i<sizeof(long); i++) {
+                buffer[i] = (uchar) (number & 0xFF);
+                number = number >> 8;
+            }
+        }
+
         public void build_gui() {
             // Basic setup
             base.homogeneous = false;
@@ -1916,6 +1951,15 @@ namespace Ltk {
                 started();
             });
             this.pack_start(button);
+
+            Gtk.drag_source_set(
+                button,
+                Gdk.ModifierType.BUTTON1_MASK,
+                apps_target_list,
+                Gdk.DragAction.COPY);
+
+            button.drag_begin.connect(this.drag_begin_cb);
+            button.drag_data_get.connect(this.drag_data_get_cb);
 
             // Setup button image
             Gtk.Image image = null;
@@ -1962,7 +2006,6 @@ namespace Ltk {
                 tooltip = app.get_name()+"\n"+app.get_comment();
             }
             button.set_tooltip_text(tooltip);
-
         }
     }
 

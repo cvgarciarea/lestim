@@ -66,8 +66,6 @@ public class BackgroundWindow: Gtk.Window {
         this.add(this.icon_view);
 
         this.icon_view.reload_background();
-
-        this.show_all();
     }
 
     public void set_background(string path) {

@@ -9,12 +9,12 @@ VALAPKG = --pkg gtk+-3.0 \
 
 LIBS_SRC = src/libs/pulse.vala
 LTK_SRC = src/ltk/calendar.vala \
-          src/ltk/apps_grid.vala
+          src/ltk/apps_grid.vala \
+          src/ltk/dock_button.vala
 
 SRC = src/lestim.vala \
       src/background_window.vala \
       src/dock.vala \
-      src/widgets.vala \
       src/panel.vala \
       src/settings_window.vala \
       src/apps_view.vala \

@@ -2,8 +2,15 @@ Lestim
 ======
 
 ##Compile and run:
+**Running this the first compilation:**
 ```
-make
+# cp data/org.lestim.dock.gschema.xml /usr/share/glib-2.0/schemas/
+# cp data/org.lestim.panel.gschema.xml /usr/share/glib-2.0/schemas/
+# glib-compile-schemas /usr/share/glib-2.0/schemas/
+```
+
+**Run:**
+```
 ./lestim
 ```
 

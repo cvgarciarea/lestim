@@ -34,12 +34,19 @@ public void get_display_size(int? monitor_id = null) {
     DISPLAY_HEIGHT = rect.height;
 }
 
-enum Target {
-    STRING,
+const int BYTE_BITS = 8;
+const int WORD_BITS = 16;
+const int DWORD_BITS = 32;
+
+public enum Target {
+    INT32,
+    STRING
 }
 
-const Gtk.TargetEntry[] app_button_target_list = {
-    {"STRING", 0, Target.STRING},
+public const Gtk.TargetEntry[] apps_target_list = {
+    { "INTEGER",    0, Target.INT32 },  // Index
+    { "STRING",     0, Target.STRING }, // ID
+    { "text/plain", 0, Target.STRING }  // Name
 };
 
 public string get_home_dir() {
@@ -212,22 +219,22 @@ public class MouseDetector: Object {
     }
 }
 
-public class WindowPositionDetector: Object {
+//public class WindowPositionDetector: Object {
 
     //__gsignals__ = {
     //    "show-panel": (GObject.SIGNAL_RUN_FIRST, None, []),
     //    "hide-panel": (GObject.SIGNAL_RUN_FIRST, None, [])
     //}
 
-    public LestimPanel panel;
-    public bool panel_visible = true;
+//    public LestimPanel panel;
+//    public bool panel_visible = true;
     //public Wnck.Screen screen;
 
-    public WindowPositionDetector(LestimPanel panel) {
-        this.panel = panel;
+//    public WindowPositionDetector(LestimPanel panel) {
+//        this.panel = panel;
         //screen = Wnck.Screen.get_default();
-    }
-}
+//    }
+//}
 /*
 public class SoundControl: GLib.Object {
 

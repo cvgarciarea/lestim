@@ -16,140 +16,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-class DockButton: Gtk.EventBox {
-
-    public signal void right_click();
-    public signal void left_click();
-
-    public Gtk.Box box;
-    public Gtk.Image image;
-    public Gtk.Label label;
-
-    public int icon_size = 48;
-    public bool show_label = true;
-    public string? icon_name;
-
-    public DockButton() {
-        this.box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        this.add(this.box);
-
-        this.image = new Gtk.Image();
-        this.box.add(this.image);
-
-        this.label = new Gtk.Label(null);
-        this.box.pack_end(this.label, true, true, 0);
-
-        this.button_release_event.connect(this.button_release_event_cb);
-    }
-
-    private bool button_release_event_cb(Gtk.Widget self, Gdk.EventButton event) {
-        if (event.button == 1) {
-            this.left_click();
-        } else if (event.button == 3) {
-            this.right_click();
-        }
-
-        return true;
-    }
-
-    public void set_image_from_string(string name) {
-        this.icon_name = name;
-        this.box.remove(this.image);
-
-        this.image = get_image_from_name(this.icon_name, this.icon_size);
-        this.box.add(this.image);
-        this.show_all();
-    }
-
-    public void set_image_from_widget(Gtk.Image image) {
-        this.icon_name = null;
-        this.box.remove(this.image);
-
-        this.image = image;
-        this.box.add(this.image);
-        this.show_all();
-    }
-
-    public void set_image_from_pixbuf(Gdk.Pixbuf pixbuf) {
-        this.icon_name = null;
-        this.box.remove(this.image);
-
-        this.image = new Gtk.Image.from_pixbuf(pixbuf);
-        this.box.add(this.image);
-        this.show_all();
-    }
-
-    public void set_icon_size(int size) {
-        if (size == this.icon_size) {
-            return;
-        }
-
-        this.icon_size = size;
-
-        if (this.icon_name != null) {
-            this.set_image_from_string(this.icon_name);
-        } else {
-            Gdk.Pixbuf pixbuf = this.image.get_pixbuf();
-            pixbuf = pixbuf.scale_simple(this.icon_size, this.icon_size, Gdk.InterpType.TILES);
-            this.set_image_from_pixbuf(pixbuf);
-        }
-    }
-
-    public void set_label(string text) {
-        this.label.set_label(text);
-    }
-
-    public void set_show_label(bool show) {
-        if (show != this.show_label) {
-            this.show_label = show;
-            if (this.show_label) {
-                this.box.pack_end(this.label, true, true, 0);
-            } else {
-                this.box.remove(this.label);
-            }
-        }
-    }
-}
-
-class OpenedAppButton: DockButton {
-
-    public OpenedAppButton() {}
-    /*
-    public Wnck.Window window;
-
-    public OpenedAppButton(Wnck.Window window) {
-        this.window = window;
-        this.set_image_from_pixbuf(this.window.get_icon());
-        this.set_tooltip_text(this.window.get_name());
-
-        this.left_click.connect(this.left_click_cb);
-
-    private void left_click_cb() {
-        if (!this.window.is_active()) {
-            this.window.active(0);
-        } else {
-            this.window.minimize();
-        }
-    }
-    */
-}
-
-private class ShowAppsButton: DockButton {
-    public ShowAppsButton() {
-        this.set_name("DockAppsButton");
-        this.set_image_from_string("view-grid-symbolic");
-        this.set_show_label(false);
-    }
-}
-
-private class LateralDockButton: DockButton {
-    public LateralDockButton() {
-        this.set_name("ShowDockButton");
-        this.set_image_from_string("go-previous-symbolic");
-        this.set_show_label(false);
-    }
-}
-
 public class LestimDock: Gtk.Window {
 
     public signal void show_apps();
@@ -164,8 +30,8 @@ public class LestimDock: Gtk.Window {
     public Gtk.Box box;
     public Gtk.Box favorite_area;
     //public Wnck.Tasklist opened_apps_area;
-    private ShowAppsButton show_apps_button;
-    private LateralDockButton lateral_panel_button;
+    private Ltk.ShowAppsButton show_apps_button;
+    private Ltk.ShowLateralPanelButton lateral_panel_button;
 
     public LestimDock() {
         this.set_name("LestimDock");
@@ -179,13 +45,8 @@ public class LestimDock: Gtk.Window {
         this.set_skip_taskbar_hint(true);
         this.set_skip_pager_hint(true);
         this.set_urgency_hint(true);
-
-        Gtk.drag_dest_set (
-            this,
-            Gtk.DestDefaults.MOTION | Gtk.DestDefaults.HIGHLIGHT,
-            app_button_target_list,
-            Gdk.DragAction.COPY
-        );
+        this.set_app_paintable(true);
+        this.set_visual(screen.get_rgba_visual());
 
         this.gsettings = new GLib.Settings("org.lestim.dock");
         this.gsettings.changed.connect(this.settings_changed_cb);
@@ -193,49 +54,126 @@ public class LestimDock: Gtk.Window {
         this.box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         this.add(this.box);
 
-        this.show_apps_button = new ShowAppsButton();
+        this.show_apps_button = new Ltk.ShowAppsButton();
         this.show_apps_button.left_click.connect(show_apps_cb);
         this.box.pack_start(this.show_apps_button, false, false, 0);
 
         this.favorite_area = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        this.box.pack_start(this.favorite_area, false, false, 5);
+
+        Gtk.drag_dest_set(
+            this.favorite_area,
+            Gtk.DestDefaults.MOTION | Gtk.DestDefaults.HIGHLIGHT,
+            apps_target_list,
+            Gdk.DragAction.COPY);
+
+        this.favorite_area.realize.connect(this.realize_cb);
+        this.favorite_area.drag_motion.connect(this.drag_motion_cb);
+        this.favorite_area.drag_leave.connect(this.drag_leave_cb);
+        this.favorite_area.drag_drop.connect(this.drag_drop_cb);
+        this.favorite_area.drag_data_received.connect(this.drag_data_received_cb);
+        this.box.pack_start(this.favorite_area, true, true, 5);
 
         //Wnck.Tasklist opened_apps_area = new Wnck.Tasklist();
         //this.opened_apps_area = new Wnck.Tasklist();
         //this.box.pack_start(this.opened_apps_area, false, false, 0);
 
-        this.lateral_panel_button = new LateralDockButton();
+        this.lateral_panel_button = new Ltk.ShowLateralPanelButton();
         this.lateral_panel_button.left_click.connect(this.show_panel_cb);
         this.box.pack_end(this.lateral_panel_button, false, false, 1);
 
-        this.drag_data_received.connect(this.drag_data_received_cb);
-        this.realize.connect(this.realize_cb);
-    }
-
-    private void drag_data_received_cb(Gtk.Widget widget, Gdk.DragContext context, int x, int y, Gtk.SelectionData selection_data, uint target_type, uint time) {
-        if ((selection_data == null) || !(selection_data.get_length() >= 0)) {
-            return;
-        }
-
-        switch (target_type) {
-            case Target.STRING:
-                stdout.printf((string)selection_data.get_data() + "\n");
-                break;
-            default:
-                stdout.printf("Anything\n");
-                break;
-        }
+        this.draw.connect(this.draw_cb);
     }
 
     private void realize_cb() {
         this.reload_position();
-        this.reload_transparency();
+        this.reload_favorited_buttons();
+    }
+
+    private void drag_data_received_cb(Gtk.Widget widget, Gdk.DragContext context,
+                                       int x, int y,
+                                       Gtk.SelectionData selection_data,
+                                       uint target_type, uint time) {
+        bool dnd_success = false;
+        bool delete_selection_data = false;
+
+        if ((selection_data != null) && (selection_data.get_length() >= 0)) {
+            if (context.get_suggested_action() == Gdk.DragAction.MOVE) {
+                delete_selection_data = true;
+            }
+
+            switch (target_type) {
+                case Target.STRING:
+                    this.add_app_to_favorites((string)selection_data.get_data());
+                    dnd_success = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+        Gtk.drag_finish(context, dnd_success, delete_selection_data, time);
+    }
+
+    private bool drag_motion_cb(Gtk.Widget widget, Gdk.DragContext context, int x, int y, uint time) {
+        // Draw in the dock
+        return false;
+    }
+
+    private void drag_leave_cb(Gtk.Widget widget, Gdk.DragContext context, uint time) {
+        // Remove the icon drawed
+    }
+
+    private bool drag_drop_cb(Gtk.Widget widget, Gdk.DragContext context, int x, int y, uint time) {
+        bool is_valid_drop_site = true;
+
+        if (context.list_targets() != null) {
+            var target_type = (Gdk.Atom)context.list_targets().nth_data(Target.STRING);
+
+            Gtk.drag_get_data(
+                    widget,
+                    context,
+                    target_type,
+                    time);
+        } else {
+            is_valid_drop_site = false;
+        }
+
+        return is_valid_drop_site;
+    }
+
+    public void add_app_to_favorites(string path) {
+        string[] apps = this.gsettings.get_strv("favorites-apps");
+        if (!(path in apps)) {
+            apps += path;
+            this.gsettings.set_strv("favorites-apps", apps);
+        }
+    }
+
+    public void reload_favorited_buttons() {
+        foreach (Gtk.Widget button in this.favorite_area.get_children()) {
+            this.favorite_area.remove(button);
+        }
+
+        string[] apps = this.gsettings.get_strv("favorites-apps");
+
+        foreach (string desktop_file in apps) {
+            GLib.File file = GLib.File.new_for_path(desktop_file);
+            if (!file.query_exists()) {
+                continue;
+            }
+
+            Ltk.IconManager icon_manager = new Ltk.IconManager();
+            Ltk.App app = new Ltk.App(desktop_file, icon_manager);
+            Ltk.FavoriteAppButton button = new Ltk.FavoriteAppButton(app);
+
+            this.favorite_area.pack_start(button, false, false, 0);
+            this.show_all();
+        }
     }
 
     public void settings_changed_cb(GLib.Settings gsettings, string key) {
         switch (key) {
             case "icon-size":
-                this.reload_icon_size();
+                this.reset_pos();
                 break;
 
             case "position":
@@ -257,16 +195,24 @@ public class LestimDock: Gtk.Window {
             case "animation-step-size":
                 break;
 
+            case "favorites-apps":
+                this.reload_favorited_buttons();
+                break;
+
             case "background-transparency":
-                this.reload_transparency();
+                this.queue_draw();
                 break;
         }
     }
 
-    public void reload_transparency() {
+    private bool draw_cb(Cairo.Context ctx) {
         double transp = 1.0 - (double)(this.gsettings.get_int("background-transparency")) / 10.0;
-        var window = this.get_window();
-        window.set_opacity(transp);
+        ctx.set_source_rgba(Constants.bg_color[0], Constants.bg_color[1],
+                            Constants.bg_color[2], transp);
+        ctx.set_operator(Cairo.Operator.SOURCE);
+        ctx.paint();
+
+        return false;
     }
 
     private void show_panel_cb() {
@@ -280,9 +226,9 @@ public class LestimDock: Gtk.Window {
     public void set_reveal_state(bool visible) {
         this.panel_visible = visible;
         if (!this.panel_visible) {
-            this.lateral_panel_button.set_image_from_string("go-previous-symbolic");
+            this.lateral_panel_button.set_image_from_icon_name("go-previous-symbolic");
         } else {
-            this.lateral_panel_button.set_image_from_string("go-next-symbolic");
+            this.lateral_panel_button.set_image_from_icon_name("go-next-symbolic");
         }
     }
 
@@ -350,13 +296,6 @@ public class LestimDock: Gtk.Window {
             32, Gdk.PropMode.REPLACE, (uint8[])struts, 12);
     }
 
-    public void reload_icon_size() {
-        int size = this.gsettings.get_int("icon-size");
-        this.show_apps_button.set_icon_size(size);
-        this.lateral_panel_button.set_icon_size(size);
-        this.reset_pos();
-    }
-
     public void reset_pos() {
         GLib.Idle.add(() => {
             if (this.in_transition) {
@@ -374,16 +313,19 @@ public class LestimDock: Gtk.Window {
                     case "Left":
                         this.set_size_request(s, DISPLAY_HEIGHT);
                         this.resize(s, DISPLAY_HEIGHT);
+                        this.favorite_area.set_size_request(1, 20);
                         break;
 
                     case "Top":
                         this.set_size_request(DISPLAY_WIDTH, s);
                         this.resize(DISPLAY_WIDTH, s);
+                        this.favorite_area.set_size_request(20, 1);
                         break;
 
                     case "Bottom":
                         this.set_size_request(DISPLAY_WIDTH, s);
                         this.resize(DISPLAY_WIDTH, s);
+                        this.favorite_area.set_size_request(20, 1);
                         break;
                 }
             } else {
@@ -391,16 +333,19 @@ public class LestimDock: Gtk.Window {
                     case "Left":
                         this.set_size_request(s, 1);
                         this.resize(s, 1);
+                        this.favorite_area.set_size_request(1, 20);
                         break;
 
                     case "Top":
                         this.set_size_request(1, s);
                         this.resize(1, s);
+                        this.favorite_area.set_size_request(20, 1);
                         break;
 
                     case "Bottom":
                         this.set_size_request(1, s);
                         this.resize(1, s);
+                        this.favorite_area.set_size_request(20, 1);
                         break;
                 }
             }

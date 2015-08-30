@@ -89,11 +89,8 @@ public class SettingsWindow: Gtk.Window {
     }
 
     public void show_cb(Gtk.Widget self) {
-        GLib.Idle.add(() => {
-            this.update_dock_widgets();
-            this.update_panel_widgets();
-            return true;
-        }, GLib.Priority.LOW);
+        this.update_dock_widgets();
+        this.update_panel_widgets();
     }
 
     public bool delete_event_cb() {

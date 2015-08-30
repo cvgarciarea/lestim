@@ -206,6 +206,8 @@ class AppsView: Gtk.Window {
             hide_Window();
         } else {
             show_Window();
+            this.search_entry.grab_focus();
+            this.activate_focus();
         }
     }
 
