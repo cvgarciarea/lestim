@@ -287,9 +287,10 @@ public class LestimDock: Gtk.Window {
         this.get_size(out w, out h);
         this.shown = true;
         bool expand = this.gsettings.get_boolean("expand");
+        string position = this.gsettings.get_string("position");
 
         if (expand) {
-            switch (this.gsettings.get_string("position")) {
+            switch (position) {
                 case "Left":
                     this.set_size_request(1, DISPLAY_HEIGHT);
                     this.resize(1, DISPLAY_HEIGHT);
@@ -309,7 +310,7 @@ public class LestimDock: Gtk.Window {
                     break;
             }
         } else {
-            switch (this.gsettings.get_string("position")) {
+            switch (position) {
                 case "Left":
                     this.favorite_area.set_size_request(1, 20);
                     break;
@@ -326,40 +327,37 @@ public class LestimDock: Gtk.Window {
             this.resize(1, 1);
         }
 
-        GLib.Idle.add(() => {
-            this.get_size(out w, out h);
+        this.get_size(out w, out h);
 
-            if (this.shown) {
-                switch(this.gsettings.get_string("position")) {
-                    case "Left":
-                        this.move(0, !expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
-                        break;
+        if (this.shown) {
+            switch(position) {
+                case "Left":
+                    this.move(0, !expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
+                    break;
 
-                    case "Top":
-                        this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, 0);
-                        break;
+                case "Top":
+                    this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, 0);
+                    break;
 
-                    case "Bottom":
-                        this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT - h);
-                        break;
-                }
-            } else {
-                switch(this.gsettings.get_string("position")) {
-                    case "Left":
-                        this.move(-w, !expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
-                        break;
-
-                    case "Top":
-                        this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, -h);
-                        break;
-
-                    case "Bottom":
-                        this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT);
-                        break;
-                }
+                case "Bottom":
+                    this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT - h);
+                    break;
             }
-            return true;
-        }, GLib.Priority.LOW);
+        } else {
+            switch(position) {
+                case "Left":
+                    this.move(-w, !expand? DISPLAY_HEIGHT / 2 - h / 2: 0);
+                    break;
+
+                case "Top":
+                    this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, -h);
+                    break;
+
+                case "Bottom":
+                    this.move(!expand? DISPLAY_WIDTH / 2 - w / 2: 0, DISPLAY_HEIGHT);
+                    break;
+            }
+        }
     }
     /*
     private bool _reveal_left() {
