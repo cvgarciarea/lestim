@@ -251,7 +251,7 @@ public class SettingsWindow: Gtk.Window {
         box6.pack_end(this.spin_step, false, false, 0);
 
         var box7 = this.make_row(listbox, "Background transparency");
-        Gtk.Adjustment adj3 = new Gtk.Adjustment(0, 0, 9, 1, 2, 0);
+        Gtk.Adjustment adj3 = new Gtk.Adjustment(0, 0, 10, 1, 2, 0);
         this.spin_dock_transparency = new Gtk.SpinButton(adj3, 0, 0);
         this.spin_dock_transparency.value_changed.connect(this.transparency_dock_changed);
         box7.pack_end(this.spin_dock_transparency, false, false, 0);

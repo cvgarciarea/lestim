@@ -52,7 +52,7 @@
       <default>2</default>
       <summary>The dock background transparency.</summary>
       <description>
-        Must be a value between 0 and 9.
+        Must be a value between 0 and 10.
       </description>
     </key>
   </schema>

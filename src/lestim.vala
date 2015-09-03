@@ -135,7 +135,11 @@ class Lestim: Gtk.Application {
     }
 }
 
-int main (string[] args) {
+void main(string[] args) {
+    Gtk.init(ref args);
+
     var lestim = new Lestim();
-    return lestim.run(args);
+    lestim.run();
+
+    Gtk.main();
 }

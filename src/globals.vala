@@ -16,16 +16,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-public int CURRENT_MONITOR = 0;
-public int DISPLAY_WIDTH = 0;
-public int DISPLAY_HEIGHT = 0;
-
 public void get_display_size(int? monitor_id = null) {
     Gdk.Screen screen = Gdk.Screen.get_default();
     Gdk.Rectangle rect;
+    bool monitor = true;
 
     if (monitor_id == null) {
         monitor_id = screen.get_primary_monitor();
+        monitor = false;
     }
 
     CURRENT_MONITOR = monitor_id;
@@ -33,6 +31,10 @@ public void get_display_size(int? monitor_id = null) {
     DISPLAY_WIDTH = rect.width;
     DISPLAY_HEIGHT = rect.height;
 }
+
+public int CURRENT_MONITOR = 0;
+public int DISPLAY_WIDTH = 0;
+public int DISPLAY_HEIGHT = 0;
 
 const int BYTE_BITS = 8;
 const int WORD_BITS = 16;

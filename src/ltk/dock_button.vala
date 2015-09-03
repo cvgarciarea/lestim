@@ -31,9 +31,7 @@ namespace Ltk {
         public GLib.Settings gsettings;
         public Gtk.Box box;
         public Gtk.Image image;
-        public Gtk.Label label;
 
-        public bool show_label = false;
         public string? icon_name = null;
         public string? icon_path = null;
         private int icon_from = IconFrom.NAME;
@@ -50,9 +48,6 @@ namespace Ltk {
 
             this.image = new Gtk.Image();
             this.box.add(this.image);
-
-            this.label = new Gtk.Label(null);
-            this.box.pack_end(this.label, true, true, 0);
 
             this.button_release_event.connect(this.button_release_event_cb);
         }
@@ -101,21 +96,6 @@ namespace Ltk {
             this.image = new Gtk.Image.from_pixbuf(new Gdk.Pixbuf.from_file_at_size(this.icon_path, size, size));
             this.box.add(this.image);
             this.show_all();
-        }
-
-        public void set_label(string text) {
-            this.label.set_label(text);
-        }
-
-        public void set_show_label(bool show) {
-            if (show != this.show_label) {
-                this.show_label = show;
-                if (this.show_label) {
-                    this.box.pack_end(this.label, true, true, 0);
-                } else {
-                    this.box.remove(this.label);
-                }
-            }
         }
     }
 
