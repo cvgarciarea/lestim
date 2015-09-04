@@ -35,6 +35,7 @@ namespace Ltk {
         public string? icon_name = null;
         public string? icon_path = null;
         private int icon_from = IconFrom.NAME;
+        private double[] click_point = { 0, 0 };
 
         public DockButton() {
             this.set_vexpand(false);
@@ -49,6 +50,7 @@ namespace Ltk {
             this.image = new Gtk.Image();
             this.box.add(this.image);
 
+            this.button_press_event.connect(this.button_press_event_cb);
             this.button_release_event.connect(this.button_release_event_cb);
         }
 
@@ -62,7 +64,16 @@ namespace Ltk {
             }
         }
 
+        private bool button_press_event_cb(Gtk.Widget self, Gdk.EventButton event) {
+            this.click_point = { event.x, event.y };
+            return true;
+        }
+
         private bool button_release_event_cb(Gtk.Widget self, Gdk.EventButton event) {
+            if (this.click_point[0] != event.x || this.click_point[1] != event.y) {
+                return true;
+            }
+
             if (event.button == 1) {
                 this.left_click();
             } else if (event.button == 3) {
